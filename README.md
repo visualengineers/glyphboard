@@ -24,4 +24,6 @@ Checkout the [Glyphboard](https://github.com/visualengineers/glyphboard.git) Sou
 
 Enter directory and run `npm install` and follow the instruction at https://github.com/visualengineers/glyphboard-backend.
 
+To build the local library run `npm run build_lib`. 
+
 Run `npm start` for a dev server inside the project directory. Navigate to `http://localhost:4200/` for the client and `http://localhost:4201/` to test the [backend](https://github.com/visualengineers/glyphboard-backend). The app will automatically reload if you change any of the source files, but you will have to restart manually if you change the python backend.
