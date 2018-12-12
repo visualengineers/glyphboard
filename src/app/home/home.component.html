@@ -1,10 +1,36 @@
 <div id="wrapper" (window:resize)="onResize()">
-<app-glyphplot [width]="regionManager.regions[0].width" [height]="regionManager.regions[0].height" [style.display]="regionManager.regions[0].display"></app-glyphplot>
-<app-splitter [style.display]="regionManager.regions[1].display"></app-splitter>
-<app-glyphplot [width]="regionManager.regions[1].width" [height]="regionManager.regions[1].height" [style.display]="regionManager.regions[1].display"></app-glyphplot>
-<app-featureplot [style.width]="regionManager.regions[2].width" [style.height]="regionManager.regions[2].height" [style.display]="regionManager.regions[2].display"></app-featureplot>
-<app-dataflow [style.width]="regionManager.regions[3].width" [style.height]="regionManager.regions[3].height" [style.display]="regionManager.regions[3].display"></app-dataflow>
-<app-lense></app-lense>
-<app-dashboard></app-dashboard>
-<app-global-dialog></app-global-dialog>
+  <app-glyphplot
+    [width]="regionManager.regions[0].width"
+    [height]="regionManager.regions[0].height"
+    [style.display]="regionManager.regions[0].display"
+  ></app-glyphplot>
+  <app-splitter
+    [style.display]="regionManager.regions[1].display"
+  ></app-splitter>
+  <app-glyphplot
+    [width]="regionManager.regions[1].width"
+    [height]="regionManager.regions[1].height"
+    [style.display]="regionManager.regions[1].display"
+  ></app-glyphplot>
+  <app-featureplot
+    [style.width]="regionManager.regions[2].width"
+    [style.height]="regionManager.regions[2].height"
+    [style.display]="regionManager.regions[2].display"
+  ></app-featureplot>
+  <app-dataflow
+    [style.width]="regionManager.regions[3].width"
+    [style.height]="regionManager.regions[3].height"
+    [style.display]="regionManager.regions[3].display"
+  ></app-dataflow>
+  <app-lense></app-lense>
+  <app-dashboard></app-dashboard>
+  <app-global-dialog></app-global-dialog>
+  <button
+    *ngIf="showAlButton()"
+    (click)="startLearning()"
+    mat-fab
+    color="primary"
+  >
+    <mat-icon>assignment</mat-icon>
+  </button>
 </div>

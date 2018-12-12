@@ -33,7 +33,8 @@ import {
   MatSelectModule,
   MatSlideToggleModule,
   MatButtonModule,
-  MatIconModule
+  MatIconModule,
+  MatDialogModule
 } from '@angular/material';
 import { DashboardGlyphlegendComponent } from './shared/dashboard/dashboard-glyphlegend/dashboard-glyphlegend.component';
 import { DashboardTabComponent } from './shared/dashboard/dashboard-tab/dashboard-tab.component';
@@ -45,7 +46,8 @@ import { DashboardTogglesComponent } from './shared/dashboard/dashboard-toggles/
 import { DashboardFunctionbuttonsComponent } from './shared/dashboard/dashboard-functionbuttons/dashboard-functionbuttons.component';
 import { GlobalDialogComponent } from './shared/global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
-
+import { GLModule, QuestionRoomComponent } from 'gamifilearning-lib';
+import { LabelDialogComponent } from './shared/label-dialog/label-dialog.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -69,7 +71,8 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
     DashboardTabContextComponent,
     DashboardTogglesComponent,
     DashboardFunctionbuttonsComponent,
-    GlobalDialogComponent
+    GlobalDialogComponent,
+    LabelDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -86,7 +89,9 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
     MatSlideToggleModule,
     MatButtonModule,
     MatIconModule,
-    AngularFileUploaderModule
+    MatDialogModule,
+    AngularFileUploaderModule,
+    GLModule
   ],
   providers: [
     appRoutingProviders,
@@ -96,7 +101,7 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
     Helper,
     EventAggregatorService
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  entryComponents: [QuestionRoomComponent, LabelDialogComponent]
 })
-
-export class AppModule { }
+export class AppModule {}

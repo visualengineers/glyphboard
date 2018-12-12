@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, HostListener, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  HostListener,
+  ViewChild
+} from '@angular/core';
 import { DataproviderService } from '../dataprovider.service';
 import { RegionManager } from './region.manager';
 import { Logger } from '../logger.service';
@@ -6,11 +12,13 @@ import { Configuration } from 'app/shared/glyphplot/configuration.service';
 import { LenseCursor } from 'app/shared/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
+import { MatDialog } from '@angular/material';
+import { LabelDialogComponent } from '../shared/label-dialog/label-dialog.component';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  providers: [ DataproviderService, Logger, RegionManager ],
+  providers: [DataproviderService, Logger, RegionManager],
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
@@ -23,7 +31,9 @@ export class HomeComponent implements OnInit {
     public regionManager: RegionManager,
     private configuration: Configuration,
     private cursor: LenseCursor,
-    private eventAggregator: EventAggregatorService) {
+    private eventAggregator: EventAggregatorService,
+    public dialog: MatDialog
+  ) {
     this.regionManager.addRegion('glyphs', 0, 0.8, true);
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
     this.regionManager.addRegion('features', 0, 0, false);
@@ -108,6 +118,26 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     this.onResize();
+  }
+
+  startLearning() {
+    const dialogRef = this.dialog.open(LabelDialogComponent, {
+      data: this.dataProvider.dataSet.features
+    });
+
+    // dialogRef.afterClosed().subscribe(result => {
+    //   console.log('The dialog was closed');
+    //   this.animal = result;
+    // });
+    // }
+  }
+
+  showAlButton(): boolean {
+    if (this.dataProvider.dataSet) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   onResize() {

@@ -11,15 +11,12 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist",
+            "outputPath": "dist/glyphboard",
             "index": "src/index.html",
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.json",
             "polyfills": "src/polyfills.ts",
-            "assets": [
-              "src/assets",
-              "src/favicon.ico"
-            ],
+            "assets": ["src/assets", "src/favicon.ico"],
             "styles": [
               "src/assets/styles/styles.scss",
               "node_modules/font-awesome/css/font-awesome.css"
@@ -91,18 +88,13 @@
               "src/assets/styles/styles.scss",
               "node_modules/font-awesome/css/font-awesome.css"
             ],
-            "assets": [
-              "src/assets",
-              "src/favicon.ico"
-            ]
+            "assets": ["src/assets", "src/favicon.ico"]
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "src/tsconfig.json"
-            ],
+            "tsConfig": ["src/tsconfig.json"],
             "exclude": []
           }
         }
@@ -123,10 +115,41 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "e2e/tsconfig.json"
-            ],
+            "tsConfig": ["e2e/tsconfig.json"],
             "exclude": []
+          }
+        }
+      }
+    },
+    "gamifilearning-lib": {
+      "root": "projects/gamifilearning-lib",
+      "sourceRoot": "projects/gamifilearning-lib/src",
+      "projectType": "library",
+      "prefix": "gl",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/gamifilearning-lib/tsconfig.lib.json",
+            "project": "projects/gamifilearning-lib/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/gamifilearning-lib/src/test.ts",
+            "tsConfig": "projects/gamifilearning-lib/tsconfig.spec.json",
+            "karmaConfig": "projects/gamifilearning-lib/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/gamifilearning-lib/tsconfig.lib.json",
+              "projects/gamifilearning-lib/tsconfig.spec.json"
+            ],
+            "exclude": ["**/node_modules/**"]
           }
         }
       }
