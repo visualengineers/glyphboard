@@ -1,0 +1,4 @@
+<canvas #canvas id="primary" class="lens" width="300" height="300" (mousemove)="onLensMouseMove($event)" (mouseenter)="onLensMouseEnter($event)" (mouseout)="onLensMouseOut($event)" [style.left]="cursor.position.left + 'px'" [style.top]="cursor.position.top + 'px'" [ngClass]="{'hidden': !cursor.display, 'fixed': cursor.isFixed}"></canvas>
+<canvas #secondary id="secondary" class="secondary_lens"  [ngClass]="{'hidden': !(cursor.display && cursor.splitActive), 'fixed': cursor.isFixed}" (window:resize)="onWindowResize($event)"></canvas>
+<div class="cursor" (mousemove)="onCursorMouseMove($event)" (click)="onCursorClick($event)" [style.left]="(cursor.position.left - cursorWidth/2) + 'px'" [style.top]="(cursor.position.top - cursorHeight/2) + 'px'" [ngClass]="{'hidden': !cursor.display, 'fixed': cursor.isFixed}"></div>
+<app-tooltip #tooltip></app-tooltip>

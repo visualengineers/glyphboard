@@ -1,0 +1,48 @@
+@import "~assets/styles/variables";
+
+.globaldialog {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    min-width: 500px;
+    min-height: 250px;
+    background-color: $background-color;
+    font-family: 'Glyphboard-Condensed', sans-serif;
+    color: $text-foreground-color;
+
+    &__menubar {
+        background-color: $button-dark-color;
+        height: 32px;
+        box-sizing: border-box;
+        padding-top: 6px
+    }
+
+    &__title {
+        text-transform: uppercase;
+        letter-spacing: $letter-spacing-condensed;
+        padding-left: $dashboard-padding;
+    }
+
+    &__shadow {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0px;
+        top: 0px;
+        background-color: #979797;
+        opacity: 0.6;
+    }
+
+    &__closebutton {
+        float: right;
+
+        &:hover {
+            color: $button-active-color;
+        }
+    }
+
+    &__template {
+        padding: $dashboard-padding;
+    }
+}

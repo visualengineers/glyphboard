@@ -1,0 +1,13 @@
+<div class="dashboard__glyphlegend">
+  <canvas #canvas width="350" height="240"></canvas>
+</div>
+<div class="dashboard__colorfeature" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures === undefined }">
+    <label class="fancy-checkbox-small" matTooltip="Switch between ordinal and categorical color scale">
+      <input type="checkbox" id="split" value="ordinal" (change)="onColorScaleChange($event)" 
+        [checked]="this.configuration.configurations[0].useColorRange" />
+      <i class="icon-small icon-categorical unchecked"></i>
+      <i class="icon-small icon-ordinal checked"></i>
+      Colored Feature: {{ this.configuration.configurations[0].selectedFeatureName }}
+    </label>
+    <span class="dashboard__itemcounter">{{ this.configuration.configurations[0].itemsCount | number:'':'de' }} Items</span>
+</div>

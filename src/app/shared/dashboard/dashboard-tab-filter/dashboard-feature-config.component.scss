@@ -1,0 +1,105 @@
+@import "../dashboard-tab/dashboard-tab.component";
+
+.option {
+    display: inline-block;
+    margin-right: 6px;
+    margin-bottom: 7px;
+    cursor: pointer;
+  }
+  .label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+    font-size: 0.8em;
+    display: block;
+    float: left;
+    margin-left: 2px;
+    line-height: 20px;
+  }
+  .label:hover {
+    font-weight: bold;
+    color: $button-active-color;
+  }
+  
+  .expander {
+    background-color: transparent; 
+    text-decoration: none;
+    border: none;
+    text-align: center;
+    float: right;
+  }
+  
+  i {
+    color: $text-foreground-color;
+    padding-left: 4px;
+  }
+  
+  i:hover {
+    color: $button-active-color;
+  }
+  
+  .label_wrap {
+    margin-top: 2px;
+  }
+  
+  .d3-chart {
+    height: 50px;
+    padding: 2px;
+    background-color: $text-foreground-color;
+  }
+  
+  svg {
+    display: inline-block;
+  }
+  
+  .invisible {
+    display: none;  
+  }
+
+  .selected {
+    fill: $histogram-selected-bars;
+  }
+
+  .bar {
+    fill: $histogram-unselected-bars;
+  }
+
+  .brush {
+      fill: $histogram-selection; 
+  }
+
+  .small {
+    min-width: 80px;
+  }
+
+  .big {
+    min-width: 320px;
+  }
+
+  .context {
+    min-height: 5px;   
+    line-height: 0px;
+  }
+
+  .categorical {
+    min-height: 5px;
+    display: block;
+    float: left;
+    width: 10%;
+  }
+
+  .continuous {
+    background: linear-gradient(to right, $color-scale-low 0% , $color-scale-high 100%);
+    background: -moz-linear-gradient(left, $color-scale-low 0% , $color-scale-high 100%);
+    background: -webkit-linear-gradient(left, $color-scale-low 0% , $color-scale-high 100%); 
+  }
+
+  .activeContext {
+    background-color: $histogram-selected-bars; 
+  }
+
+  .inactiveContext {
+    background-color: $background-color;
+  }
+

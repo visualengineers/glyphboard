@@ -1,0 +1,19 @@
+@import './fonts';
+@import './colors';
+
+$dashboard-padding: 15px;
+$dashboard-width: 395px;
+
+$tabselection-font-size: 24px;
+$dashboard-font-size: 14px;
+$dashboard-title-font-size: 24px;
+
+$icon-size: 42px;
+$icon-padding: 8px;
+$icon-font-size: $icon-size - ($icon-padding * 2);
+
+$break-small: 800px;
+$break-large: 1000px;
+
+$letter-spacing-condensed: 0.1em;
+$letter-spacing-condensedbold: 0.05em;

@@ -1,0 +1,78 @@
+@import "~assets/styles/variables";
+
+.bounding {
+  position: relative;
+  margin-top: 20px;
+  margin-bottom: -15px;
+}
+.slide {
+  transform: translateY(11px);
+
+  &.zoomed{
+    outline: 2px solid $button-active-color;
+    transition: all 0.2s;
+
+    &.dragging{
+      transition: all 0s;
+    }
+  }
+
+  &.zooming{
+    outline: 2px solid $button-dark-color;
+  }
+}
+
+.slider {
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+
+  border: 0px solid $button-dark-color;
+  border-radius: 15px;
+
+  background: $button-dark-color;
+  transition: border 0.2s;
+
+  &.dragging {
+    background-color: $button-active-color;
+    cursor: grabbing;
+  }
+
+  &.min {
+    transform: translateY(-14px);
+  }
+
+  &.max {
+    transform: translateY(-34px);
+  }
+
+  &:hover{
+    background-color: $button-active-color;
+    cursor: grab;
+  }
+}
+
+.indicator {
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 0; 
+  height: 0; 
+  border-left: calc(15px/0.866/2) solid transparent;
+  border-right: calc(15px/0.866/2) solid transparent;
+  border-bottom: 15px solid $button-active-color;
+  transform: translateY(16px);
+
+  transition: all 0.2s;
+
+  &.dragging {
+    transition: all 0s;
+  }
+
+  &:hover {
+    cursor: grab;
+  }
+}

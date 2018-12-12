@@ -1,0 +1,131 @@
+#tooltip {
+  position: absolute;
+
+  min-width: 300px;
+  height: auto;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+
+  font-size: 0.8rem;
+  font-family: "Glyphboard-Regular", sans-serif;
+
+  max-height: 90vh;
+  overflow-y: hidden;
+  overflow-x: hidden;  
+
+  &.fixed {
+    border: 2px solid teal;    
+    overflow-y: auto !important;
+  }  
+}
+
+#heading {
+  width: 100%;
+}
+#controls {
+  width: 100%;
+  padding-right: 0.5rem;
+  font-size: 1.2rem;
+}
+fa {
+  display: inline-block;
+  float: right;
+  color: #ccc;
+  padding-left: 0.5rem;
+}
+fa:hover {
+  color: #888;
+  cursor: pointer;
+}
+fa.active {
+  color: teal;
+}
+
+td {
+  vertical-align: top;
+  padding: 0.5rem 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+td.label {
+  width: 150px;
+  max-width: 170px;
+  text-transform: uppercase;
+  font-weight: bolder;
+}
+
+td.value {
+  width: 300px;
+  max-width: 300px;
+  font-weight: lighter;
+}
+
+/* http://hackingui.com/front-end/a-pure-css-solution-for-multiline-text-truncation/ */
+.tableContent {
+  /* hide text if it more than N lines  */
+  overflow: hidden;
+  /* for set '...' in absolute position */
+  position: relative;
+  /* use this value to count block height */
+  line-height: 1.2em;
+  /* max-height = line-height (1.2) * lines max number (3) */
+  max-height: 6em;
+  /* fix problem when last visible word doesn't adjoin right side  */
+  text-align: justify;
+  /* place for '...' */
+  margin-right: -1em;
+  padding-right: 1em;
+}
+
+/* create the ... */
+.tableContent:before {
+  /* points in the end */
+  content: "...";
+  /* absolute position */
+  position: absolute;
+  /* set position to right bottom corner of block */
+  right: 0;
+  bottom: 0;
+}
+/* hide ... if we have text, which is less than or equal to max lines */
+.tableContent:after {
+  /* points in the end */
+  content: "";
+  /* absolute position */
+  position: absolute;
+  /* set position to right bottom corner of text */
+  right: 0;
+  /* set width and height */
+  width: 1em;
+  height: 1em;
+  margin-top: 0.2em;
+  /* bg color = bg color under block */
+  background: white;
+}
+
+td.value > textarea {
+  width: 300px;
+  max-width: 300px;
+}
+
+h1 {
+  font-size: 1em;
+  margin: 0.2rem 0 0.5rem;
+  font-family: "Glyphboard-Regular:700", sans-serif;
+  width: 100%;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.hidden {
+  display: none;
+}

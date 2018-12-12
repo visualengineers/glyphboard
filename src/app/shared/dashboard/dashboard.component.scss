@@ -1,0 +1,123 @@
+@import "~assets/styles/variables";
+
+/* Main styles for dashboard */
+
+.dashboard {
+  background: $background-color;
+  color: $text-foreground-color;
+  display: block;
+  position: absolute;
+  right: 10px;
+  top: 20px;
+  width: $dashboard-width;
+  max-height: calc(100vh - 40px);
+  opacity: 1;
+  font-family: "Glyphboard-Regular", sans-serif;
+  font-size: $dashboard-font-size;
+  overflow: hidden;
+  user-select: none;
+
+  &--closed {
+    box-sizing: border-box;
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 20px;
+    width: $icon-size;
+    height: $icon-size;
+    padding: $icon-padding;
+    padding-left: $icon-padding + 1px;
+    background: $background-color;
+    color: $text-foreground-color;
+    justify-content: center;
+
+    a {
+      padding: 0px;
+      margin: 0px;
+      display: inline-block;
+      text-decoration: none;
+      font-size: $dashboard-title-font-size;
+      color: $button-light-color;
+    }
+  }
+
+  &__tabselection {
+    display: flex;
+    flex-wrap: nowrap;
+    padding-left: $dashboard-padding;
+    padding-right: $dashboard-padding;
+    align-content: space-between;
+
+    a {
+      font-size: $tabselection-font-size;
+      display: inline-block;
+      padding-bottom: $dashboard-padding * 1.5;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+      letter-spacing: $letter-spacing-condensedbold;
+      font-family: "Glyphboard-CondensedBold", sans-serif;
+      color: $tab-inactive-color;
+      text-decoration: none;
+    }
+    a:first-child {
+      padding-left: 0px;
+    }
+    a:last-child {
+      padding-right: 0px;
+    }
+    a.active {
+      text-decoration: none;
+      color: $text-foreground-color;
+    }
+    a.active > span {
+      padding-bottom: 2px;
+      border-bottom: 1px solid $text-foreground-color;
+    }
+    a:active,
+    a:focus {
+      outline: none;
+    }
+  }
+
+  &__title {
+    padding-top: $dashboard-padding / 2;
+    padding-left: $dashboard-padding;
+    padding-right: $dashboard-padding;
+
+    &__text {
+      padding-left: $dashboard-padding;
+      display: inline-block;
+      font-family: "Glyphboard-Condensed", sans-serif;
+      letter-spacing: $letter-spacing-condensed;
+      font-size: $dashboard-title-font-size;
+      color: $text-foreground-color;
+    }
+
+    &__hamburger {
+      display: inline-block;
+      a {
+        padding: 0px;
+        margin: 0px;
+        display: inline-block;
+        text-decoration: none;
+        font-size: $dashboard-title-font-size;
+        color: $button-light-color;
+      }
+    }
+  }
+
+  &__infobox-main {
+    padding-top: $dashboard-padding * 1.5;
+    padding-left: $dashboard-padding;
+    padding-right: $dashboard-padding;
+    height: 235px;
+  }
+}
+
+/* Potentially obsolete styles */
+
+.upload-drop-zone {
+  padding: 8px;
+  border: 1px dashed;
+  height: 30px;
+}

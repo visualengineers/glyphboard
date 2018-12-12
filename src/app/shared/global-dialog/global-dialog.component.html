@@ -1,0 +1,12 @@
+<div [ngClass]="{ 'hidden': active === false }">
+  <div class="globaldialog__shadow"></div>
+  <div class="globaldialog">
+    <div class="globaldialog__menubar">
+      <span class="globaldialog__title">{{ title }}</span>
+      <button class="fancy-button-menubar globaldialog__closebutton" (click)="close()" matTooltip="Close"><i class="icon-menubar icon-cross"></i></button>
+    </div>
+    <div class="globaldialog__template">
+      <ng-container *ngTemplateOutlet="dialogTemplateRef"></ng-container>
+    </div>
+  </div>
+</div>

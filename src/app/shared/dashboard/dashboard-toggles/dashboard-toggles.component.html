@@ -1,0 +1,21 @@
+<div class="dashboard__toggles">
+  <label class="fancy-radiobutton" matTooltip="Zooming and panning (ALT + P)">
+    <input type="radio" id="zoom" value="zoom" (change)="onInteractionToggle($event)"
+      [checked]="!cursor.isVisible && !this.configuration.configurations[0].useDragSelection" />
+    <i class="icon icon-enlarge unchecked"></i>
+    <i class="icon icon-enlarge checked"></i>
+  </label>
+  <label class="fancy-radiobutton" matTooltip="Magic Lens (ALT + M)">
+    <input type="radio" id="magicLens" value="magiclens" (change)="onInteractionToggle($event)"
+      [checked]="cursor.isVisible" />
+    <i class="icon icon-magiclens unchecked"></i>
+    <i class="icon icon-magiclens checked"></i>
+  </label>
+
+  <label class="fancy-radiobutton" matTooltip="Selection (ALT + S)">
+    <input type="radio" id="selection" value="selection" (change)="onInteractionToggle($event)"
+      [checked]="this.configuration.configurations[0].useDragSelection" />
+    <i class="icon icon-select unchecked"></i>
+    <i class="icon icon-select checked"></i>
+  </label>
+</div>

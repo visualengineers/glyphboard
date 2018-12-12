@@ -1,0 +1,7 @@
+<div class="bounding">
+  <div class="slide zooming" [style.width]="max + 'px'"></div>
+  <div class="slide zoomed" [style.max-width]="max + 'px'" style.width="{{((currentValue/20)*max+8.66) + 'px'}}" [ngClass]="{'dragging': draggingIndicator}"></div>
+  <div class="indicator" [style.left]="((currentValue/20)*max + 2) > max ? max-6.66 + 'px' : ((currentValue/20)*max + 2 ) + 'px'" [ngClass]="{'dragging': draggingIndicator}"></div>
+  <div class="slider min" [style.left]="lowerBound + 'px'" [ngClass]="{'dragging': draggingMin}">1</div>
+  <div class="slider max" [style.left]="upperBound + 'px'" [ngClass]="{'dragging': draggingMax}">2</div>
+</div>

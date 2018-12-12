@@ -1,0 +1,16 @@
+<div class="dashboard-tab dashboard-tab-filter">
+  <div>
+    <input #searchfield class="dashboard-tab-filter__search" (keyup.enter)="search(searchfield.value)" type="text" name="search" placeholder="Search...">
+    <button class="dashboard-tab-filter__searchbutton" (click)="search(searchfield.value)" matTooltip="Perform search"><i class="icon-menubar icon-lens"></i></button>    
+    <button class="dashboard-tab-filter__erasebutton" (click)="resetFilters()" matTooltip="Reset all filters"><i class="icon-menubar icon-erase"></i></button>
+    <span class="dashboard-tab-filter__filtereditemcounter">{{ this.configuration.configurations[0].filteredItemsCount === 0 ? 'None' : this.configuration.configurations[0].filteredItemsCount | number:'':'de' }} Selected</span>
+  </div>
+  <div id="featureOptions"> 
+    <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
+      *ngFor="let f of this.configuration.configurations[0].activeFeatures" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
+      [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
+  </div>
+  <div class="infobox" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures !== undefined }">
+    Please select dataset first. Then you can filter your visualization using the histograms displayed in this tab.
+  </div>
+</div>

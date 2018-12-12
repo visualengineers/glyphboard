@@ -1,0 +1,265 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import './material-glyphboard';
+@import "~assets/styles/variables";
+@import '~material-design-icons/iconfont/material-icons.css';
+
+body {
+    margin: 0px;
+    overflow: hidden;
+}
+
+.hidden {
+    display: none;
+    visibility: collapse;
+}
+
+.fancy-checkbox-small {
+    box-sizing: border-box;
+    cursor: pointer !important;
+}
+
+.fancy-checkbox,
+.fancy-radiobutton
+{
+    box-sizing: border-box;
+    cursor: pointer !important;
+    margin: 1px;
+    padding-bottom: 14px;
+
+    &:hover, &:active {
+        &:not([disabled]) {
+            i {
+                background-color: $button-active-color;
+            }
+        }
+    }
+}
+
+button:active {
+    outline: none;
+    border: none;
+}
+    
+button:focus {
+    outline:0;
+}
+
+input[type="radio" i] {
+    margin: 0px;    
+}
+
+.fancy-radiobutton input[type="radio"],
+.fancy-radiobutton .checked, 
+.fancy-checkbox-small input[type="checkbox"],
+.fancy-checkbox-small .checked,
+.fancy-checkbox input[type="checkbox"],
+.fancy-checkbox .checked {
+    display: none;
+    z-index: -1;
+}
+
+.fancy-checkbox-small input[type="checkbox"]:checked ~ .checked
+{
+    box-sizing: border-box;
+    display: inline;
+    color: $button-active-color;
+}
+
+.fancy-checkbox input[type="checkbox"]:checked ~ .checked,
+.fancy-radiobutton input[type="radio"]:checked ~ .checked
+{
+    box-sizing: border-box;
+    display: inline;
+    color: $button-light-color;
+    background-color: $button-active-color;
+}
+
+.fancy-radiobutton input[type="radio"]:checked ~ .checked
+{
+    border: $icon-padding solid $button-active-color;
+}
+
+.fancy-radiobutton input[type="checkbox"]:checked ~ .checked
+{
+    border: $icon-padding solid $button-active-color;
+}
+
+.fancy-checkbox input[type="checkbox"]:checked ~ .unchecked,
+.fancy-checkbox-small input[type="checkbox"]:checked ~ .unchecked,
+.fancy-radiobutton input[type="radio"]:checked ~ .unchecked
+{
+    display: none;
+}
+
+.fancy-radiobutton input[type="radio"]:checked ~ .unchecked
+{
+    border: $icon-padding solid $button-dark-color;
+}
+
+.fancy-radiobutton input[type="checkbox"]:checked ~ .unchecked
+{
+    border: $icon-padding solid $button-dark-color;
+}
+
+.icon-menubar {
+    box-sizing: border-box;
+    color: $text-foreground-color;
+    background-color: $button-dark-color;
+    border: 0;
+
+    &:hover {
+        color: $button-active-color;
+    }
+}
+
+.icon-small {
+    box-sizing: border-box;
+    color: $button-active-color;
+    background-color: $background-color;
+    border: 0;
+
+    &:hover {
+        color: $text-foreground-color;
+    }
+}
+
+.icon {
+    box-sizing: border-box;
+    color: $button-light-color;
+    background-color: $button-dark-color;
+    border-radius: 6px;
+    font-size: $icon-font-size;
+    width: $icon-size;
+    height: $icon-size;
+    border: $icon-padding solid transparent;
+}
+
+.afu-upload-btn,
+.fancy-button-menubar {
+    box-sizing: border-box;
+    border: none; /* Remove borders */
+    margin: 1px; /* Some padding */
+    cursor: pointer; /* Mouse pointer on hover */
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    padding-right: $dashboard-padding;
+    background-color: $button-dark-color;
+    font-size: 18px;
+
+    &:hover {
+        color: $button-active-color !important;
+
+        i {
+            color: $button-active-color;
+        }
+    }
+}
+
+.fancy-button {
+    box-sizing: border-box;
+    border: none; /* Remove borders */
+    margin: 1px; /* Some padding */
+    cursor: pointer; /* Mouse pointer on hover */
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    padding: 0;
+    background-color: $background-color;
+    padding-bottom: 14px;
+
+    &:disabled {
+        i {
+            color: $tab-inactive-color;
+        }
+    }
+   
+    &:hover, &:active {
+        &:not([disabled]) {
+            i {
+                background-color: $button-active-color;
+            }
+        }
+    }
+}
+
+/* AFU Upload Styles https://github.com/kzrfaisal/angular-file-uploader */
+
+.dragNDrop {
+    margin-top: $dashboard-padding;
+}
+
+.afu-dragndrop-box {
+    border: 1px dashed $text-foreground-color !important;
+    width: initial !important;
+}
+
+.afu-dragndrop-text {
+    font-weight: normal !important;
+    color: $text-foreground-color !important;
+    text-transform: uppercase;
+    padding-top: 14px;
+}
+
+.afu-constraints-info {
+    font-style: normal !important;
+}
+
+.afu-upload-btn {
+    font-family: 'Glyphboard-Condensed', sans-serif !important;
+    color: $text-foreground-color !important;
+    font-weight: normal;
+    text-transform: uppercase;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.row {
+    box-sizing: border-box;
+}
+
+.row p,
+.row a {
+    margin: 0px;
+}
+
+.row:before,
+.row:after {
+    content: " ";
+    display: table;
+}
+
+.row:after {
+    clear: both;
+}
+
+.col-xs-1,
+.col-xs-3 {
+    float: left;
+    min-height: 1px;
+    position: relative;
+}
+
+.col-xs-3 {
+    width: 45%;
+}
+
+.fa {
+    display: inline-block;
+    font-size: 14px;
+    font-size: inherit;
+    text-rendering: auto;
+    cursor: pointer;
+}

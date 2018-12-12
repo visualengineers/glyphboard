@@ -1,0 +1,22 @@
+@import "../dashboard-tab/dashboard-tab.component";
+
+.dashboard {
+  &__glyphlegend {
+    padding-top: $dashboard-padding * 1.5;
+    padding-left: $dashboard-padding;
+    padding-right: $dashboard-padding;
+    font-size: $dashboard-font-size;
+  }
+
+  &__colorfeature {
+    padding-left: $dashboard-padding;
+    padding-right: $dashboard-padding;
+    padding-bottom: $dashboard-padding * 1.5;
+    color: $text-foreground-color;
+    font-family: "Glyphboard-Condensed", sans-serif;
+  }
+
+  &__itemcounter {
+    float: right;
+  }
+}

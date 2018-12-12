@@ -1,0 +1,127 @@
+/* font imports */
+
+@font-face {
+  font-family: "Glyphboard-Light";
+  src: url("/assets/fonts/OpenSans-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Glyphboard-Regular";
+  src: url("/assets/fonts/OpenSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Glyphboard-SemiBold";
+  src: url("/assets/fonts/OpenSans-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Glyphboard-Bold";
+  src: url("/assets/fonts/OpenSans-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Glyphboard-Condensed";
+  src: url("/assets/fonts/OpenSansCondensed-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Glyphboard-CondensedBold";
+  src: url("/assets/fonts/OpenSansCondensed-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'icomoon';
+  src:  url('/assets/fonts/icomoon.eot?vdsel7');
+  src:  url('/assets/fonts/icomoon.eot?vdsel7#iefix') format('embedded-opentype'),
+    url('/assets/fonts/icomoon.ttf?vdsel7') format('truetype'),
+    url('/assets/fonts/icomoon.woff?vdsel7') format('woff'),
+    url('/assets/fonts/icomoon.svg?vdsel7#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-aggregate:before {
+  content: "\e900";
+}
+.icon-categorical:before {
+  content: "\e901";
+}
+.icon-color:before {
+  content: "\e902";
+}
+.icon-cross:before {
+  content: "\e903";
+}
+.icon-download:before {
+  content: "\e904";
+}
+.icon-enlarge:before {
+  content: "\e905";
+}
+.icon-erase:before {
+  content: "\e906";
+}
+.icon-fitTiSelection:before {
+  content: "\e907";
+}
+.icon-fitToScreen:before {
+  content: "\e908";
+}
+.icon-flower:before {
+  content: "\e909";
+}
+.icon-help:before {
+  content: "\e90a";
+}
+.icon-lens:before {
+  content: "\e90b";
+}
+.icon-magiclens:before {
+  content: "\e90c";
+}
+.icon-matrix:before {
+  content: "\e90d";
+}
+.icon-menu:before {
+  content: "\e90e";
+}
+.icon-minus:before {
+  content: "\e90f";
+}
+.icon-ordinal:before {
+  content: "\e910";
+}
+.icon-plus:before {
+  content: "\e911";
+}
+.icon-preventOverlapping:before {
+  content: "\e912";
+}
+.icon-select:before {
+  content: "\e913";
+}
+.icon-splitscreen:before {
+  content: "\e914";
+}
+.icon-star:before {
+  content: "\e915";
+}
+.icon-upload:before {
+  content: "\e916";
+}

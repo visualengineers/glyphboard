@@ -1,0 +1,63 @@
+<div class="dashboard-tab dashboard-tab-data">
+  <div class="dashboard-tab-data__group {{this.configuration.splitScreenActive ? 'dashboard-tab-data__group--split-left' : ''}}">
+    <mat-form-field>
+      <mat-select placeholder="Dataset" id="left_dataset" (selectionChange)="dashboardDataSetChanged()" [(value)]="selectedDataset">
+        <mat-option *ngFor="let dataset of datasets; let i = index" [(value)]="dataset.Dataset" [attr.selected]="dataset === selectedDataset ? true : null">{{dataset.Dataset}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="Version" id="left_version" (selectionChange)="dashboardVersionChanged()" [(value)]="selectedVersion"
+        [disabled]="versions.length === 0">
+        <mat-option *ngFor="let version of versions; let i = index" [value]="version" [attr.selected]="version === selectedVersion ? true : null">{{version}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="Position Algorithm" id="left_algo_position" (selectionChange)="dashboardPositionChanged()"
+        [(value)]="selectedPositionAlgorithm" [disabled]="positionAlgorithms.length === 0">
+        <mat-option *ngFor="let positionAlgorithm of positionAlgorithms; let i = index" [value]="positionAlgorithm"
+          [attr.selected]="positionAlgorithm === selectedPositionAlgorithm ? true : null">{{positionAlgorithm}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="
+      Feature Context" id="global_feature_context" (selectionChange)="onGlobalFeatureContextChange($event, 'left')"
+        [(value)]="this.configuration.configurations[0].selectedContext" [disabled]="this.configuration.configurations[0].featureContexts.length === 0">
+        <mat-option *ngFor="let context of this.configuration.configurations[0].featureContexts" [value]="context">{{context.description}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="dashboard-tab-data__group {{this.configuration.splitScreenActive ? 'dashboard-tab-data__group--split-right' : 'hidden'}}">
+    <mat-form-field ng-disabled="true">
+      <mat-select placeholder="Dataset" id="right_dataset" [disabled]="true" (selectionChange)="dashboardDataSetChangedSecond()"
+        [(value)]="selectedDatasetSecond">
+        <mat-option *ngFor="let dataset of datasets; let i = index" [value]="dataset.Dataset" [attr.selected]="dataset === selectedDatasetSecond ? true : null">{{dataset.Dataset}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="
+      Version" id="right_version" (selectionChange)="dashboardVersionChangedSecond()"
+        [(value)]="selectedVersionSecond" [disabled]="versionsSecond.length === 0">
+        <mat-option *ngFor="let version of versionsSecond; let i = index" [value]="version" [attr.selected]="version === selectedVersionSecond ? true : null">{{version}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="Position Algorithm" id="right_algo_position" (selectionChange)="dashboardPositionChangedSecond()"
+        [(value)]="selectedPositionAlgorithmSecond" [disabled]="positionAlgorithmsSecond.length === 0">
+        <mat-option *ngFor="let positionAlgorithm of positionAlgorithmsSecond; let i = index" [value]="positionAlgorithm"
+          [attr.selected]="positionAlgorithm === selectedPositionAlgorithmSecond ? true : null">{{positionAlgorithm}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="
+      Feature Context" id="right_global_feature_context" (selectionChange)="onGlobalFeatureContextChange($event, 'right')"
+        [(value)]="this.configuration.configurations[1].selectedContext" [disabled]="this.configuration.configurations[1].featureContexts.length === 0">
+        <mat-option *ngFor="let context of this.configuration.configurations[1].featureContexts" [value]="context">{{context.description}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>

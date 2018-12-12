@@ -1,0 +1,32 @@
+@import "../dashboard-tab/dashboard-tab.component";
+
+.dashboard-tab-glyphs {
+  &__row {
+    font-family: "Glyphboard-Condensed", sans-serif;
+    font-size: $dashboard-font-size;
+    letter-spacing: $letter-spacing-condensed;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    padding-bottom: $dashboard-padding;
+  }
+
+  &__description {
+    font-family: "Glyphboard-Condensed", sans-serif;
+    font-size: $dashboard-font-size;
+    letter-spacing: $letter-spacing-condensed;
+    width: 35%;
+  }
+
+  &__configuration {
+    width: 65%;
+
+    &__icons {
+      margin-top: 10px;
+    }
+  }
+
+  &__largespacing {
+    padding-right: 4px;
+  }
+}

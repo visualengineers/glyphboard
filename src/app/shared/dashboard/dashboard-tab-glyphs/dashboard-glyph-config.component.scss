@@ -1,0 +1,23 @@
+@import "../dashboard-tab/dashboard-tab.component";
+
+.configlabel {
+    display: block;
+    color: $text-foreground-color;
+    padding: 3px;
+    border-radius: 2px;
+    float: left;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-family: "Glyphboard-Condensed", sans-serif;
+    cursor: pointer;  
+    padding-left: 5px;
+    padding-right: 5px;
+
+    &--active {
+      background-color: $button-dark-color;
+    }
+
+    &--passive {
+      background-color: $button-active-color;
+  }
+}

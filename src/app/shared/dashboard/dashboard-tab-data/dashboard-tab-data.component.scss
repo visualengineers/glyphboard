@@ -1,0 +1,33 @@
+@import "../dashboard-tab/dashboard-tab.component";
+
+.dashboard-tab-data {
+    box-sizing: border-box;
+    width: $dashboard-width;    
+    display: flex;     
+    flex-wrap: nowrap;
+    background: $background-color;
+    color: $text-foreground-color;
+    padding: 0px;
+
+    &__group {
+        box-sizing: border-box;
+        margin-left: $dashboard-padding;
+        margin-right: $dashboard-padding;        
+
+        &--split-left {
+            display: flex;     
+            flex-direction: column;
+            box-sizing: border-box;
+            margin-left: $dashboard-padding;
+            margin-right: $dashboard-padding / 2;
+        }
+
+        &--split-right {
+            display: flex;     
+            flex-direction: column;
+            box-sizing: border-box;
+            margin-left: $dashboard-padding / 2;
+            margin-right: $dashboard-padding;
+        }
+    }
+}

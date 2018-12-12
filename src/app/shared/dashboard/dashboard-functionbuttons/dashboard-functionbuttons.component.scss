@@ -1,0 +1,8 @@
+@import "~assets/styles/variables";
+
+.dashboard__functionbuttons {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    padding-bottom: $dashboard-padding;
+}

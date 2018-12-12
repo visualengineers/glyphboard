@@ -1,0 +1,34 @@
+<div class="dashboard__functionbuttons">
+  <label class="fancy-checkbox" matTooltip="Split screen">
+    <input type="checkbox" id="split" value="split" (change)="onScreenToggle()"
+      [checked]="this.configuration.splitScreenActive" />
+    <i class="icon icon-splitscreen unchecked"></i>
+    <i class="icon icon-splitscreen checked"></i>
+  </label>
+  <label class="fancy-checkbox" matTooltip="Prevent Overlapping" >
+    <input type="checkbox" id="forceLayout" value="forceLayout" (change)="onForceLayoutToggle($event)"
+      [checked]="configuration.configurations[0].useForceLayout" />
+    <i class="icon icon-preventOverlapping unchecked"></i>
+    <i class="icon icon-preventOverlapping checked"></i>
+  </label>
+  <label class="fancy-checkbox" matTooltip="Aggregate Items">
+    <input type="checkbox" id="aggregateItems" value="aggregateItems" (change)="onAggregateItemsToggle($event)"
+      [checked]="configuration.configurations[0].aggregateItems" />
+    <i class="icon icon-aggregate unchecked"></i>
+    <i class="icon icon-aggregate checked"></i>
+  </label>
+  <button class="fancy-button" (click)="fitToScreen()" matTooltip="Fit to screen"><i class="icon icon-fitToScreen"></i></button>
+  <button class="fancy-button" (click)="fitToSelection()" matTooltip="Fit to selection"><i class="icon icon-fitTiSelection"></i></button>
+  <span matTooltip="{{ configuration.configurations[0].currentLevelOfDetail < 2 ? 'Second Level of Detail Required for Matrix Layout' : 'Matrix Layout' }}"><button class="fancy-button" (click)="onViewLayoutToggle($event)" id="matrix" [disabled]="configuration.configurations[0].currentLevelOfDetail < 2"><i class="icon icon-matrix"></i></button></span>
+  <button class="fancy-button" (click)="onExport()" matTooltip="Download"><i class="icon icon-download"></i></button>
+  <button class="fancy-button" (click)="openUploadDialog(uploadFileTemplate)" matTooltip="Upload"><i class="icon icon-upload"></i></button>
+  <button class="fancy-button" (click)="openHelp()" matTooltip="Help"><i class="icon icon-help"></i></button>
+</div>
+
+<ng-template #uploadFileTemplate>
+  <angular-file-uploader 
+    [config]="afuConfig"
+    [resetUpload]=resetUploadVar
+    (ApiResponse)="docUpload($event)">
+  </angular-file-uploader>
+</ng-template>

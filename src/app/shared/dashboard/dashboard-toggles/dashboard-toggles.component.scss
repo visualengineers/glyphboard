@@ -1,0 +1,18 @@
+@import "~assets/styles/variables";
+
+.dashboard__toggles {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    position: absolute;
+    top: 40%;
+    left: 8px;
+    width: $icon-size;
+    flex-direction: column;
+    width: $icon-size;
+
+    div {
+      flex: 1;
+      flex-wrap: wrap;
+    }
+}

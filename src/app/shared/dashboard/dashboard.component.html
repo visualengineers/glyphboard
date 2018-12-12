@@ -1,0 +1,37 @@
+<app-dashboard-toggles></app-dashboard-toggles>
+
+<div #dashboard class="dashboard">
+  <div class="dashboard__title">
+    <div class="dashboard__title__hamburger">
+      <a  href="" (click)="onToggleDashboard($event)">
+        <i class="icon-menu"></i>
+      </a>
+    </div>
+    <div class="dashboard__title__text">GLYPHBOARD</div>
+  </div>
+  <div class="dashboard__infobox-main" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures !== undefined }">
+      Welcome to Glypboard! This application is intended for data scientists and domain experts to explore their datasets using clustering and classification algorithms. Please start by selecting one of the datasets provided below. Instead of this information you will see a glyph in this place that represents a data item once you zoom into the Big Data Landscape shown to you after the data is loaded.
+  </div>
+  
+  <app-dashboard-glyphlegend [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures === undefined }"></app-dashboard-glyphlegend>
+  <app-dashboard-functionbuttons></app-dashboard-functionbuttons>
+
+  <div class="dashboard__tabselection">
+    <a href="" (click)="onTabToggle($event)" value="data" [ngClass]="{ 'active': activeTab === 'data' }"><span (click)="onTabToggle($event)" value="data">DATA</span></a>
+    <a href="" (click)="onTabToggle($event)" value="glyphs" [ngClass]="{ 'active': activeTab === 'glyphs' }"><span (click)="onTabToggle($event)" value="glyphs">GLYPHS</span></a>
+    <a href="" (click)="onTabToggle($event)" value="filter" [ngClass]="{ 'active': activeTab === 'filter' }"><span (click)="onTabToggle($event)" value="filter">FILTER</span></a>
+    <a href="" (click)="onTabToggle($event)" value="context" [ngClass]="{ 'active': activeTab === 'context' }"><span (click)="onTabToggle($event)" value="context">CONTEXT</span></a>
+  </div>
+
+  <app-dashboard-tab-data [ngClass]="{ 'hidden': activeTab !== 'data' }"></app-dashboard-tab-data>
+  <app-dashboard-tab-glyphs [ngClass]="{ 'hidden': activeTab !== 'glyphs' }"></app-dashboard-tab-glyphs>
+  <app-dashboard-tab-filter [ngClass]="{ 'hidden': activeTab !== 'filter' }"></app-dashboard-tab-filter>
+  <app-dashboard-tab-context [ngClass]="{ 'hidden': activeTab !== 'context' }"></app-dashboard-tab-context>
+
+</div>
+
+<div #icon class="dashboard--closed">
+    <a  href="" (click)="onToggleDashboard($event)">
+      <i class="icon-menu"></i>
+    </a>
+</div>

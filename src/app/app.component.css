@@ -1,0 +1,16 @@
+* {
+    padding:0px;
+    margin:0px;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+}
+
+h1 {
+    margin: 0px;
+    padding: 4px;
+    font-family: tahoma;
+    font-size: 12px;
+    width: 100%;
+    background-color: #a0a0a0;
+}

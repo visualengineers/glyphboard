@@ -1,0 +1,9 @@
+<div class="dashboard-tab dashboard-tab-context">
+    <selection-version-item class="selectionVersionOptions" *ngFor="let v of configuration.configurations[0].selectedItemVersions"
+      [configuration]="configuration" label="{{v.label}}" property="{{v.property}}"
+      [object]="v.features" [events]="eventsSubject.asObservable()">
+    </selection-version-item>
+    <div class="infobox" [ngClass]="{ 'hidden': this.configuration.configurations[0].selectedItemVersions !== undefined }">
+      Please select dataset first. Then go into selection mode and hover over an item to see the different contexts calculated for the respective item. 
+    </div>
+</div>

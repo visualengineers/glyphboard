@@ -1,0 +1,13 @@
+* {
+    float:left;
+    padding:0px;
+    margin:0px;
+}
+
+#selectionrectangle {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: transparent;
+    pointer-events: none;
+}

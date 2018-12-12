@@ -1,0 +1,53 @@
+<div class="dashboard-tab dashboard-tab-glyphs">
+  <div [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures === undefined }">
+    <div class="dashboard-tab-glyphs__row icon-row">
+      <div class="dashboard-tab-glyphs__description">TYPE</div>
+      <div class="dashboard-tab-glyphs__configuration dashboard-tab-glyphs__configuration__icons">
+        <label class="fancy-radiobutton dashboard-tab-glyphs__largespacing" matTooltip="Select star glyph">
+          <input type="radio" id="typeStar" value="typeStar" (change)="onGlyphTypeSelect($event)" [checked]="typeStar === true" />
+          <i class="icon icon-star unchecked"></i>
+          <i class="icon icon-star checked"></i>
+        </label>
+        <label class="fancy-radiobutton dashboard-tab-glyphs__largespacing" matTooltip="Select flower glyph">
+          <input type="radio" id="typeFlower" value="typeFlower" (change)="onGlyphTypeSelect($event)" [checked]="typeFlower === true" />
+          <i class="icon icon-flower unchecked"></i>
+          <i class="icon icon-flower checked"></i>
+        </label>
+      </div>
+    </div>
+    <div class="dashboard-tab-glyphs__row">
+      <div class="dashboard-tab-glyphs__description">COLOR SCALE</div>
+      <div class="dashboard-tab-glyphs__configuration dashboard-tab-glyphs__configuration__icons">
+        <label class="fancy-radiobutton dashboard-tab-glyphs__largespacing" matTooltip="Use categorical color scale">
+          <input type="radio" id="useLinearScale" value="linear" (change)="onColorScaleChange($event)" [checked]="!this.configuration.configurations[0].useColorRange" />
+          <i class="icon icon-categorical unchecked"></i>
+          <i class="icon icon-categorical checked"></i>
+        </label>
+        <label class="fancy-radiobutton" matTooltip="Use ordinal color scale">
+          <input type="radio" id="useOrdinalScale" value="ordinal" (change)="onColorScaleChange($event)" [checked]="this.configuration.configurations[0].useColorRange" />
+          <i class="icon icon-ordinal unchecked"></i>
+          <i class="icon icon-ordinal checked"></i>
+        </label>
+      </div>
+    </div>
+    <div class="dashboard-tab-glyphs__row">
+      <div class="dashboard-tab-glyphs__description">LEVEL OF DETAIL</div>
+      <div class="dashboard-tab-glyphs__configuration">
+        <app-doubleslider [currentValue]="configuration.configurations[0].currentZoomLevel" (onChange)="onLODSliderChange($event)"></app-doubleslider>
+      </div>
+    </div>
+    <div class="dashboard-tab-glyphs__row">
+      <div class="dashboard-tab-glyphs__description">CONFIGURATION</div>
+      <div class="dashboard-tab-glyphs__configuration">
+        <div>
+          <glyph-config-item (onConfigChange)="onGlyphConfigChange($event)" *ngFor="let fO of configuration.activeGlyphConfig().glyphOptions" label="{{fO.label}}"
+            property="{{fO.property}}" [(active)]="configuration.activeGlyphConfig()[fO.property]"
+            class="optionLabel"></glyph-config-item>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="infobox" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures !== undefined }">
+    Please select dataset first. Then configure your glyph visualization here.
+  </div>
+</div>
