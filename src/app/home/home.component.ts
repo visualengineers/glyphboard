@@ -28,6 +28,7 @@ export class HomeComponent implements OnInit {
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
     this.regionManager.addRegion('features', 0, 0, false);
     this.regionManager.addRegion('dataflow', 0, 0, false);
+    this.regionManager.addRegion('webgl', 0, 0, false);
   }
 
   @HostListener('document:keyup', ['$event'])
@@ -79,12 +80,16 @@ export class HomeComponent implements OnInit {
             this.splitScreen = this.regionManager.regions[1].display === 'block';
             this.regionManager.regions[0].display = 'none';
             this.regionManager.regions[1].display = 'none';
-            this.regionManager.regions[4].display = 'visible';
+            this.regionManager.regions[4].display = 'block';
           } else {
             this.regionManager.regions[0].display = 'block';
             this.regionManager.regions[1].display = this.splitScreen ? 'block' : 'none';
             this.regionManager.regions[4].display = 'none';
           }
+
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          this.regionManager.updateRegions(width, height);
         }
         break;
       default:

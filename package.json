@@ -34,6 +34,7 @@
     "material-design-icons": "^3.0.1",
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.1.0",
+    "three": "^0.98.0",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
@@ -44,6 +45,8 @@
     "@types/d3-shape": "^1.2.6",
     "@types/jasmine": "^2.8.8",
     "@types/node": "^10.5.2",
+    "@types/three": "^0.93.8",
+    "@types/webvr-api": "0.0.35",
     "codelyzer": "^4.4.2",
     "concurrently": "^3.6.0",
     "jasmine-core": "^3.1.0",

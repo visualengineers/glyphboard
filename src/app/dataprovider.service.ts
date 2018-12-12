@@ -27,7 +27,7 @@ export class DataproviderService {
     this.interval = 10000;
     this.timer = Observable.timer(0, this.interval);
     this.backendAddress = environment.backendAddress === undefined
-      ? 'http://localhost:4201'
+      ? 'http://localhost:4201/'
       : environment.backendAddress;
 
     this.timer
