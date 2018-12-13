@@ -1,0 +1,56 @@
+.content {
+  display: grid;
+  grid-template-rows: 80px 300px 30px 1fr 30px 60px;
+  grid-template-columns: 1fr;
+}
+
+.progressbar-container {
+  grid-row: 1 / 2;
+  align-self: center;
+  text-align: center;
+  // width: 100%;
+  // grid-column: 1 / 2;
+}
+.progress-label {
+  font-weight: bold;
+  line-height: 2;
+}
+.text-card {
+  display: flex;
+  justify-content: center;
+  grid-row: 2 / 3;
+  // grid-column: 1 / 2;
+}
+.question-area {
+  grid-row: 4 / 7;
+  // grid-column: 1 / 2;
+}
+.question-card {
+  grid-row: 4 / 5;
+  // grid-column: 1 / 2;
+}
+
+.button-list,
+.submit-button {
+  grid-row: 6 / 7;
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+.spinner-container {
+  mat-spinner {
+    margin: auto;
+  }
+  text-align: center;
+  // display: flex;
+  // & > * {
+  // margin: auto;
+  // margin-top:
+  // }
+  align-self: center;
+  // justify-self: center;
+}
+
+app-chart {
+  width: 100%;
+}
