@@ -60,7 +60,6 @@ develop-eggs/
 dist/
 eggs/
 lib/
-!projects/gamifilearning-lib/src/lib/
 lib64/
 parts/
 sdist/
