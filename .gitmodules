@@ -1,3 +1,6 @@
 [submodule "backend"]
 	path = backend
 	url = https://github.com/visualengineers/glyphboard-backend.git
+[submodule "projects/gamifilearning-lib"]
+	path = projects/gamifilearning-lib
+	url = https://ducanhtrinh@bitbucket.org/ducanhtrinh/gamifilearning-lib.git
