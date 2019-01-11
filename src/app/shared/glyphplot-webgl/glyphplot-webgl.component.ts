@@ -1,10 +1,15 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener, OnChanges } from '@angular/core';
 import { RegionManager } from 'app/home/region.manager';
 import { Input } from '@angular/core';
-import { Configuration } from 'app/shared/glyphplot/configuration.service';
+
+import {Configuration } from 'app/shared/glyphplot/configuration.service';
+import {ConfigurationData} from 'app/shared/glyphplot/configuration.data';
+import {EventAggregatorService} from '../events/event-aggregator.service';
 import { Logger } from 'app/logger.service';
+
 import * as THREE from 'three';
 import { ShadowMaterial, Color, BufferGeometry } from 'three';
+import { RefreshPlotEvent } from '../events/refresh-plot.event';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -39,6 +44,18 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
   private _data_MinY : number;
   private _data_MaxY : number;
 
+  private _shaderMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
+    vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
+    fragmentShader: "varying vec3 vColor; void main() { gl_FragColor = vec4( vColor, 1.0 ); }",
+
+    blending: THREE.NoBlending,
+    depthTest: false,
+    transparent: false,
+    vertexColors: THREE.VertexColors
+  } );
+
+  private _particleGeometry : THREE.BufferGeometry = new THREE.BufferGeometry();    
+
   get data(): any {
     return this._data;
   }
@@ -51,15 +68,23 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
   
   public manager;
 
-  constructor(private logger: Logger, public regionManager: RegionManager, private configurationService: Configuration) { 
-    this.configurationService.configurations[0].getData().subscribe(message => {
+  constructor(
+    private logger: Logger,
+    public regionManager: RegionManager, 
+    private configurationService: Configuration,
+    private eventAggregator: EventAggregatorService
+  ) { 
+    this.configurationService.configurations[0].getData().subscribe(message => 
+      {
       if (message != null)
       {
         this.data = message;
         this.buildParticles();
       }     
-      
-    });    
+    }); 
+    
+    this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
+
     this.render = this.render.bind(this);   
 
   }
@@ -234,23 +259,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
        this._particleSystem = null;
     }
 
-    const shaderMaterial = new THREE.ShaderMaterial( {
-      vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
-      fragmentShader: "varying vec3 vColor; void main() { gl_FragColor = vec4( vColor, 1.0 ); }",
-
-      blending: THREE.NoBlending,
-      depthTest: false,
-      transparent: false,
-      vertexColors: THREE.VertexColors
-    } );
-    
     const particlePositions = [];
 		const particleColors = [];
     const particleSizes = [];
     
     var color = new THREE.Color();
-
-    const particleGeometry = new THREE.BufferGeometry();    
 
     if (this.data != null)
     {   
@@ -299,18 +312,64 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
 
     console.log(particlePositions.length);
 
-    particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
-    particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
-    particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( particleSizes, 1 ) );
+    this._particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
+    this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
+    this._particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( particleSizes, 1 ) );
 
     this._particleSystem = new THREE.Points(
-        particleGeometry,
-        shaderMaterial);
+      this._particleGeometry,
+      this._shaderMaterial);
     
     // add it to the scene
     this.scene.add(this._particleSystem);
-   
-
     }  
   }  
+
+  private onRefreshPlot = (payload: boolean) => {
+    if(this.data == null){
+      return;
+    }
+    this.updateParticles();
+  }
+
+  private getFeaturesForItem(d: any, config: ConfigurationData) {
+    const item = this.data.features.find(f => {
+      return f.id === d.id;
+    });
+    let itemContext = config.individualFeatureContexts[d.id];
+    if (itemContext === undefined) {
+      if (config.globalFeatureContext >= 0) {
+        itemContext = config.globalFeatureContext;
+      } else {
+        itemContext = item['default-context'];
+      }
+    }
+    const ret = {
+      features: Object.assign(item.features[itemContext], item.features['global']),
+      values: item.values
+    }
+    return ret;
+  }
+
+  private updateParticles(){
+    const colorFeature = this.data.schema.color;
+    var configuration = this.configurationService.configurations[0];
+    const colorScale = item => {
+      return item === undefined
+        ? 0
+        : configuration.color(+item[colorFeature]);
+    };
+
+		const particleColors = [];
+
+    var i = 0;
+    this.data.positions.forEach(e => {
+          const feature = this.getFeaturesForItem(e, configuration).features;
+          const color = new THREE.Color(colorScale(feature));
+          particleColors.push( color.r, color.g, color.b);
+
+          i++;
+    });
+    this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
+  }
 }
