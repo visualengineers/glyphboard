@@ -88,13 +88,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
   private createScene() {
     this.scene = new THREE.Scene();
     this.scene.add(new THREE.AxesHelper(200));     
-    
-
-
   }
 
   private createLight() {
-
     var light = new THREE.PointLight(0xFFFFFF, 1, 1000);
     light.position.set(0, 0, 100);
     this.scene.add(light);
@@ -106,10 +102,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     this.camera = new THREE.OrthographicCamera(this.width / -2, this.width / 2, this.height / -2, this.height / 2);    
 
     // Set position and look at
-
     this.camera.position.x = 0;
     this.camera.position.y = 0;
-    this.camera.position.z = 100;
+    this.camera.position.z = -100;
   }
 
   private getAspectRatio(): number {
@@ -161,6 +156,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     }());    
 
     this.renderer.render(this.scene, this.camera);
+    this.scene.background = new THREE.Color( 0xFFFFFF );
   }
 
 
@@ -242,7 +238,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
       vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
       fragmentShader: "varying vec3 vColor; void main() { gl_FragColor = vec4( vColor, 1.0 ); }",
 
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NoBlending,
       depthTest: false,
       transparent: false,
       vertexColors: THREE.VertexColors
@@ -264,26 +260,24 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
       this._data_MinY = 0;
       this._data_MaxY = 0;
 
-      let count = this._data.positions.count;
+      let count = this._data.positions.length;
       let i = 0;
 
       this.data.positions.forEach(position => {
-
         i++;
-
-        const pX = position.position.x;
-        const pY = position.position.y;
-        const pZ = -100;
+        
+        var pX = position.position.x;
+        var pY = position.position.y;
+        var pZ = -10;
 
         particlePositions.push(pX); 
         particlePositions.push(pY); 
         particlePositions.push(pZ);
         
         color.setHSL( i / count, 1.0, 0.5 );
-        //  particleColors.push( 1,0,0 );
-        particleColors.push( color.r, color.g, color.b );
-        
-        particleSizes.push(20);
+        particleColors.push( color.r, color.g, color.b);
+
+        particleSizes.push(5);
         
         if (pX < this._data_MinX)
           this._data_MinX = pX;
