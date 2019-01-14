@@ -13,7 +13,7 @@ import { LenseCursor } from 'app/shared/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { MatDialog } from '@angular/material';
-import { LabelDialogComponent } from '../shared/label-dialog/label-dialog.component';
+import { LabelDialogComponent } from '../learning/label-dialog/label-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -86,13 +86,16 @@ export class HomeComponent implements OnInit {
           const d3Glyphplot = this.regionManager.regions[0].display === 'block';
 
           if (d3Glyphplot) {
-            this.splitScreen = this.regionManager.regions[1].display === 'block';
+            this.splitScreen =
+              this.regionManager.regions[1].display === 'block';
             this.regionManager.regions[0].display = 'none';
             this.regionManager.regions[1].display = 'none';
             this.regionManager.regions[4].display = 'visible';
           } else {
             this.regionManager.regions[0].display = 'block';
-            this.regionManager.regions[1].display = this.splitScreen ? 'block' : 'none';
+            this.regionManager.regions[1].display = this.splitScreen
+              ? 'block'
+              : 'none';
             this.regionManager.regions[4].display = 'none';
           }
         }

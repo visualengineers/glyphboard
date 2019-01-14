@@ -47,7 +47,7 @@ import { DashboardFunctionbuttonsComponent } from './shared/dashboard/dashboard-
 import { GlobalDialogComponent } from './shared/global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
 import { GLModule, QuestionRoomComponent } from 'gamifilearning-lib';
-import { LabelDialogComponent } from './shared/label-dialog/label-dialog.component';
+import { LabelDialogComponent } from './learning/label-dialog/label-dialog.component';
 @NgModule({
   declarations: [
     AppComponent,
