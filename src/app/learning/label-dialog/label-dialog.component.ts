@@ -1,8 +1,9 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material';
 import { LearningService } from '../learning.service';
 import { QuestionService } from 'gamifilearning-lib';
 import { flatMap } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 /*
 Toughts / TODO:
@@ -16,7 +17,8 @@ Might need refactoring to use directive.
   templateUrl: './label-dialog.component.html',
   styleUrls: ['./label-dialog.component.scss']
 })
-export class LabelDialogComponent implements OnInit {
+export class LabelDialogComponent implements OnInit, OnDestroy {
+  sub: Subscription;
   currentInstance;
   questions;
   progress;
@@ -39,7 +41,7 @@ export class LabelDialogComponent implements OnInit {
     this.answers = this.learning.getAnswers();
     console.log(this.data);
 
-    this.question.answers$
+    this.sub = this.question.answers$
       .pipe(
         flatMap(answers => this.learning.saveAnswers(answers)),
         flatMap(_ => this.learning.getNextDocument())
@@ -47,5 +49,9 @@ export class LabelDialogComponent implements OnInit {
       .subscribe();
     // this.texts = this.question.getTopInstances(this.data);
     // this.questions = this.question.questions;
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 }

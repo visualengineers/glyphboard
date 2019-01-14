@@ -125,7 +125,8 @@ export class HomeComponent implements OnInit {
 
   startLearning() {
     const dialogRef = this.dialog.open(LabelDialogComponent, {
-      data: this.dataProvider.dataSet.features
+      data: this.dataProvider.dataSet.features,
+      width: '80%'
     });
 
     // dialogRef.afterClosed().subscribe(result => {
