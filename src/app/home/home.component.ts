@@ -128,12 +128,6 @@ export class HomeComponent implements OnInit {
       data: this.dataProvider.dataSet.features,
       width: '80%'
     });
-
-    // dialogRef.afterClosed().subscribe(result => {
-    //   console.log('The dialog was closed');
-    //   this.animal = result;
-    // });
-    // }
   }
 
   showAlButton(): boolean {

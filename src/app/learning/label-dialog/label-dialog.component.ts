@@ -41,14 +41,14 @@ export class LabelDialogComponent implements OnInit, OnDestroy {
     this.answers = this.learning.getAnswers();
     console.log(this.data);
 
+    // TODO: After labeling some and restarting the dialog,
+    // the answers sub fires at start.
     this.sub = this.question.answers$
       .pipe(
         flatMap(answers => this.learning.saveAnswers(answers)),
         flatMap(_ => this.learning.getNextDocument())
       )
       .subscribe();
-    // this.texts = this.question.getTopInstances(this.data);
-    // this.questions = this.question.questions;
   }
 
   ngOnDestroy() {
