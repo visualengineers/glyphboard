@@ -302,12 +302,9 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.configuration.updateCurrentLevelOfDetail(this.transform.k);
       // level of detail did not change, so redraw each glyph at it's current
       // position
-      let filteredItemsCount = 0;
-      let clippedItems = 0;
       this._layoutController.getPositions().forEach(d => {
         // don't draw glyphs that lie outside the view
         if (this.helper.checkClipping(d.position)) {
-          clippedItems++;
           return;
         }
 
@@ -318,21 +315,10 @@ export class GlyphplotComponent implements OnInit, OnChanges {
 
         if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length == 0) {
           this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
-          filteredItemsCount++;
         } else {
           this.layoutController.drawSingleGlyph(d.position, data.features, 1.0, true, d.id === this.configuration.idOfHoveredGlyph, 0);
         }
       });
-
-      if (this.configuration.aggregateItems) {
-        this.configuration.filteredItemsCount = filteredItemsCount + clippedItems >= this.clusterPoints.length
-          ? 0
-          : filteredItemsCount;
-      } else {
-        this.configuration.filteredItemsCount = filteredItemsCount + clippedItems >= this.configuration.itemsCount
-          ? 0
-          : filteredItemsCount;
-      }
 
       // set the radius of collision forces according to the current zoomlevel
       if (this.configuration.currentLevelOfDetail === 1) {
