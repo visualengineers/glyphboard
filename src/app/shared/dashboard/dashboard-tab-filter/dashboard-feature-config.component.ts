@@ -75,7 +75,6 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
     const relativeMinValue: number = absoluteMinValue / component.width;
     const relativeMaxValue: number = absoluteMaxValue / component.width;
-    console.log(relativeMaxValue);
 
     // TODO: Workaround because data is not bound to actual bars in chart
 
