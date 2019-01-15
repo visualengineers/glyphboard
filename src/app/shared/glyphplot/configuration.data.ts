@@ -87,7 +87,7 @@ export class ConfigurationData {
   private _itemsCount: number;
   private _leftSide: boolean;
   private _filteredItemsIds = [];
-  private _filteredItemsCount: number;
+  private _filteredItemsCount = 0;
 
   constructor(configuration: Configuration, eventAggregator: EventAggregatorService
   ) {
@@ -332,7 +332,11 @@ export class ConfigurationData {
  
     });
     this._filteredItemsIds = filteredIds;
-    this._filteredItemsCount = this._filteredItemsIds.length;
+    if (this._filteredItemsIds.length == 0) {
+      this._filteredItemsCount = this._data.getValue().positions.length;
+    } else {
+      this._filteredItemsCount = this._filteredItemsIds.length;
+    }
   }
 
   private getFeaturesForItem(d: any) {
