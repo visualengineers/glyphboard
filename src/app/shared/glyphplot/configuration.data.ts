@@ -332,7 +332,7 @@ export class ConfigurationData {
  
     });
     this._filteredItemsIds = filteredIds;
-    if (this._filteredItemsIds.length == 0) {
+    if (this._featureFilters.length == 0) {
       this._filteredItemsCount = this._data.getValue().positions.length;
     } else {
       this._filteredItemsCount = this._filteredItemsIds.length;
