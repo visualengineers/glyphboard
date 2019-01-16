@@ -140,8 +140,6 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   }
 
   dashboardVersionChanged() {
-    this.configuration.configurations[0].featureFilters.length = 0;
-    this.configuration.configurations[1].featureFilters.length = 0;
     if (this.allDatasets.length === 0) {
       return;
     }
@@ -163,8 +161,6 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
 
   dashboardPositionChanged() {
     this.updateDataSetInfo(false);
-    this.configuration.configurations[0].featureFilters.length = 0;
-    this.configuration.configurations[1].featureFilters.length = 0;
     this.onLayoutChange();
     this.updateData(0);
   }
@@ -231,8 +227,6 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
 
   dashboardPositionChangedSecond() {
     this.updateDataSetInfo(true);
-    this.configuration.configurations[0].featureFilters.length = 0;
-    this.configuration.configurations[1].featureFilters.length = 0;
     this.onLayoutChange();
     this.updateData(1);
   }
