@@ -90,9 +90,9 @@
   }
 
   .continuous {
-    background: linear-gradient(to right, $color-scale-low 0% , $color-scale-high 100%);
-    background: -moz-linear-gradient(left, $color-scale-low 0% , $color-scale-high 100%);
-    background: -webkit-linear-gradient(left, $color-scale-low 0% , $color-scale-high 100%); 
+    background: linear-gradient(to right, $color-scale-low 0% , $color-scale-middle 50%, $color-scale-high 100%);
+    background: -moz-linear-gradient(left, $color-scale-low 0% ,$color-scale-middle 50%, $color-scale-high 100%);
+    background: -webkit-linear-gradient(left, $color-scale-low 0% ,$color-scale-middle 50%, $color-scale-high 100%); 
   }
 
   .activeContext {

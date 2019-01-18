@@ -38,7 +38,8 @@ export class ConfigurationData {
   private _rangeColor = d3
   .scaleLinear<any, any>()
   .domain([0.0, 0.5, 1.0])
-  .range(['#9C4F57', '#7A91BD', '#7EDD88']);
+  .range(['#198FBD','#F7D529', '#F7295B']);
+
 
   public duration = 1000; // duration of glyph-blossoming animation
 
