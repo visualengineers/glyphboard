@@ -36,9 +36,10 @@ export class ConfigurationData {
   // Reminder: If you change the colors here, don't forget to change $color-scale-low
   // and $color-scale-high in colors.scss
   private _rangeColor = d3
-    .scaleLinear<any, any>()
-    .domain([0.0, 1.0])
-    .range(['#286367', '#BF3330']);
+  .scaleLinear<any, any>()
+  .domain([0.0, 0.5, 1.0])
+  .range(['#198FBD','#F7D529', '#F7295B']);
+
 
   public duration = 1000; // duration of glyph-blossoming animation
 
