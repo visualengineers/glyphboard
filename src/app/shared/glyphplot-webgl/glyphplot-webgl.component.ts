@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { ShadowMaterial, Color, BufferGeometry } from 'three';
 import { RefreshPlotEvent } from '../events/refresh-plot.event';
 
+
 @Component({
   selector: 'app-glyphplot-webgl',
   templateUrl: './glyphplot-webgl.component.html',
@@ -51,6 +52,16 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     blending: THREE.NoBlending,
     depthTest: false,
     transparent: false,
+    vertexColors: THREE.VertexColors
+  } );
+
+  private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
+    vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
+    // fragmentShader: "varying  vec3 vColor; void main() { float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); if (r > 1.0) { discard; } gl_FragColor = vec4(vColor, alpha); }",
+    fragmentShader: "varying  vec3 vColor; void main(){float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); delta = fwidth(r); alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r); gl_FragColor = vec4( vColor, alpha);}",    
+    blending: THREE.NormalBlending,   
+    depthTest: false,    
+    transparent: true,    
     vertexColors: THREE.VertexColors
   } );
 
@@ -159,7 +170,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     this.renderer.setClearColor(0xFFFFFF, 1);
     this.renderer.autoClear = true;
 
-
     this.buildParticles();
 
     let component: GlyphplotWebglComponent = this;
@@ -229,7 +239,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
   }
 
   private setViewFrustum() : void {
-  
     if (this.camera == null)
       return;
 
@@ -251,6 +260,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
 
   private buildParticles()
   {
+    this._shaderDiskMaterial.extensions.derivatives = true;
+
     this.setViewFrustum();
 
     if (this._particleSystem)
@@ -290,7 +301,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
         color.setHSL( i / count, 1.0, 0.5 );
         particleColors.push( color.r, color.g, color.b);
 
-        particleSizes.push(5);
+        particleSizes.push(10);
         
         if (pX < this._data_MinX)
           this._data_MinX = pX;
@@ -308,7 +319,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
       this.setViewFrustum();
 
       this.resetView(); 
-    
 
     console.log(particlePositions.length);
 
@@ -318,7 +328,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
 
     this._particleSystem = new THREE.Points(
       this._particleGeometry,
-      this._shaderMaterial);
+      this._shaderDiskMaterial);
     
     // add it to the scene
     this.scene.add(this._particleSystem);
