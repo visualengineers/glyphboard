@@ -301,7 +301,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
         color.setHSL( i / count, 1.0, 0.5 );
         particleColors.push( color.r, color.g, color.b);
 
-        particleSizes.push(10);
+        particleSizes.push(5);
         
         if (pX < this._data_MinX)
           this._data_MinX = pX;
@@ -334,6 +334,94 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     this.scene.add(this._particleSystem);
     }  
   }  
+
+  private buildParticles2()
+  {
+    this._shaderDiskMaterial.extensions.derivatives = true;
+    this.setViewFrustum();
+
+    if (this._particleSystem)
+    {
+       this.scene.remove(this._particleSystem);
+       this._particleSystem = null;
+    }
+
+    const particlePositions = [];
+		const particleColors = [];
+    const particleSizes = [];
+    
+    var color = new THREE.Color();
+
+    if (this.data != null)
+    {   
+      this._data_MinX = 0;
+      this._data_MaxX = 0;
+
+      this._data_MinY = 0;
+      this._data_MaxY = 0;
+
+      let count = this._data.positions.length;
+      // let j = 0;
+
+      var particles = 1000000;
+      var n = 1000, n2 = n / 100;
+
+      for ( var i = 0; i < particles; i ++ ) {
+      // this.data.positions.forEach(position => {
+        i++;
+        
+        var pX = Math.random() * n - n2;
+        var pY = Math.random() * n - n2;
+        var pZ = -10;
+
+        particlePositions.push(pX); 
+        particlePositions.push(pY); 
+        particlePositions.push(pZ);
+        
+        var vx = ( pX / n ) + 0.5;
+        var vy = ( pY / n ) + 0.5;
+        var vz = ( pZ / n ) + 0.5;
+        color.setRGB( vx, vy, vz );
+
+        // color.setHSL( i / count, 1.0, 0.5 );
+        particleColors.push( color.r, color.g, color.b);
+
+        particleSizes.push(2);
+        
+        if (pX < this._data_MinX)
+          this._data_MinX = pX;
+
+        if (pY < this._data_MinY)
+          this._data_MinY = pY;
+
+        if (pX > this._data_MaxX )
+          this._data_MaxX  = pX;
+
+        if (pY > this._data_MaxY)
+          this._data_MaxY = pY;      
+      }
+
+      this.setViewFrustum();
+
+      this.resetView(); 
+    
+
+    console.log(particlePositions.length);
+
+    this._particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
+    this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
+    this._particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( particleSizes, 1 ) );
+
+    this._particleGeometry.computeBoundingSphere();
+
+    this._particleSystem = new THREE.Points(
+      this._particleGeometry,
+      this._shaderDiskMaterial);
+    
+    // add it to the scene
+    this.scene.add(this._particleSystem);
+    }  
+  }
 
   private onRefreshPlot = (payload: boolean) => {
     if(this.data == null){
