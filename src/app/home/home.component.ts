@@ -52,6 +52,7 @@ export class HomeComponent implements OnInit {
         }
         break;
       case 'm':
+      case 'µ':
         // Magic Lens mode
         if (e.altKey && e.type === 'keyup') {
           this.cursor.toggle(true);
@@ -60,18 +61,21 @@ export class HomeComponent implements OnInit {
         }
         break;
       case 'p':
+      case 'π':
         // Zooming and panning mode
         if (e.altKey && e.type === 'keyup') {
           this.activatePanningMode();
         }
         break;
       case 's':
+      case '‚':
         // Selection mode
         if (e.altKey && e.type === 'keyup') {
           this.activateSelectionMode();
         }
         break;
       case '3':
+      case '¶':
         // Switch for Region 4 for WebGL Glyphplot, disable D3 Glyphplot
         if (e.type === 'keyup') {
           const d3Glyphplot = this.regionManager.regions[0].display === 'block';
