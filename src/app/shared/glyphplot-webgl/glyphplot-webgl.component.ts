@@ -451,7 +451,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
 
   private updateParticles(){
     const colorFeature = this.data.schema.color;
-    var configuration = this.configurationService.configurations[0];
     const colorScale = item => {
       return item === undefined
         ? 0
