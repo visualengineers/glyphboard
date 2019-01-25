@@ -37,6 +37,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
   private cube: THREE.Mesh[] = [];
   private group: THREE.Group;
 
+  private _configuration: ConfigurationData;
   private _data: any;
   private _particleSystem : THREE.Points;
 
@@ -58,7 +59,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
   private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
     // fragmentShader: "varying  vec3 vColor; void main() { float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); if (r > 1.0) { discard; } gl_FragColor = vec4(vColor, alpha); }",
-    fragmentShader: "varying  vec3 vColor; void main(){float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); delta = fwidth(r); alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r); gl_FragColor = vec4( vColor, alpha);}",    
+    fragmentShader: "varying  vec3 vColor; void main(){float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); delta = fwidth(r); alpha = 1.0 - smoothstep(0.5 - delta, 0.5 + delta, r); gl_FragColor = vec4(vColor, alpha);}",    
     blending: THREE.NormalBlending,   
     depthTest: false,    
     transparent: true,    
@@ -94,6 +95,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
       }     
     }); 
     
+    this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
 
     this.render = this.render.bind(this);   
@@ -273,8 +275,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     const particlePositions = [];
 		const particleColors = [];
     const particleSizes = [];
-    
-    var color = new THREE.Color();
 
     if (this.data != null)
     {   
@@ -284,24 +284,28 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
       this._data_MinY = 0;
       this._data_MaxY = 0;
 
-      let count = this._data.positions.length;
-      let i = 0;
+      const colorFeature = this.data.schema.color;
+      const colorScale = item => {
+        return item === undefined
+          ? 0
+          : this._configuration.color(+item[colorFeature]);
+      };
 
-      this.data.positions.forEach(position => {
-        i++;
-        
-        var pX = position.position.x;
-        var pY = position.position.y;
+      this.data.positions.forEach(item => {     
+        var pX = item.position.x;
+        var pY = item.position.y;
         var pZ = -10;
 
         particlePositions.push(pX); 
         particlePositions.push(pY); 
         particlePositions.push(pZ);
         
-        color.setHSL( i / count, 1.0, 0.5 );
+        const isPassive = !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) || (this._configuration.featureFilters.length == 0));
+        const feature = this.getFeaturesForItem(item, this._configuration).features;
+        const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
         particleColors.push( color.r, color.g, color.b);
 
-        particleSizes.push(5);
+        particleSizes.push(10);
         
         if (pX < this._data_MinX)
           this._data_MinX = pX;
@@ -427,6 +431,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     if(this.data == null){
       return;
     }
+    this._configuration = this.configurationService.configurations[0];
     this.updateParticles();
   }
 
@@ -454,18 +459,16 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges {
     const colorScale = item => {
       return item === undefined
         ? 0
-        : configuration.color(+item[colorFeature]);
+        : this._configuration.color(+item[colorFeature]);
     };
 
 		const particleColors = [];
 
-    var i = 0;
     this.data.positions.forEach(e => {
-          const feature = this.getFeaturesForItem(e, configuration).features;
-          const color = new THREE.Color(colorScale(feature));
+          const isPassive = !((this._configuration.filteredItemsIds.indexOf(e.id) > -1) || (this._configuration.featureFilters.length == 0));
+          const feature = this.getFeaturesForItem(e, this._configuration).features;
+          const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
           particleColors.push( color.r, color.g, color.b);
-
-          i++;
     });
     this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
   }
