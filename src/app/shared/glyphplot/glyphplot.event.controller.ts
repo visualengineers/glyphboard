@@ -20,6 +20,9 @@ import { GlyphLayout } from '../glyph/glyph.layout';
 import { RefreshHoverEvent } from '../events/refresh-hover.event';
 import { RefreshHoverEventData } from '../events/refresh-hover.event.data';
 
+import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
+import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
+
 export class GlyphplotEventController {
   private counter: number;
   private saveEndTransform = { x: 0, y: 0 };
@@ -76,6 +79,10 @@ export class GlyphplotEventController {
       this.selectionEnded = true;
       this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
       this.configuration.currentLayout = GlyphLayout.Cluster;
+
+      // braoadcast transformation using eventaggregator
+      const transformArgs = new ViewportTransformationEventData(trans.x, trans.y, 0, trans.k);
+      this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
     }
 
     if (!d3.event.sourceEvent) { return; }

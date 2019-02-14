@@ -10,6 +10,8 @@ import { Logger } from 'app/logger.service';
 import * as THREE from 'three';
 import { ShadowMaterial, Color, BufferGeometry } from 'three';
 import { RefreshPlotEvent } from '../events/refresh-plot.event';
+import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
+import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
 
 
 @Component({
@@ -28,8 +30,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private cameraTarget: THREE.Vector3;
   public scene: THREE.Scene;
 
-  private zoomFactor = 1;
-
   public fieldOfView = 60;
   public nearClippingPane = 1;
   public farClippingPane = 1100;
@@ -45,6 +45,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _data_MaxX: number;
   private _data_MinY: number;
   private _data_MaxY: number;
+
+  private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
 
   private _shaderMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     vertexShader: 'attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }',
@@ -94,6 +96,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
+
 
     this.render = this.render.bind(this);
 
@@ -215,17 +220,25 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
    private resetView(): void {
     this.camera.position.set(0, 0, 100);
-    this.zoomFactor = 1;
+    this._transformation = new ViewportTransformationEventData();
    }
 
    @HostListener('mousewheel', ['$event'])
    mousewheel(e: WheelEvent) {
     const wheelDelta = e.deltaY / -100;
 
-    this.zoomFactor += wheelDelta * 0.1;
-    if (this.zoomFactor < 0.1) {
-      this.zoomFactor = 0.1;
-    }
+    let zoom = this._transformation.GetScale();
+    const change = wheelDelta * 0.1;
+
+    zoom += change;
+
+    if (zoom < 0.1) {
+      zoom = 0.1; }
+
+    const data = new ViewportTransformationEventData(
+      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
 
     this.setViewFrustum();
    }
@@ -242,10 +255,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const aspect = this.getAspectRatio();
 
-    this.camera.left = this._data_MinX / this.zoomFactor;
-    this.camera.right = this._data_MaxX / this.zoomFactor;
-    this.camera.top = (this._data_MinY / this.zoomFactor) / aspect;
-    this.camera.bottom = (this._data_MaxY / this.zoomFactor) / aspect;
+    this.camera.left = this._data_MinX / this._transformation.GetScale();
+    this.camera.right = this._data_MaxX / this._transformation.GetScale();
+    this.camera.top = (this._data_MinY / this._transformation.GetScale()) / aspect;
+    this.camera.bottom = (this._data_MaxY / this._transformation.GetScale()) / aspect;
 
     this.camera.updateProjectionMatrix();
 
@@ -343,6 +356,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
     this._configuration = this.configurationService.configurations[0];
     this.updateParticles();
+  }
+
+  private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
+    this._transformation = payload;
+    this.setViewFrustum();
   }
 
   private getFeaturesForItem(d: any, config: ConfigurationData) {
