@@ -361,6 +361,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
     this._transformation = payload;
     this.setViewFrustum();
+
+    console.log('Transformation: [' + this._transformation.GetTranslateX() + ' | ' + this._transformation.GetTranslateY()
+      + ' ] - Zoom: ' + this._transformation.GetScale());
   }
 
   private getFeaturesForItem(d: any, config: ConfigurationData) {
