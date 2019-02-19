@@ -12,6 +12,8 @@ import { ShadowMaterial, Color, BufferGeometry } from 'three';
 import { RefreshPlotEvent } from '../events/refresh-plot.event';
 import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
 import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
+import { InteractionEvent} from '../events/interaction.event';
+import { InteractionEventData} from '../events/interaction.event.data';
 
 
 @Component({
@@ -403,4 +405,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     });
     this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
   }
+
+  //#region getters and setters
+  get configuration() { return this._configuration; }
+  set configuration(value: ConfigurationData) { this._configuration = value; }
+  //#endregion
 }
