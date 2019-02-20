@@ -1,4 +1,5 @@
 import { GlyphplotComponent } from './glyphplot.component';
+import { InteractionEventData } from '../events/interaction.event.data';
 
 export class SelectionRect {
   private component: GlyphplotComponent;
@@ -29,7 +30,7 @@ export class SelectionRect {
     this.drawHighlightedGlyph();
   }
 
-  constructor(component: GlyphplotComponent, context: any, helper: any) {
+  constructor(component: any, context: any, helper: any) {
     this.context = context;
     this.helper = helper;
     this.component = component;
@@ -48,6 +49,28 @@ export class SelectionRect {
 
     const w = event.sourceEvent.offsetX - this.start.x;
     const h = event.sourceEvent.offsetY - this.start.y;
+
+    this.end.x = this.start.x + w;
+    this.end.y = this.start.y + h;
+
+    this.context.strokeRect(this.start.x + this.offset.x, this.start.y + this.offset.y, w, h);
+
+    this.context.restore();
+  }
+
+  public drawWebGl(event: InteractionEventData): void {
+    console.log("draw webgl");
+    if (!arguments.length) { return; }
+    
+    this.clear();
+    this.context.save();
+
+    this.context.lineWidth = 1;
+    this.context.setLineDash([4, 2]);
+    this.context.strokeStyle = 'rgba(48, 48, 48, .73)';
+
+    const w = event.GetPositionX() - this.start.x;
+    const h = event.GetPositionY() - this.start.y;
 
     this.end.x = this.start.x + w;
     this.end.y = this.start.y + h;

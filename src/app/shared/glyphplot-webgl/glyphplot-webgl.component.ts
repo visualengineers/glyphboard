@@ -14,7 +14,9 @@ import { ViewportTransformationEvent } from '../events/viewport-transformation.e
 import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
 import { InteractionEvent} from '../events/interaction.event';
 import { InteractionEventData} from '../events/interaction.event.data';
+import { Interaction} from '../util/interaction';
 
+import { SelectionRect } from '../glyphplot/selection-rect';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -25,6 +27,8 @@ import { InteractionEventData} from '../events/interaction.event.data';
 export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() width: number;
   @Input() height: number;
+
+  @ViewChild('selectionrectangle') public selectionRectangle: ElementRef;
 
   private renderer: THREE.WebGLRenderer;
   private camera: THREE.OrthographicCamera;
@@ -47,7 +51,13 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _data_MinY: number;
   private _data_MaxY: number;
 
+  private _interactionEvent: Interaction;
+  private _interaction: InteractionEventData = new InteractionEventData(null);
   private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
+
+  private _selectionRect: SelectionRect;
+  private _helper;
+  private _context: any;
 
   private _shaderMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     vertexShader: 'attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }',
@@ -99,10 +109,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
-
+    this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
 
     this.render = this.render.bind(this);
-
   }
 
   ngOnInit(): void {
@@ -197,52 +206,84 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this.renderer.render(this.scene, this.camera);
     this.scene.background = new THREE.Color( 0xFFFFFF );
+
+    this._context = this.selectionRectangle.nativeElement.getContext('2d');
+
+    this._selectionRect = new SelectionRect(this, this._context, this._helper);
+    this._selectionRect.data = this.data;
+    this._selectionRect.offset = {
+      x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
+      y: 0
+    };
   }
 
-
    //#region HostListeners
-   @HostListener('mousemove', ['$event'])
-   mouseMove(e: MouseEvent) {
+  @HostListener('document:mousedown', ['$event'])
+  onMousedown(e: MouseEvent){
+    this._interactionEvent = Interaction.TouchBegin;
+    const data = new InteractionEventData(this._interactionEvent, 
+      e.offsetX, e.offsetY);
+    this.eventAggregator.getEvent(InteractionEvent).publish(data);
+  }
 
+  @HostListener('document:mouseup', ['$event'])
+  onMouseUp(e: MouseEvent){
+    this._interactionEvent = Interaction.TouchEnd;
+    const data = new InteractionEventData(this._interactionEvent, 
+      e.offsetX, e.offsetY);
+    this.eventAggregator.getEvent(InteractionEvent).publish(data);
+  }
+ 
+  @HostListener('mousemove', ['$event'])
+  mouseMove(e: MouseEvent) {
     if (e.buttons === 1) {
+      if(!this.configuration.useDragSelection)
+      {
       const position = this.camera.position;
-
       this.camera.position.set(position.x + (-e.movementX * this.getScale()), position.y + (-e.movementY * this.getScale()), position.z);
-    }
-   }
-
-   @HostListener('document:keydown', ['$event'])
-    onKeyDown(e: KeyboardEvent) {
-      if (e.key === ' ') {
-        console.log('reset View...');
-        this.resetView();
+      } 
+      else
+      {    
+      this._interactionEvent = Interaction.Drag;
+      const data = new InteractionEventData(this._interactionEvent, 
+        e.offsetX, e.offsetY);
+      this.eventAggregator.getEvent(InteractionEvent).publish(data);
       }
     }
+  }
 
-   private resetView(): void {
-    this.camera.position.set(0, 0, 100);
-    this._transformation = new ViewportTransformationEventData();
-   }
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(e: KeyboardEvent) {
+    if (e.key === ' ') {
+      console.log('reset View...');
+      this.resetView();
+    }
+  }
 
-   @HostListener('mousewheel', ['$event'])
-   mousewheel(e: WheelEvent) {
-    const wheelDelta = e.deltaY / -100;
+  private resetView(): void {
+  this.camera.position.set(0, 0, 100);
+  this._transformation = new ViewportTransformationEventData();
+  }
 
-    let zoom = this._transformation.GetScale();
-    const change = wheelDelta * 0.1;
+  @HostListener('mousewheel', ['$event'])
+  mousewheel(e: WheelEvent) {
+  const wheelDelta = e.deltaY / -100;
 
-    zoom += change;
+  let zoom = this._transformation.GetScale();
+  const change = wheelDelta * 0.1;
 
-    if (zoom < 0.1) {
-      zoom = 0.1; }
+  zoom += change;
 
-    const data = new ViewportTransformationEventData(
-      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+  if (zoom < 0.1) {
+    zoom = 0.1; }
 
-    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
+  const data = new ViewportTransformationEventData(
+    this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
 
-    this.setViewFrustum();
-   }
+  this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
+
+  this.setViewFrustum();
+  }
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: Event) {
@@ -351,6 +392,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
   }
 
+  //#region subscribed events
   private onRefreshPlot = (payload: boolean) => {
     if (this.data == null) {
       return;
@@ -363,6 +405,32 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this._transformation = payload;
     this.setViewFrustum();
   }
+
+  private onInteractionUpdated = (payload: InteractionEventData) => {
+    //TODO
+    var interaction : Interaction  = payload.GetInteractionEvent();
+    switch(interaction){
+      case Interaction.TouchBegin: {
+        const startX: number = payload.GetPositionX();
+        const startY: number = payload.GetPositionY();
+        this._selectionRect.start = { x: startX, y: startY };
+        break;
+      }
+      case Interaction.TouchEnd: {
+        this._selectionRect.clear();
+        this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+        break;
+      }
+      case Interaction.Drag: {
+        if(this.configuration.useDragSelection){
+          //draw rectangle and lock camera
+          this._selectionRect.drawWebGl(payload);
+        }
+        break;
+      }
+    }
+  }
+  //#endregions subscribed events
 
   private getFeaturesForItem(d: any, config: ConfigurationData) {
     const item = this.data.features.find(f => {
