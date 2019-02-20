@@ -26,7 +26,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   @Input() width: number;
   @Input() height: number;
 
-
   private renderer: THREE.WebGLRenderer;
   private camera: THREE.OrthographicCamera;
   private cameraTarget: THREE.Vector3;
