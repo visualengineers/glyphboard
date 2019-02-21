@@ -1,6 +1,8 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener, OnChanges, AfterViewInit } from '@angular/core';
 import { RegionManager } from 'app/home/region.manager';
 import { Input } from '@angular/core';
+import { IdFilter } from '../id-filter';
+import { FeatureFilter } from '../feature-filter';
 
 import {Configuration } from 'app/shared/glyphplot/configuration.service';
 import {ConfigurationData} from 'app/shared/glyphplot/configuration.data';
@@ -17,6 +19,7 @@ import { InteractionEventData} from '../events/interaction.event.data';
 import { Interaction} from '../util/interaction';
 
 import { SelectionRect } from '../glyphplot/selection-rect';
+import { Helper } from '../glyph/glyph.helper';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -56,7 +59,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
 
   private _selectionRect: SelectionRect;
-  private _helper;
   private _context: any;
 
   private _shaderMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
@@ -80,13 +82,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   private _particleGeometry: THREE.BufferGeometry = new THREE.BufferGeometry();
 
-  get data(): any {
-    return this._data;
-  }
-  set data(value: any) {
-    this._data = value;
-  }
-
   @ViewChild('threejscanvas')
   private canvasRef: ElementRef
 
@@ -94,17 +89,19 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   constructor(
     private logger: Logger,
+    private helper: Helper,
     public regionManager: RegionManager,
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService
   ) {
     this.configurationService.configurations[0].getData().subscribe(message => {
       if (message != null) {
-        this.data = message;
+        this._data = message;
+        console.log("msg" + message);
         this.buildParticles();
       }
     });
-
+    console.log("msg" );
     this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
 
@@ -129,6 +126,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.startRendering();
 
     this.setViewFrustum();
+
+    this._context = this.selectionRectangle.nativeElement.getContext('2d');
+
+    this._selectionRect = new SelectionRect(this, this._context, this.helper);
+    this._selectionRect.data = this.data;
+    this._selectionRect.offset = {
+      x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
+      y: 0
+    };
   }
 
   private get canvas(): HTMLCanvasElement {
@@ -206,15 +212,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this.renderer.render(this.scene, this.camera);
     this.scene.background = new THREE.Color( 0xFFFFFF );
-
-    this._context = this.selectionRectangle.nativeElement.getContext('2d');
-
-    this._selectionRect = new SelectionRect(this, this._context, this._helper);
-    this._selectionRect.data = this.data;
-    this._selectionRect.offset = {
-      x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
-      y: 0
-    };
   }
 
    //#region HostListeners
@@ -417,8 +414,45 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         break;
       }
       case Interaction.TouchEnd: {
-        this._selectionRect.clear();
-        this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+        if(this.configuration.useDragSelection)
+        {
+          this._selectionRect.clear();
+
+          if(this.data != null){
+            this._selectionRect.data = this.data;
+            const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
+              if (filter instanceof IdFilter) {
+                return true;
+              }
+            });
+
+            const selection = this._selectionRect.selectedGlyphs;
+            const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
+              arrayOfIds.push(item.id);
+              return arrayOfIds;
+            }, []);
+
+            this.clearIdFilters();
+
+            // filter only if at least one glyph was selected
+            if (selectedIds.length > 0) {
+              let idFilter: IdFilter;
+
+              if (this.configuration.extendSelection && existingIdFilters.length > 0) {
+                const existingFilter = existingIdFilters[0];
+                if (existingFilter instanceof IdFilter) {
+                  idFilter = existingFilter;
+                }
+                idFilter.extendAccaptableIds(selectedIds);
+              } else {
+                idFilter = new IdFilter('id', selectedIds);
+              }
+              this.configuration.featureFilters.push(idFilter);
+              this.configuration.filterRefresh();
+            }
+          }
+          this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+        }
         break;
       }
       case Interaction.Drag: {
@@ -431,6 +465,17 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
   }
   //#endregions subscribed events
+
+  private clearIdFilters() {
+    function removeIdFilters(filter: FeatureFilter, index: number, featureFilters: FeatureFilter[]) {
+      if (filter instanceof IdFilter) {
+        featureFilters.splice(index, 1);
+      }
+    }
+
+    // remove old idFilters
+      this.configuration.featureFilters.forEach(removeIdFilters);
+  }
 
   private getFeaturesForItem(d: any, config: ConfigurationData) {
     const item = this.data.features.find(f => {
@@ -476,5 +521,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   //#region getters and setters
   get configuration() { return this._configuration; }
   set configuration(value: ConfigurationData) { this._configuration = value; }
+  get data(): any {
+    return this._data;
+  }
+  set data(value: any) {
+    this._data = value;
+  }
   //#endregion
 }
