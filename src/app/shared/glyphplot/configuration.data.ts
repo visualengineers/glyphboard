@@ -315,6 +315,9 @@ export class ConfigurationData {
   public filterRefresh() {
     var filteredIds = [];
 
+    if(this._data == null){
+      return;
+    }
     this._data.getValue().positions.forEach(d => {
       let itemConfirmsFilter = true;
       let featureItem = this.getFeaturesForItem(d);
