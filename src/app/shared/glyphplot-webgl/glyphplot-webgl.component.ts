@@ -10,7 +10,7 @@ import {EventAggregatorService} from '../events/event-aggregator.service';
 import { Logger } from 'app/logger.service';
 
 import * as THREE from 'three';
-import { ShadowMaterial, Color, BufferGeometry } from 'three';
+import { ShadowMaterial, Color, BufferGeometry, Camera } from 'three';
 import { RefreshPlotEvent } from '../events/refresh-plot.event';
 import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
 import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
@@ -296,10 +296,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this.camera.left = this._data_MinX / this._transformation.GetScale();
     this.camera.right = this._data_MaxX / this._transformation.GetScale();
-    this.camera.top = (this._data_MinY / this._transformation.GetScale()) / aspect;
-    this.camera.bottom = (this._data_MaxY / this._transformation.GetScale()) / aspect;
+    this.camera.top = (this._data_MinY / this._transformation.GetScale());
+    this.camera.bottom = (this._data_MaxY / this._transformation.GetScale());
+
+    this.camera.position.setX(this._transformation.GetTranslateX());
+    this.camera.position.setY(this._transformation.GetTranslateY());
 
     this.camera.updateProjectionMatrix();
+
+
 
     this.renderer.setSize(this.width, this.height);
 

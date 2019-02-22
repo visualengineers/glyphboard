@@ -81,7 +81,11 @@ export class GlyphplotEventController {
       this.configuration.currentLayout = GlyphLayout.Cluster;
 
       // braoadcast transformation using eventaggregator
-      const transformArgs = new ViewportTransformationEventData(trans.x, trans.y, 0, trans.k);
+      const transformArgs = new ViewportTransformationEventData(
+        -trans.x / this.component.transform.k,
+        -trans.y / this.component.transform.k,
+        0,
+        trans.k);
       this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
     }
 
