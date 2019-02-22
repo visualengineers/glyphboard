@@ -4,3 +4,11 @@ canvas {
     background-color: #111111;
     padding: 10;
 }
+
+#selectionrectangle {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: transparent;
+    pointer-events: none;
+}

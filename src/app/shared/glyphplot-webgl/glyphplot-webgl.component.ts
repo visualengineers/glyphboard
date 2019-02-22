@@ -1,6 +1,8 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener, OnChanges, AfterViewInit } from '@angular/core';
 import { RegionManager } from 'app/home/region.manager';
 import { Input } from '@angular/core';
+import { IdFilter } from '../id-filter';
+import { FeatureFilter } from '../feature-filter';
 
 import {Configuration } from 'app/shared/glyphplot/configuration.service';
 import {ConfigurationData} from 'app/shared/glyphplot/configuration.data';
@@ -12,7 +14,12 @@ import { ShadowMaterial, Color, BufferGeometry } from 'three';
 import { RefreshPlotEvent } from '../events/refresh-plot.event';
 import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
 import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
+import { InteractionEvent} from '../events/interaction.event';
+import { InteractionEventData} from '../events/interaction.event.data';
+import { Interaction} from '../util/interaction';
 
+import { SelectionRect } from '../glyphplot/selection-rect';
+import { Helper } from '../glyph/glyph.helper';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -24,6 +31,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   @Input() width: number;
   @Input() height: number;
 
+  @ViewChild('selectionrectangle') public selectionRectangle: ElementRef;
 
   private renderer: THREE.WebGLRenderer;
   private camera: THREE.OrthographicCamera;
@@ -46,7 +54,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _data_MinY: number;
   private _data_MaxY: number;
 
+  private _interactionEvent: Interaction;
+  private _interaction: InteractionEventData = new InteractionEventData(null);
   private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
+
+  private _selectionRect: SelectionRect;
+  private _context: any;
 
   private _shaderMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     vertexShader: 'attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }',
@@ -69,13 +82,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   private _particleGeometry: THREE.BufferGeometry = new THREE.BufferGeometry();
 
-  get data(): any {
-    return this._data;
-  }
-  set data(value: any) {
-    this._data = value;
-  }
-
   @ViewChild('threejscanvas')
   private canvasRef: ElementRef
 
@@ -83,25 +89,26 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   constructor(
     private logger: Logger,
+    private helper: Helper,
     public regionManager: RegionManager,
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService
   ) {
     this.configurationService.configurations[0].getData().subscribe(message => {
       if (message != null) {
-        this.data = message;
+        this._data = message;
+        console.log("msg" + message);
         this.buildParticles();
       }
     });
-
+    console.log("msg" );
     this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
-
+    this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
 
     this.render = this.render.bind(this);
-
   }
 
   ngOnInit(): void {
@@ -119,6 +126,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.startRendering();
 
     this.setViewFrustum();
+
+    this._context = this.selectionRectangle.nativeElement.getContext('2d');
+
+    this._selectionRect = new SelectionRect(this, this._context, this.helper);
+    this._selectionRect.data = this.data;
+    this._selectionRect.offset = {
+      x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
+      y: 0
+    };
   }
 
   private get canvas(): HTMLCanvasElement {
@@ -198,50 +214,73 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.scene.background = new THREE.Color( 0xFFFFFF );
   }
 
-
    //#region HostListeners
-   @HostListener('mousemove', ['$event'])
-   mouseMove(e: MouseEvent) {
+  @HostListener('document:mousedown', ['$event'])
+  onMousedown(e: MouseEvent){
+    this._interactionEvent = Interaction.TouchBegin;
+    const data = new InteractionEventData(this._interactionEvent, 
+      e.offsetX, e.offsetY);
+    this.eventAggregator.getEvent(InteractionEvent).publish(data);
+  }
 
+  @HostListener('document:mouseup', ['$event'])
+  onMouseUp(e: MouseEvent){
+    this._interactionEvent = Interaction.TouchEnd;
+    const data = new InteractionEventData(this._interactionEvent, 
+      e.offsetX, e.offsetY);
+    this.eventAggregator.getEvent(InteractionEvent).publish(data);
+  }
+ 
+  @HostListener('mousemove', ['$event'])
+  mouseMove(e: MouseEvent) {
     if (e.buttons === 1) {
+      if(!this.configuration.useDragSelection)
+      {
       const position = this.camera.position;
-
       this.camera.position.set(position.x + (-e.movementX * this.getScale()), position.y + (-e.movementY * this.getScale()), position.z);
-    }
-   }
-
-   @HostListener('document:keydown', ['$event'])
-    onKeyDown(e: KeyboardEvent) {
-      if (e.key === ' ') {
-        console.log('reset View...');
-        this.resetView();
+      } 
+      else
+      {    
+      this._interactionEvent = Interaction.Drag;
+      const data = new InteractionEventData(this._interactionEvent, 
+        e.offsetX, e.offsetY);
+      this.eventAggregator.getEvent(InteractionEvent).publish(data);
       }
     }
+  }
 
-   private resetView(): void {
-    this.camera.position.set(0, 0, 100);
-    this._transformation = new ViewportTransformationEventData();
-   }
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(e: KeyboardEvent) {
+    if (e.key === ' ') {
+      console.log('reset View...');
+      this.resetView();
+    }
+  }
 
-   @HostListener('mousewheel', ['$event'])
-   mousewheel(e: WheelEvent) {
-    const wheelDelta = e.deltaY / -100;
+  private resetView(): void {
+  this.camera.position.set(0, 0, 100);
+  this._transformation = new ViewportTransformationEventData();
+  }
 
-    let zoom = this._transformation.GetScale();
-    const change = wheelDelta * 0.1;
+  @HostListener('mousewheel', ['$event'])
+  mousewheel(e: WheelEvent) {
+  const wheelDelta = e.deltaY / -100;
 
-    zoom += change;
+  let zoom = this._transformation.GetScale();
+  const change = wheelDelta * 0.1;
 
-    if (zoom < 0.1) {
-      zoom = 0.1; }
+  zoom += change;
 
-    const data = new ViewportTransformationEventData(
-      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+  if (zoom < 0.1) {
+    zoom = 0.1; }
 
-    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
+  const data = new ViewportTransformationEventData(
+    this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
 
-    this.setViewFrustum();
-   }
+  this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
+
+  this.setViewFrustum();
+  }
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: Event) {
@@ -350,6 +389,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
   }
 
+  //#region subscribed events
   private onRefreshPlot = (payload: boolean) => {
     if (this.data == null) {
       return;
@@ -364,6 +404,80 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     console.log('Transformation: [' + this._transformation.GetTranslateX() + ' | ' + this._transformation.GetTranslateY()
       + ' ] - Zoom: ' + this._transformation.GetScale());
+  }
+
+  private onInteractionUpdated = (payload: InteractionEventData) => {
+    //TODO
+    var interaction : Interaction  = payload.GetInteractionEvent();
+    switch(interaction){
+      case Interaction.TouchBegin: {
+        const startX: number = payload.GetPositionX();
+        const startY: number = payload.GetPositionY();
+        this._selectionRect.start = { x: startX, y: startY };
+        break;
+      }
+      case Interaction.TouchEnd: {
+        if(this.configuration.useDragSelection)
+        {
+          this._selectionRect.clear();
+
+          if(this.data != null){
+            this._selectionRect.data = this.data;
+            const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
+              if (filter instanceof IdFilter) {
+                return true;
+              }
+            });
+
+            const selection = this._selectionRect.selectedGlyphs;
+            const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
+              arrayOfIds.push(item.id);
+              return arrayOfIds;
+            }, []);
+
+            this.clearIdFilters();
+
+            // filter only if at least one glyph was selected
+            if (selectedIds.length > 0) {
+              let idFilter: IdFilter;
+
+              if (this.configuration.extendSelection && existingIdFilters.length > 0) {
+                const existingFilter = existingIdFilters[0];
+                if (existingFilter instanceof IdFilter) {
+                  idFilter = existingFilter;
+                }
+                idFilter.extendAccaptableIds(selectedIds);
+              } else {
+                idFilter = new IdFilter('id', selectedIds);
+              }
+              this.configuration.featureFilters.push(idFilter);
+              this.configuration.filterRefresh();
+            }
+          }
+          this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+        }
+        break;
+      }
+      case Interaction.Drag: {
+        if(this.configuration.useDragSelection){
+          //draw rectangle and lock camera
+          this._selectionRect.drawWebGl(payload);
+        }
+        break;
+      }
+    }
+  }
+  //#endregions subscribed events
+
+  private clearIdFilters() {
+    function removeIdFilters(filter: FeatureFilter, index: number, featureFilters: FeatureFilter[]) {
+      if (filter instanceof IdFilter) {
+        featureFilters.splice(index, 1);
+      }
+    }
+
+    // remove old idFilters
+      this.configuration.featureFilters.forEach(removeIdFilters);
   }
 
   private getFeaturesForItem(d: any, config: ConfigurationData) {
@@ -406,4 +520,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     });
     this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
   }
+
+  //#region getters and setters
+  get configuration() { return this._configuration; }
+  set configuration(value: ConfigurationData) { this._configuration = value; }
+  get data(): any {
+    return this._data;
+  }
+  set data(value: any) {
+    this._data = value;
+  }
+  //#endregion
 }
