@@ -14,8 +14,6 @@ import { RefreshPlotEvent } from '../events/refresh-plot.event';
 import { FitToScreenEvent } from '../events/fit-to-screen.event';
 import { FitToSelectionEvent } from '../events/fit-to-selection.event';
 import { ManualZoom } from '../events/manual-zoom.event';
-import { TransitiveCompileNgModuleMetadata } from '@angular/compiler';
-import { truncate } from 'fs';
 import { GlyphLayout } from '../glyph/glyph.layout';
 import { RefreshHoverEvent } from '../events/refresh-hover.event';
 import { RefreshHoverEventData } from '../events/refresh-hover.event.data';
@@ -30,6 +28,7 @@ export class GlyphplotEventController {
   private formerTranslation = { x: 0, y: 0 };
   private selectionEnded: boolean;
   private currentEventType: string;
+  private _component: GlyphplotComponent;
 
   constructor(private component: GlyphplotComponent,
     private configuration: ConfigurationData,
@@ -53,9 +52,20 @@ export class GlyphplotEventController {
     this.eventAggregator
       .getEvent(RefreshHoverEvent)
       .subscribe(this.onRefreshHover);
+    this.eventAggregator
+      .getEvent(ViewportTransformationEvent)
+      .subscribe(this.onViewportTransformationUpdated);
   }
 
-  /**
+
+  private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
+
+    this.component.transform.x = -payload.GetTranslateX() * payload.GetScale();
+    this.component.transform.y = -payload.GetTranslateY() * payload.GetScale();
+    this.component.transform.k = payload.GetScale();
+  }
+
+   /**
    * When the mousewheel is rotated on the canvas, update the transform of the viewport by updating
    * glyph posititions according to the new transform.
    */
@@ -73,14 +83,17 @@ export class GlyphplotEventController {
       const trans = d3.event.transform;
       trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
       trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
-      this.component.transform = trans;
-      this.formerTranslation.x = this.component.transform.x / this.component.transform.k;
-      this.formerTranslation.y = this.component.transform.y / this.component.transform.k;
+
+
+      this.formerTranslation.x = trans.x / trans.k;
+      this.formerTranslation.y = trans.y / trans.k;
+
       this.selectionEnded = true;
-      this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+
+      this.configuration.updateCurrentLevelOfDetail(trans.k);
       this.configuration.currentLayout = GlyphLayout.Cluster;
 
-      // braoadcast transformation using eventaggregator
+      // broadcast transformation using eventaggregator
       const transformArgs = new ViewportTransformationEventData(
         -trans.x / this.component.transform.k,
         -trans.y / this.component.transform.k,

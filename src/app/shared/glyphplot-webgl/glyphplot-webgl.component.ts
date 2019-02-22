@@ -234,17 +234,20 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   @HostListener('mousemove', ['$event'])
   mouseMove(e: MouseEvent) {
     if (e.buttons === 1) {
-      if(!this.configuration.useDragSelection)
-      {
-      const position = this.camera.position;
-      this.camera.position.set(position.x + (-e.movementX * this.getScale()), position.y + (-e.movementY * this.getScale()), position.z);
-      } 
-      else
-      {    
-      this._interactionEvent = Interaction.Drag;
-      const data = new InteractionEventData(this._interactionEvent, 
-        e.offsetX, e.offsetY);
-      this.eventAggregator.getEvent(InteractionEvent).publish(data);
+      if(!this.configuration.useDragSelection){
+        const position = this.camera.position;
+        const scale = this._transformation.GetScale();
+        const translateX = position.x + (-e.movementX / scale)
+        const translateY = position.y + (-e.movementY / scale);
+
+        const data = new ViewportTransformationEventData(translateX, translateY, 0, scale);
+        this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
+
+      } else {
+        this._interactionEvent = Interaction.Drag;
+        const data = new InteractionEventData(this._interactionEvent,
+          e.offsetX, e.offsetY);
+        this.eventAggregator.getEvent(InteractionEvent).publish(data);
       }
     }
   }
@@ -264,22 +267,20 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   @HostListener('mousewheel', ['$event'])
   mousewheel(e: WheelEvent) {
-  const wheelDelta = e.deltaY / -100;
+    const wheelDelta = e.deltaY / -100;
 
-  let zoom = this._transformation.GetScale();
-  const change = wheelDelta * 0.1;
+    let zoom = this._transformation.GetScale();
+    const change = wheelDelta * 0.1;
 
-  zoom += change;
+    zoom += change;
 
-  if (zoom < 0.1) {
-    zoom = 0.1; }
+    if (zoom < 0.1) {
+      zoom = 0.1; }
 
-  const data = new ViewportTransformationEventData(
-    this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+    const data = new ViewportTransformationEventData(
+      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
 
-  this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
-
-  this.setViewFrustum();
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
 
   @HostListener('window:resize', ['$event'])
@@ -303,8 +304,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.camera.position.setY(this._transformation.GetTranslateY());
 
     this.camera.updateProjectionMatrix();
-
-
 
     this.renderer.setSize(this.width, this.height);
 
@@ -404,11 +403,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
+    if (!(this instanceof(GlyphplotWebglComponent))) {
+      return;
+    }
+
     this._transformation = payload;
     this.setViewFrustum();
-
-    console.log('Transformation: [' + this._transformation.GetTranslateX() + ' | ' + this._transformation.GetTranslateY()
-      + ' ] - Zoom: ' + this._transformation.GetScale());
   }
 
   private onInteractionUpdated = (payload: InteractionEventData) => {
