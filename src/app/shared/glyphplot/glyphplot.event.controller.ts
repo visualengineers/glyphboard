@@ -19,6 +19,7 @@ import { RefreshHoverEvent } from '../events/refresh-hover.event';
 import { RefreshHoverEventData } from '../events/refresh-hover.event.data';
 
 import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
+import { UpdateItemsStrategy } from '../util/UpdateItemsStrategy';
 import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
 
 export class GlyphplotEventController {
@@ -63,6 +64,19 @@ export class GlyphplotEventController {
     this.component.transform.x = -payload.GetTranslateX() * payload.GetScale();
     this.component.transform.y = -payload.GetTranslateY() * payload.GetScale();
     this.component.transform.k = payload.GetScale();
+
+    this.formerTranslation.x = this.component.transform.x;
+    this.formerTranslation.y = this.component.transform.y;
+
+    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+
+    if (payload.GetUpdateStrategy() === UpdateItemsStrategy.DefaultUpdate) {
+      this.component.updateGlyphLayout();
+    } else if (payload.GetUpdateStrategy() === UpdateItemsStrategy.CompleteRefresh) {
+      this.component.updateGlyphLayout(true);
+    }
+
+    this.component.animate();
   }
 
    /**
@@ -84,13 +98,8 @@ export class GlyphplotEventController {
       trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
       trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
 
-
-      this.formerTranslation.x = trans.x / trans.k;
-      this.formerTranslation.y = trans.y / trans.k;
-
       this.selectionEnded = true;
 
-      this.configuration.updateCurrentLevelOfDetail(trans.k);
       this.configuration.currentLayout = GlyphLayout.Cluster;
 
       // broadcast transformation using eventaggregator
@@ -391,13 +400,8 @@ export class GlyphplotEventController {
   };
 
   private fitToScreen = (payload: boolean) => {
-    this.component.transform.x = 0;
-    this.component.transform.y = 0;
-    this.component.transform.k = 1;
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.updateGlyphLayout(true);
-    this.component.animate();
-    this.formerTranslation = {x: 0, y: 0};
+    const args = new ViewportTransformationEventData(0, 0, 0, 1, UpdateItemsStrategy.CompleteRefresh);
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
   };
 
   private fitToSelection = (payload: boolean) => {
@@ -445,27 +449,24 @@ export class GlyphplotEventController {
         k = 8;
       }
     }
-    this.component.transform.k = k;
-    this.component.transform.x = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
-    this.component.transform.y =
-      (this.component.height - this.component.height * k) / 2 +
-      (this.component.height / 2 - (maxY + minY) / 2) * k;
-    this.formerTranslation.x = this.component.transform.x;
-    this.formerTranslation.y = this.component.transform.y;
 
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.animate();
+    const transX = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
+    const transY = (this.component.height - this.component.height * k) / 2 + (this.component.height / 2 - (maxY + minY) / 2) * k;
+
+    const args = new ViewportTransformationEventData(transX / k, transY / k, 0, k, UpdateItemsStrategy.NoUpdate);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
 
   };
 
-  private manualZoom = (payload: number) => {
+  private manualZoom = (zoomFactor: number) => {
 
-    this.component.transform.x = (this.component.width - this.component.width * payload) / 2 + this.formerTranslation.x * payload;
-    this.component.transform.y = (this.component.height - this.component.height * payload) / 2 + this.formerTranslation.y * payload;
-    this.component.transform.k = payload;
-    this.component.updateGlyphLayout();
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.animate();
+    const transX = (this.component.width - this.component.width) / 2 + this.formerTranslation.x;
+    const transY = (this.component.height - this.component.height) / 2 + this.formerTranslation.y;
+
+    const args = new ViewportTransformationEventData(transX, transY, 0, zoomFactor, UpdateItemsStrategy.DefaultUpdate);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
   };
 
   private onRefreshHover = (payload: RefreshHoverEventData) => {
