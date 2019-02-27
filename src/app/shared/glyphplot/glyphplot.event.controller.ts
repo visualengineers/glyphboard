@@ -261,40 +261,42 @@ export class GlyphplotEventController {
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
-    // find glyph to highlight
-    let glyphRadius: number;
-    if (this.configuration.currentLevelOfDetail === 0) {
-      glyphRadius = 5;
-    } else {
-      const glyphConfiguration = this.configuration.glyph;
-      if (glyphConfiguration instanceof FlowerGlyph || glyphConfiguration instanceof StarGlyph) {
-        glyphRadius = glyphConfiguration.configuration.radius;
-      }
-    }
-    if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
-      this.configurationService.configurations[1].selectedDataSetInfo.name) {
-      this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
-      this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
-    } else {
-      this.configuration.idOfHoveredGlyph = undefined;
-    }
-    for (const element of this.component.data.positions) {
-      if (
-        Math.abs(element.position.x - e.layerX) <= glyphRadius &&
-        Math.abs(element.position.y - e.layerY) <= glyphRadius
-      ) {
-        if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
-          this.configurationService.configurations[1].selectedDataSetInfo.name) {
-          this.configurationService.configurations[0].idOfHoveredGlyph = element.id;
-          this.configurationService.configurations[1].idOfHoveredGlyph = element.id;
-        } else {
-          this.configuration.idOfHoveredGlyph = element.id;
+    if (!this.cursor.isVisible) {
+      // find glyph to highlight
+      let glyphRadius: number;
+      if (this.configuration.currentLevelOfDetail === 0) {
+        glyphRadius = 5;
+      } else {
+        const glyphConfiguration = this.configuration.glyph;
+        if (glyphConfiguration instanceof FlowerGlyph || glyphConfiguration instanceof StarGlyph) {
+          glyphRadius = glyphConfiguration.configuration.radius;
         }
-        break;
       }
-    }
-    if (this.configuration.useDragSelection) {
-      this.component.draw();
+      if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
+        this.configurationService.configurations[1].selectedDataSetInfo.name) {
+        this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
+        this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
+      } else {
+        this.configuration.idOfHoveredGlyph = undefined;
+      }
+      for (const element of this.component.data.positions) {
+        if (
+          Math.abs(element.position.x - e.layerX) <= glyphRadius &&
+          Math.abs(element.position.y - e.layerY) <= glyphRadius
+        ) {
+          if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
+            this.configurationService.configurations[1].selectedDataSetInfo.name) {
+            this.configurationService.configurations[0].idOfHoveredGlyph = element.id;
+            this.configurationService.configurations[1].idOfHoveredGlyph = element.id;
+          } else {
+            this.configuration.idOfHoveredGlyph = element.id;
+          }
+          break;
+        }
+      }
+      if (this.configuration.useDragSelection) {
+        this.component.draw();
+      }
     }
   }
 
