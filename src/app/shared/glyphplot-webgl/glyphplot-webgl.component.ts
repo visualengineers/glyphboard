@@ -440,7 +440,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
               return arrayOfIds;
             }, []);
 
-            this.clearIdFilters();
+            // this.clearIdFilters();
 
             // filter only if at least one glyph was selected
             if (selectedIds.length > 0) {

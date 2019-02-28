@@ -450,10 +450,16 @@ export class GlyphplotEventController {
       }
     }
 
-    const transX = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
-    const transY = (this.component.height - this.component.height * k) / 2 + (this.component.height / 2 - (maxY + minY) / 2) * k;
+    if (Math.abs(k) < 0.01) {
+      return;
+    }
 
-    const args = new ViewportTransformationEventData(transX / k, transY / k, 0, k, UpdateItemsStrategy.NoUpdate);
+    const transX = ((maxX + minX) / 2) / k;
+    const transY = ((maxY + minY) / 2) / k;
+
+    console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ' + k);
+
+    const args = new ViewportTransformationEventData(minX, minY, 0, k, UpdateItemsStrategy.DefaultUpdate);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
 
