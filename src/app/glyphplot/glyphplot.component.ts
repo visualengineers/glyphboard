@@ -11,8 +11,8 @@ import {Helper} from 'app/glyph/glyph.helper';
 
 import {TooltipComponent} from 'app/tooltip/tooltip.component';
 import {SelectionRect} from './selection-rect';
-import {Configuration} from './configuration.service';
-import {ConfigurationData} from './configuration.data';
+import {Configuration} from '../shared/services/configuration.service';
+import {ConfigurationData} from '../shared/services/configuration.data';
 
 import {LenseCursor} from 'app/lense/cursor.service';
 import {EventAggregatorService} from 'app/shared/events/event-aggregator.service';

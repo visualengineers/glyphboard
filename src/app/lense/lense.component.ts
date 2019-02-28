@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 import { DataproviderService } from 'app/shared/services/dataprovider.service';
-import { Configuration } from 'app/glyphplot/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 import { Glyph } from 'app/glyph/glyph';
 import { FlowerGlyph } from 'app/glyph/glyph.flower';
 import { GlyphConfiguration } from 'app/glyph/glyph.configuration';

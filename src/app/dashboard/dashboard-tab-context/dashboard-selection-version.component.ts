@@ -6,7 +6,7 @@ import {
   ViewChild,
   OnInit
 } from '@angular/core';
-import { Configuration } from 'app/glyphplot/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 import { Glyph } from '../../glyph/glyph';
 import { FlowerGlyph } from '../../glyph/glyph.flower';
 import { GlyphType } from '../../glyph/glyph.type';

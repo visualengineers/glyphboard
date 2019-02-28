@@ -1,7 +1,7 @@
 import { GlyphplotComponent } from './glyphplot.component';
 import { Logger } from 'app/shared/services/logger.service';
 import * as d3 from 'd3';
-import { Configuration } from './configuration.service';
+import { Configuration } from '../shared/services/configuration.service';
 import { DotGlyphConfiguration } from '../glyph/glyph.dot.configuration';
 
 export class GlyphplotLayoutController {

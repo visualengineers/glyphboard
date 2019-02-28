@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { DataproviderService } from '../shared/services/dataprovider.service';
 import { RegionManager } from '../region/region.manager';
 import { Logger } from '../shared/services/logger.service';
-import { Configuration } from 'app/glyphplot/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 import { LenseCursor } from 'app/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';

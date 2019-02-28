@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 
 import { Logger } from 'app/shared/services/logger.service';
-import { Configuration } from 'app/glyphplot/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 import { DashboardGlyphConfigComponent } from './dashboard-tab-glyphs/dashboard-glyph-config.component';
 import { LenseCursor } from 'app/lense/cursor.service';
 import { RegionManager } from 'app/region/region.manager';

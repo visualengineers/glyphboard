@@ -8,7 +8,7 @@ import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
 import { StarGlyph } from 'app/glyph/glyph.star';
 import { StarGlyphConfiguration } from 'app/glyph/glyph.star.configuration';
 import { Helper } from 'app/glyph/glyph.helper';
-import { Configuration } from './configuration.service';
+import { Configuration } from '../shared/services/configuration.service';
 import { LenseCursor } from 'app/lense/cursor.service';
 
 describe('GlyphplotComponent', () => {

@@ -1,6 +1,6 @@
 import { GlyphplotComponent } from './glyphplot.component';
 import { LenseCursor } from '../lense/cursor.service';
-import { ConfigurationData } from './configuration.data';
+import { ConfigurationData } from '../shared/services/configuration.data';
 import { Logger } from 'app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
 

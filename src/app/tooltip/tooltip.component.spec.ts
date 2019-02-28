@@ -5,7 +5,7 @@ import { DebugElement } from '@angular/core';
 import { TooltipComponent } from './tooltip.component';
 
 import { Helper } from '../glyph/glyph.helper';
-import { Configuration } from '../glyphplot/configuration.service';
+import { Configuration } from '../shared/services/configuration.service';
 
 describe('TooltipService', () => {
   let controller: TooltipComponent;

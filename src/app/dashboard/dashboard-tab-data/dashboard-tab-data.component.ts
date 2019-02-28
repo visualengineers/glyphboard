@@ -1,6 +1,6 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
-import { ConfigurationData } from '../../glyphplot/configuration.data';
+import { ConfigurationData } from '../../shared/services/configuration.data';
 
 @Component({
   selector: 'app-dashboard-tab-data',

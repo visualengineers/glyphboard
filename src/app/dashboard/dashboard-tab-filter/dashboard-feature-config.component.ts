@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, ElementRef, Output, EventEmitter,  ViewChi
 import * as d3 from 'd3';
 import { DataproviderService } from 'app/shared/services/dataprovider.service';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
-import { Configuration } from '../../glyphplot/configuration.service';
+import { Configuration } from '../../shared/services/configuration.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { Observable } from 'rxjs';

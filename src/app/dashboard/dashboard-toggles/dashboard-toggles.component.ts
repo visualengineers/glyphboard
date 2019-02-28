@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { LenseCursor } from 'app/lense/cursor.service';
-import { Configuration } from 'app/glyphplot/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 

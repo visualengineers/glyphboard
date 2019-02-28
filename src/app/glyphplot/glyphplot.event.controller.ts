@@ -1,10 +1,10 @@
 import { GlyphplotComponent } from './glyphplot.component';
-import { ConfigurationData } from './configuration.data';
+import { ConfigurationData } from '../shared/services/configuration.data';
 import { LenseCursor } from './../lense/cursor.service';
 import { Logger } from 'app/shared/services/logger.service';
 import { IdFilter } from 'app/shared/filter/id-filter';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
-import { Configuration } from './configuration.service';
+import { Configuration } from '../shared/services/configuration.service';
 
 import * as d3 from 'd3';
 import { FlowerGlyph } from 'app/glyph/glyph.flower';

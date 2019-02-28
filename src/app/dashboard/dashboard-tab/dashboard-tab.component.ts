@@ -1,6 +1,6 @@
 import { Component, Injector } from '@angular/core';
 import { Logger } from 'app/shared/services/logger.service';
-import { Configuration } from 'app/glyphplot/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 import { DataproviderService } from 'app/shared/services/dataprovider.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';

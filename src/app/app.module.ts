@@ -10,7 +10,7 @@ import { HomeComponent } from './home/home.component';
 import { routing, appRoutingProviders } from './app.routes';
 import { GlyphplotComponent } from './glyphplot/glyphplot.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { Configuration } from './glyphplot/configuration.service';
+import { Configuration } from './shared/services/configuration.service';
 import { DashboardGlyphConfigComponent } from './dashboard/dashboard-tab-glyphs/dashboard-glyph-config.component';
 import { DashboardFeatureConfigComponent } from './dashboard/dashboard-tab-filter/dashboard-feature-config.component';
 import { MagicLenseComponent } from './lense/lense.component';

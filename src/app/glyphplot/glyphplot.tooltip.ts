@@ -1,8 +1,8 @@
 import { ElementRef, Injectable } from '@angular/core';
 
 import { Helper } from '../glyph/glyph.helper';
-import { Configuration } from './configuration.service';
-import { ConfigurationData } from './configuration.data';
+import { Configuration } from '../shared/services/configuration.service';
+import { ConfigurationData } from '../shared/services/configuration.data';
 
 import * as d3 from 'd3';
 
