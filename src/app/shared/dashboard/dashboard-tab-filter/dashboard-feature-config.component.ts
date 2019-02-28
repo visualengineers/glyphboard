@@ -146,8 +146,8 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     ];
 
     if (this.data) {
-      this.createChart();
-      this.updateChart();
+      this.createChart(true);
+      this.updateChart(true);
     }
 
     // since the label is a string and the items only have indexed properties, find the property
@@ -200,8 +200,16 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       }
   }
 
-  private createChart() {
+  private createChart(init: boolean = false) {
     const element = this.chartContainer.nativeElement;
+    if (init) {
+      this.configuration.configurations[0].featureFilters.forEach( d => {
+        if (d.featureName == this.property) {
+          this.small = false;
+          this.width = 340;
+        }
+      });
+    }
     this.svg = d3.select(element).append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
@@ -221,7 +229,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.yScale = d3.scaleLinear().domain(yDomain).range([this.height, 0]);
 }
 
-  private updateChart() {
+  private updateChart(init: boolean = false) {
     // update scales
     this.xScale.domain(this.data.map(d => d[0]));
     this.yScale.domain([0, d3.max(this.data, d => d[1])]);
@@ -304,6 +312,21 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
               + '-'
               + Math.round(((Math.floor(d3.mouse(this)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       });
+      if (init) {
+        var min, max;
+        this.configuration.configurations[0].featureFilters.forEach( d => {
+          if (d.featureName == this.property) {
+            min = Math.floor(d.minValue*this.width+2);
+            max = Math.floor(d.maxValue*this.width-2);
+          }
+        });
+        this.removeFilterFromConfiguration();
+        this.chart.select('#overlay-wrap').call(this.brush.move, [min, max]);
+        this.configuration.configurations[0].filterRefresh();
+        this.configuration.configurations[1].filterRefresh();
+
+        this.updateChart();
+      }
     }
     };
 
