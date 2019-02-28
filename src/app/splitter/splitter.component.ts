@@ -1,4 +1,4 @@
-import {ElementRef, ViewChild,  HostBinding,   Component,    OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 
 @Component({
   selector: 'app-splitter',

@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, Input, OnChanges, OnInit, Renderer, ViewChild} from '@angular/core';
+import {Component, ElementRef, HostListener, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 
 import {Logger} from 'app/shared/services/logger.service';
 

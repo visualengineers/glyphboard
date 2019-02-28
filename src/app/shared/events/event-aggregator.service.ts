@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
 import { EventBase } from './event-base';
 import { Event } from './event';
 

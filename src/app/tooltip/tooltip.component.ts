@@ -1,6 +1,6 @@
 import { OnInit, ElementRef,  ViewChild,   Component } from '@angular/core';
-import { Helper } from '../glyph/glyph.helper';
-import { Configuration } from '../shared/services/configuration.service';
+import { Helper } from 'app/glyph/glyph.helper';
+import { Configuration } from 'app/shared/services/configuration.service';
 
 @Component({
   selector: 'app-tooltip',
