@@ -261,8 +261,7 @@ export class GlyphplotEventController {
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
-
-    if (this.configuration.useDragSelection || this.configuration.showHighlightInNormalMode) {
+    if (!this.cursor.isVisible) {
       // find glyph to highlight
       let glyphRadius: number;
       if (this.configuration.currentLevelOfDetail === 0) {
@@ -295,7 +294,9 @@ export class GlyphplotEventController {
           break;
         }
       }
-      this.component.draw();
+      if (this.configuration.useDragSelection) {
+        this.component.draw();
+      }
     }
   }
 
@@ -446,6 +447,8 @@ export class GlyphplotEventController {
 
   private onRefreshHover = (payload: RefreshHoverEventData) => {
     this.component.draw();
-    this.component.selectionRect.drawHighlightedGlyph();
+    if (this.configuration.useDragSelection) {
+      this.component.selectionRect.drawHighlightedGlyph();
+    }
   };
 };
