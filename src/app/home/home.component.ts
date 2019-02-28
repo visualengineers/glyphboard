@@ -1,9 +1,9 @@
-import { Component, ElementRef, OnInit, HostListener, ViewChild } from '@angular/core';
-import { DataproviderService } from '../dataprovider.service';
-import { RegionManager } from './region.manager';
-import { Logger } from '../logger.service';
-import { Configuration } from 'app/shared/glyphplot/configuration.service';
-import { LenseCursor } from 'app/shared/lense/cursor.service';
+import { Component, OnInit, HostListener } from '@angular/core';
+import { DataproviderService } from '../shared/services/dataprovider.service';
+import { RegionManager } from '../region/region.manager';
+import { Logger } from '../shared/services/logger.service';
+import { Configuration } from 'app/glyphplot/configuration.service';
+import { LenseCursor } from 'app/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 
@@ -18,7 +18,6 @@ export class HomeComponent implements OnInit {
   private isKeyDown: boolean;
 
   constructor(
-    private dataProvider: DataproviderService,
     private logger: Logger,
     public regionManager: RegionManager,
     private configuration: Configuration,
