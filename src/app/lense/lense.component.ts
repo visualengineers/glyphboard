@@ -190,6 +190,8 @@ export class MagicLenseComponent implements OnInit {
   public onLensMouseMove(e: any): void {
     if (this.cursor.isFixed) {
       this.updateTooltip(e);
+      this.configuration.configurations[0].idOfHoveredGlyph = this.tooltip.getClosestPointId;
+      this.configuration.configurations[1].idOfHoveredGlyph = this.tooltip.getClosestPointId;
     }
   }
 
