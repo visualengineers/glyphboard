@@ -261,7 +261,7 @@ export class GlyphplotEventController {
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
-    if (!this.cursor.isVisible) {
+    if (!this.cursor.isVisible || this.cursor.isFixed ) {
       // find glyph to highlight
       let glyphRadius: number;
       if (this.configuration.currentLevelOfDetail === 0) {
