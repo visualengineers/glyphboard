@@ -107,8 +107,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
     this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
-
-    this.render = this.render.bind(this);
   }
 
   ngOnInit(): void {
@@ -188,30 +186,16 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.renderer.setSize(this.width, this.height);
     this.renderer.shadowMap.enabled = false;
     this.renderer.setClearColor(0xFFFFFF, 1);
+    this.scene.background = new THREE.Color( 0xFFFFFF );
     this.renderer.autoClear = true;
 
     this.buildParticles();
 
-    const component: GlyphplotWebglComponent = this;
-
-    (function render() {
-        component.render();
-    }());
+    requestAnimationFrame(this.render);
   }
 
-  public render() {
-
-    const self: GlyphplotWebglComponent = this;
-
-    (function render() {
-      requestAnimationFrame(render);
-
-      self.renderer.render( self.scene, self.camera );
-
-    }());
-
-    this.renderer.render(this.scene, this.camera);
-    this.scene.background = new THREE.Color( 0xFFFFFF );
+  public render = () => {
+    this.renderer.render( this.scene, this.camera );
   }
 
    //#region HostListeners
@@ -412,7 +396,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   private onInteractionUpdated = (payload: InteractionEventData) => {
-    //TODO
+    // TODO
     var interaction : Interaction  = payload.GetInteractionEvent();
     switch(interaction){
       case Interaction.TouchBegin: {
@@ -464,8 +448,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         break;
       }
       case Interaction.Drag: {
-        if(this.configuration.useDragSelection){
-          //draw rectangle and lock camera
+        if (this.configuration.useDragSelection){
+          // draw rectangle and lock camera
           this._selectionRect.drawWebGl(payload);
         }
         break;
