@@ -3,7 +3,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 import { HomeComponent } from './home.component';
 import { Http } from '@angular/http';
-import { GlyphplotComponent } from '../shared/glyphplot/glyphplot.component';
+import { GlyphplotComponent } from 'app/glyphplot/glyphplot.component';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
