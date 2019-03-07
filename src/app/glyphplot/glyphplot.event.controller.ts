@@ -7,18 +7,6 @@ import { FeatureFilter } from 'app/shared/filter/feature-filter';
 import { Configuration } from '../shared/services/configuration.service';
 
 import * as d3 from 'd3';
-<<<<<<< HEAD:src/app/shared/glyphplot/glyphplot.event.controller.ts
-import { FlowerGlyph } from '../glyph/glyph.flower';
-import { StarGlyph } from '../glyph/glyph.star';
-import { EventAggregatorService } from '../events/event-aggregator.service';
-import { RefreshPlotEvent } from '../events/refresh-plot.event';
-import { FitToScreenEvent } from '../events/fit-to-screen.event';
-import { FitToSelectionEvent } from '../events/fit-to-selection.event';
-import { ManualZoom } from '../events/manual-zoom.event';
-import { GlyphLayout } from '../glyph/glyph.layout';
-import { RefreshHoverEvent } from '../events/refresh-hover.event';
-import { RefreshHoverEventData } from '../events/refresh-hover.event.data';
-=======
 import { FlowerGlyph } from 'app/glyph/glyph.flower';
 import { StarGlyph } from 'app/glyph/glyph.star';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
@@ -29,11 +17,10 @@ import { ManualZoom } from 'app/shared/events/manual-zoom.event';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
->>>>>>> master:src/app/glyphplot/glyphplot.event.controller.ts
 
-import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
-import { UpdateItemsStrategy } from '../util/UpdateItemsStrategy';
-import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
+import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
+import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
+import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
 
 export class GlyphplotEventController {
   private counter: number;

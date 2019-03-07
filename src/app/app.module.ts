@@ -44,7 +44,7 @@ import { DashboardTogglesComponent } from './dashboard/dashboard-toggles/dashboa
 import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functionbuttons/dashboard-functionbuttons.component';
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
-import { GlyphplotWebglComponent } from './shared/glyphplot-webgl/glyphplot-webgl.component';
+import { GlyphplotWebglComponent } from './glyphplot-webgl/glyphplot-webgl.component';
 
 @NgModule({
   declarations: [

@@ -1,5 +1,5 @@
-import { GlyphplotComponent } from './glyphplot.component';
-import { InteractionEventData } from '../events/interaction.event.data';
+import { GlyphplotComponent } from 'app/glyphplot/glyphplot.component';
+import { InteractionEventData } from 'app/shared/events/interaction.event.data';
 
 export class SelectionRect {
   private component: GlyphplotComponent;

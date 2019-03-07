@@ -1,25 +1,25 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener, OnChanges, AfterViewInit } from '@angular/core';
-import { RegionManager } from 'app/home/region.manager';
+import { RegionManager } from 'app/region/region.manager';
 import { Input } from '@angular/core';
-import { IdFilter } from '../id-filter';
-import { FeatureFilter } from '../feature-filter';
+import { IdFilter } from 'app/shared/filter/id-filter';
+import { FeatureFilter } from 'app/shared/filter/feature-filter';
 
-import {Configuration } from 'app/shared/glyphplot/configuration.service';
-import {ConfigurationData} from 'app/shared/glyphplot/configuration.data';
-import {EventAggregatorService} from '../events/event-aggregator.service';
-import { Logger } from 'app/logger.service';
+import {Configuration } from 'app/shared/services/configuration.service';
+import {ConfigurationData} from 'app/shared/services/configuration.data';
+import {EventAggregatorService} from 'app/shared/events/event-aggregator.service';
+import { Logger } from 'app/shared/services/logger.service';
 
 import * as THREE from 'three';
 import { ShadowMaterial, Color, BufferGeometry, Camera } from 'three';
-import { RefreshPlotEvent } from '../events/refresh-plot.event';
-import { ViewportTransformationEvent } from '../events/viewport-transformation.event';
-import { ViewportTransformationEventData } from '../events/viewport-transformation.event.data';
-import { InteractionEvent} from '../events/interaction.event';
-import { InteractionEventData} from '../events/interaction.event.data';
-import { Interaction} from '../util/interaction';
+import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
+import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
+import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
+import { InteractionEvent} from 'app/shared/events/interaction.event';
+import { InteractionEventData} from 'app/shared/events/interaction.event.data';
+import { Interaction} from 'app/shared/util/interaction';
 
-import { SelectionRect } from '../glyphplot/selection-rect';
-import { Helper } from '../glyph/glyph.helper';
+import { SelectionRect } from 'app/glyphplot/selection-rect';
+import { Helper } from 'app/glyph/glyph.helper';
 
 @Component({
   selector: 'app-glyphplot-webgl',

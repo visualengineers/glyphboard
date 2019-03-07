@@ -25,8 +25,7 @@ export class HomeComponent implements OnInit {
     private eventAggregator: EventAggregatorService) {
     this.regionManager.addRegion('glyphs', 0, 0.8, true);
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
-    this.regionManager.addRegion('features', 0, 0, false);
-    this.regionManager.addRegion('dataflow', 0, 0, false);
+    this.regionManager.addRegion('features', 0, 0, false);    
     this.regionManager.addRegion('webgl', 0, 0, false);
   }
 
@@ -83,11 +82,11 @@ export class HomeComponent implements OnInit {
             this.splitScreen = this.regionManager.regions[1].display === 'block';
             this.regionManager.regions[0].display = 'none';
             this.regionManager.regions[1].display = 'none';
-            this.regionManager.regions[4].display = 'block';
+            this.regionManager.regions[3].display = 'block';
           } else {
             this.regionManager.regions[0].display = 'block';
             this.regionManager.regions[1].display = this.splitScreen ? 'block' : 'none';
-            this.regionManager.regions[4].display = 'none';
+            this.regionManager.regions[3].display = 'none';
           }
 
           const width = window.innerWidth;
