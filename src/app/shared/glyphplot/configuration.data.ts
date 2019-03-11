@@ -216,6 +216,8 @@ export class ConfigurationData {
   set individualFeatureContexts(contexts: any) { this._individualFeatureContexts = contexts; }
 
   get featureFilters(): FeatureFilter[] { return this._featureFilters; }
+  set featureFilters(filter: FeatureFilter[]) { this._featureFilters = filter;}
+
   get currentZoomLevel(): number { return this._currentZoomLevel; }
 
   get selectedDataSetInfo(): {
