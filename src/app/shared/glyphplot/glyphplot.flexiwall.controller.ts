@@ -102,7 +102,7 @@ export class FlexiWallController {
 
     const zoomFactor = data.Position.Z > 1500 ? 0.95 : data.Position.Z < 1200 ? 1.05 : 1;
     // const zoomFactor = data.Position.Z < -0.5 ? 1.05 : data.Position.Z > 0.5 ? 0.95 : 1;
-    const trans = this.component.transform;
+    const trans = this.component.configuration.zoomIdentity;
     trans.k = trans.k * zoomFactor;
     // trans.x = (this.component.width / 2 - 10) - ((this.component.width / 2 - 10) * trans.k);
     // trans.y = (this.component.height / 2 - 130) - ((this.component.height / 2 - 130) * trans.k);
@@ -114,9 +114,9 @@ export class FlexiWallController {
       return;
     }
 
-    this.component.transform = trans;
+    this.component.configuration.zoomIdentity = trans;
     // this.logger.log('FlexTransform: ' + this.component.transform);
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.configuration.currentLayout = GlyphLayout.Cluster;
     this.component.animate();
   }

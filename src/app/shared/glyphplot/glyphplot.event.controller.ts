@@ -70,11 +70,11 @@ export class GlyphplotEventController {
       const trans = d3.event.transform;
       trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
       trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
-      this.component.transform = trans;
-      this.formerTranslation.x = this.component.transform.x / this.component.transform.k;
-      this.formerTranslation.y = this.component.transform.y / this.component.transform.k;
+      this.component.configuration.zoomIdentity = trans;
+      this.formerTranslation.x = this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k;
+      this.formerTranslation.y = this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k;
       this.selectionEnded = true;
-      this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
       this.configuration.currentLayout = GlyphLayout.Cluster;
     }
 
@@ -257,7 +257,7 @@ export class GlyphplotEventController {
       this.cursor.position = { left: e.clientX, top: e.clientY };
       this.component.tooltip.isVisible = false;
     } else if (!this.component.tooltip.isFixed && !this.configuration.useDragSelection) {
-      this.component.tooltip.updateClosestPoint(e, this.component.transform);
+      this.component.tooltip.updateClosestPoint(e, this.component.configuration.zoomIdentity);
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
@@ -361,17 +361,17 @@ export class GlyphplotEventController {
 
     this.configuration.glyph.color = colorScale;
     this.component.circle.color = colorScale;
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.updateSelectionMode(this.configuration.useDragSelection);
     this.component.updateGlyphLayout(true);
     this.component.draw();
   };
 
   private fitToScreen = (payload: boolean) => {
-    this.component.transform.x = 0;
-    this.component.transform.y = 0;
-    this.component.transform.k = 1;
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.component.configuration.zoomIdentity.x = 0;
+    this.component.configuration.zoomIdentity.y = 0;
+    this.component.configuration.zoomIdentity.k = 1;
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.updateGlyphLayout(true);
     this.component.animate();
     this.formerTranslation = {x: 0, y: 0};
@@ -422,26 +422,26 @@ export class GlyphplotEventController {
         k = 8;
       }
     }
-    this.component.transform.k = k;
-    this.component.transform.x = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
-    this.component.transform.y =
+    this.component.configuration.zoomIdentity.k = k;
+    this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
+    this.component.configuration.zoomIdentity.y =
       (this.component.height - this.component.height * k) / 2 +
       (this.component.height / 2 - (maxY + minY) / 2) * k;
-    this.formerTranslation.x = this.component.transform.x;
-    this.formerTranslation.y = this.component.transform.y;
+    this.formerTranslation.x = this.component.configuration.zoomIdentity.x;
+    this.formerTranslation.y = this.component.configuration.zoomIdentity.y;
 
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.animate();
 
   };
 
   private manualZoom = (payload: number) => {
 
-    this.component.transform.x = (this.component.width - this.component.width * payload) / 2 + this.formerTranslation.x * payload;
-    this.component.transform.y = (this.component.height - this.component.height * payload) / 2 + this.formerTranslation.y * payload;
-    this.component.transform.k = payload;
+    this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * payload) / 2 + this.formerTranslation.x * payload;
+    this.component.configuration.zoomIdentity.y = (this.component.height - this.component.height * payload) / 2 + this.formerTranslation.y * payload;
+    this.component.configuration.zoomIdentity.k = payload;
     this.component.updateGlyphLayout();
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.animate();
   };
 

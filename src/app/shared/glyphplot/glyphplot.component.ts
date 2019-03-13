@@ -18,6 +18,8 @@ import {ConfigurationData} from './configuration.data';
 
 import {LenseCursor} from '../lense/cursor.service';
 import {EventAggregatorService} from '../events/event-aggregator.service';
+import { FitToSelectionTransmitterEvent } from '../events/fit-to-selection-transmitter.event';
+import { FitToSelectionEvent } from '../events/fit-to-selection.event';
 import { FlowerGlyphConfiguration } from '../glyph/glyph.flower.configuration';
 import { GlyphType } from '../glyph/glyph.type';
 
@@ -46,7 +48,6 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _yAxis: any;
   private _originalWidth: number;
   private _originalHeight: number;
-  private _transform: any = d3.zoomIdentity;
   private _selectionRect: SelectionRect;
   private _eventController: GlyphplotEventController;
   private _layoutController: GlyphplotLayoutController;
@@ -143,6 +144,9 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.createChart();
       }
     });
+    this.eventAggregator
+      .getEvent(FitToSelectionTransmitterEvent)
+      .subscribe(this.fitToScreenTransmitter);
   }
 
   //#region initialization and update methods
@@ -209,7 +213,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
 
     this._layoutController.updatePositions();
     this.updateZoom();
-    this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
     this.animate();
   }
 
@@ -285,7 +289,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     ) {
       // going to level 1 coming from level 0 -> show glyphs
       this.animateGlyphs();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       this.updateGlyphConfiguration();
       this.solveCollisions();
     } else if (
@@ -294,12 +298,12 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     ) {
       // going to level 0 coming from level 1 -> hide glyphs and show dots
       this.animateGlyphs();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       this.updateGlyphConfiguration();
       this._simulation.stop();
     } else {
       this.updateGlyphConfiguration();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       // level of detail did not change, so redraw each glyph at it's current
       // position
       this._layoutController.getPositions().forEach(d => {
@@ -369,8 +373,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       if (
         that.configuration.currentLayout === GlyphLayout.Cluster
       ) {
-        d.position.x = that.transform.applyX(that.xAxis(d.position.ox));
-        d.position.y = that.transform.applyY(that.yAxis(d.position.oy));
+        d.position.x = that.configuration.zoomIdentity.applyX(that.xAxis(d.position.ox));
+        d.position.y = that.configuration.zoomIdentity.applyY(that.yAxis(d.position.oy));
       } else if (
         that.configuration.currentLayout === GlyphLayout.Matrix
       ) {
@@ -552,15 +556,13 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     }
     this.drawLock = false;
   }
+
+  public fitToScreenTransmitter():void {
+    this.eventAggregator.getEvent(FitToSelectionEvent).publish(true);
+  }
   //#endregion
 
   //#region getters and setters
-  get transform(): any {
-    return this._transform;
-  }
-  set transform(t: any) {
-    this._transform = t;
-  }
   get simulation(): any {
     return this._simulation;
   }

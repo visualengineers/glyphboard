@@ -50,6 +50,7 @@ export class ConfigurationData {
   private _lockLevelOfDetail: boolean;
   private _lockUpdated: boolean;
   private _currentZoomLevel: number;
+  private _zoomIdentity: any = d3.zoomIdentity;
 
   private _minScaleLevel = 0.5;
 
@@ -311,6 +312,9 @@ export class ConfigurationData {
 
   get minScaleLevel() { return this._minScaleLevel }
   set minScaleLevel(value: number) { this._minScaleLevel = value; }
+
+  get zoomIdentity() { return this._zoomIdentity }
+  set zoomIdentity(newIdentity: any) { this._zoomIdentity = newIdentity;}
 
   // Refresh ID list
   public filterRefresh() {
