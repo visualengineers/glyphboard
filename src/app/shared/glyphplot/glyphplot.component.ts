@@ -18,8 +18,8 @@ import {ConfigurationData} from './configuration.data';
 
 import {LenseCursor} from '../lense/cursor.service';
 import {EventAggregatorService} from '../events/event-aggregator.service';
-import { FitToSelectionTransmitterEvent } from '../events/fit-to-selection-transmitter.event';
 import { FitToSelectionEvent } from '../events/fit-to-selection.event';
+import { FitToSelectionTransmitterEvent } from '../events/fit-to-selection-transmitter.event';
 import { FlowerGlyphConfiguration } from '../glyph/glyph.flower.configuration';
 import { GlyphType } from '../glyph/glyph.type';
 
@@ -146,7 +146,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     });
     this.eventAggregator
       .getEvent(FitToSelectionTransmitterEvent)
-      .subscribe(this.fitToScreenTransmitter);
+      .subscribe(this.fitToSelectionTransmitter);
   }
 
   //#region initialization and update methods
@@ -557,8 +557,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     this.drawLock = false;
   }
 
-  public fitToScreenTransmitter():void {
-    this.eventAggregator.getEvent(FitToSelectionEvent).publish(true);
+  public fitToSelectionTransmitter = (payload: boolean) => {
+    this.eventController.fitToSelection(this._uniqueID);
   }
   //#endregion
 
@@ -625,5 +625,6 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   get layoutController() { return this._layoutController; }
   get dataUpdated() { return this._dataUpdated; }
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
+  get uniqueID() {return this._uniqueID; }
   //#endregion
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, Injector, TemplateRef } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { FitToScreenEvent } from '../../events/fit-to-screen.event';
-import { FitToSelectionEvent } from '../../events/fit-to-selection.event';
+import { FitToSelectionTransmitterEvent } from '../../events/fit-to-selection-transmitter.event';
 import { environment } from 'environments/environment';
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
@@ -96,7 +96,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   }
 
   public fitToSelection() {
-    this.eventAggregator.getEvent(FitToSelectionEvent).publish(true);
+    this.eventAggregator.getEvent(FitToSelectionTransmitterEvent).publish(true);
   }
 
   public fitToScreen() {

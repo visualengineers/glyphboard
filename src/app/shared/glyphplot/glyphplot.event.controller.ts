@@ -377,9 +377,12 @@ export class GlyphplotEventController {
     this.formerTranslation = {x: 0, y: 0};
   };
 
-  private fitToSelection = (payload: boolean) => {
+  public fitToSelection(id: string): void {
+    if (id != this.component.uniqueID) {
+      return;
+    }
     const that = this;
-    const filteredPositions = [];
+    var filteredPositions = [];
     this.component.layoutController.getPositions().forEach(d => {
       const data = this.component.layoutController.getFeaturesForItem(d);
 
@@ -391,26 +394,31 @@ export class GlyphplotEventController {
       return;
     }
     let minX, maxX, minY, maxY: number;
-    minX = filteredPositions[0].x;
-    maxX = filteredPositions[0].x;
-    minY = filteredPositions[0].y;
-    maxY = filteredPositions[0].y;
+    this.component.configuration.zoomIdentity.k = 1;
+    this.component.configuration.zoomIdentity.x = 0;
+    this.component.configuration.zoomIdentity.y = 0;
+    minX = this.component.configuration.zoomIdentity.applyX(this.component.xAxis(filteredPositions[0].ox));
+    maxX = minX;
+    minY = this.component.configuration.zoomIdentity.applyY(this.component.yAxis(filteredPositions[0].oy));
+    maxY = minY;
+    let k: number;
     filteredPositions.forEach( d => {
-        if (d.x < minX) {
-          minX = d.x;
+        var ox = this.component.configuration.zoomIdentity.applyX(this.component.xAxis(d.ox));
+        var oy = this.component.configuration.zoomIdentity.applyY(this.component.yAxis(d.oy))
+        if (ox < minX) {
+          minX = ox;
         }
-        if (d.x > maxX) {
-          maxX = d.x;
+        if (ox > maxX) {
+          maxX = ox;
         }
-        if (d.y < minY) {
-          minY = d.y;
+        if (oy < minY) {
+          minY = oy;
         }
-        if (d.y > maxY) {
-          maxY = d.y;
+        if (oy > maxY) {
+          maxY = oy;
         }
     });
-    let k;
-    if (maxX === minX || maxY === minY) {
+    if (maxX == minX || maxY == minY) {
       k = 8;
     } else {
       if ((this.component.width / this.component.height) * (maxY - minY) < (maxX - minX)) {
