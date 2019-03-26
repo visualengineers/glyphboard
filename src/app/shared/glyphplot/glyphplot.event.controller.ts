@@ -438,6 +438,7 @@ export class GlyphplotEventController {
     this.formerTranslation.x = this.component.configuration.zoomIdentity.x;
     this.formerTranslation.y = this.component.configuration.zoomIdentity.y;
 
+    this.component.updateGlyphLayout();
     this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.animate();
 
