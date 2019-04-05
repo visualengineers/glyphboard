@@ -183,7 +183,13 @@ export class GlyphplotLayoutController {
   }
 
   public getPositions(): any {
-    (this.component.circle.configuration as DotGlyphConfiguration).drawAggregate = this.component.configuration.aggregateItems;
+    if (this.component.circle !== undefined) {
+          (this.component.circle.configuration as DotGlyphConfiguration).drawAggregate = this.component.configuration.aggregateItems;
+    }
+
+    if (this.component.data === null) {
+      return new Array();
+    }
 
     if (!this.component.configuration.aggregateItems) {
       return this.component.data.positions;

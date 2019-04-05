@@ -7,6 +7,11 @@ import { Region } from './region';
 export class RegionManager {
   public regions: Array<Region>;
 
+  private _isD3Active: boolean;
+  private _isWebGlActive: boolean;
+  private _isSplitScreen: boolean;
+  private _isFeaturePlotActive: boolean;
+
   constructor(private logger: Logger) {
     this.regions = new Array<Region>();
   }
@@ -83,5 +88,26 @@ export class RegionManager {
           ? width
           : element.widthPercentCalc * width;
     });
+
+    this._isD3Active = this.regions.find(reg => reg.name === 'glyphs').display !== 'none';
+    this._isSplitScreen = this.regions.find(reg => reg.name === 'glyphs2').display !== 'none';
+    this._isFeaturePlotActive = this.regions.find(reg => reg.name === 'features').display !== 'none';
+    this._isWebGlActive = this.regions.find(reg => reg.name === 'webgl').display !== 'none';
+  }
+
+  public IsD3Active(): boolean {
+      return this._isD3Active;
+  }
+
+  public IsSplitScreen(): boolean {
+    return this._isSplitScreen;
+  }
+
+  public IsFeaturePlotActive(): boolean {
+    return this._isFeaturePlotActive;
+  }
+
+  public IsWebGlActive(): boolean {
+    return this._isWebGlActive;
   }
 }

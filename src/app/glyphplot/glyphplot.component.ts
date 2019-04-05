@@ -16,6 +16,7 @@ import {ConfigurationData} from '../shared/services/configuration.data';
 
 import {LenseCursor} from 'app/lense/cursor.service';
 import {EventAggregatorService} from 'app/shared/events/event-aggregator.service';
+import { RegionManager } from 'app/region/region.manager';
 import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
 import { GlyphType } from 'app/glyph/glyph.type';
 
@@ -101,7 +102,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private helper: Helper,
     private configurationService: Configuration,
     private cursor: LenseCursor,
-    private eventAggregator: EventAggregatorService
+    private eventAggregator: EventAggregatorService,
+    private regionManager: RegionManager,
   ) {
     this.configuration = this.configurationService.addConfiguration();
 
@@ -250,6 +252,10 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * between glyph and circle. Draws the tooltip box.
    */
   draw(): void {
+    if (!this.regionManager.IsD3Active()) {
+       return;
+    }
+
     this.drawLock = true;
 
     const that = this;
@@ -515,7 +521,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       d.position.sy = d.position.y;
     });
 
-    if (!arguments.length) {
+    if (arguments !== null && !arguments.length) {
       // set cx to the target positions using the latest zoom-transform
       this.updateGlyphLayout();
 

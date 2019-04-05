@@ -10,7 +10,6 @@ import {EventAggregatorService} from 'app/shared/events/event-aggregator.service
 import { Logger } from 'app/shared/services/logger.service';
 
 import * as THREE from 'three';
-import { ShadowMaterial, Color, BufferGeometry, Camera } from 'three';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
 import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
@@ -90,7 +89,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   constructor(
     private logger: Logger,
     private helper: Helper,
-    public regionManager: RegionManager,
+    private regionManager: RegionManager,
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService
   ) {
@@ -195,6 +194,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   public render = () => {
+    if (!this.regionManager.IsWebGlActive()) {
+      return;
+   }
+
     this.renderer.render( this.scene, this.camera );
   }
 

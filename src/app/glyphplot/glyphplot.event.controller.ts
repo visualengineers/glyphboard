@@ -21,6 +21,7 @@ import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.dat
 import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
+import { RegionManager } from 'app/region/region.manager';
 
 export class GlyphplotEventController {
   private counter: number;
@@ -294,6 +295,7 @@ export class GlyphplotEventController {
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
+
     if (!this.cursor.isVisible || this.cursor.isFixed ) {
       // find glyph to highlight
       let glyphRadius: number;
@@ -305,6 +307,7 @@ export class GlyphplotEventController {
           glyphRadius = glyphConfiguration.configuration.radius;
         }
       }
+
       if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
         this.configurationService.configurations[1].selectedDataSetInfo.name) {
         this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
@@ -312,6 +315,7 @@ export class GlyphplotEventController {
       } else {
         this.configuration.idOfHoveredGlyph = undefined;
       }
+
       for (const element of this.component.data.positions) {
         if (
           Math.abs(element.position.x - e.layerX) <= glyphRadius &&
@@ -327,6 +331,7 @@ export class GlyphplotEventController {
           break;
         }
       }
+
       if (this.configuration.useDragSelection) {
         this.component.draw();
       }

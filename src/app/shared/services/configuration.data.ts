@@ -241,9 +241,14 @@ export class ConfigurationData {
     if (this._idOfHoveredGlyph >= 0 && changed) {
       this.selectedItemVersions = [];
       const data = this._data.getValue();
+
+      if (data === null) {
+        return;
+      }
       const item = data.features.find(f => {
         return f.id === this._idOfHoveredGlyph;
       });
+
       for (const context in item.features) {
         if (context === 'global') { continue; }
         if (item.features.hasOwnProperty(context)) {
