@@ -1,9 +1,9 @@
-import { Component, ElementRef, OnInit, HostListener, ViewChild } from '@angular/core';
-import { DataproviderService } from '../dataprovider.service';
-import { RegionManager } from './region.manager';
-import { Logger } from '../logger.service';
-import { Configuration } from 'app/shared/glyphplot/configuration.service';
-import { LenseCursor } from 'app/shared/lense/cursor.service';
+import { Component, OnInit, HostListener } from '@angular/core';
+import { DataproviderService } from '../shared/services/dataprovider.service';
+import { RegionManager } from '../region/region.manager';
+import { Logger } from '../shared/services/logger.service';
+import { Configuration } from 'app/shared/services/configuration.service';
+import { LenseCursor } from 'app/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 
@@ -18,7 +18,6 @@ export class HomeComponent implements OnInit {
   private isKeyDown: boolean;
 
   constructor(
-    private dataProvider: DataproviderService,
     private logger: Logger,
     public regionManager: RegionManager,
     private configuration: Configuration,
@@ -26,8 +25,7 @@ export class HomeComponent implements OnInit {
     private eventAggregator: EventAggregatorService) {
     this.regionManager.addRegion('glyphs', 0, 0.8, true);
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
-    this.regionManager.addRegion('features', 0, 0, false);
-    this.regionManager.addRegion('dataflow', 0, 0, false);
+    this.regionManager.addRegion('features', 0, 0, false);    
     this.regionManager.addRegion('webgl', 0, 0, false);
   }
 
@@ -84,11 +82,11 @@ export class HomeComponent implements OnInit {
             this.splitScreen = this.regionManager.regions[1].display === 'block';
             this.regionManager.regions[0].display = 'none';
             this.regionManager.regions[1].display = 'none';
-            this.regionManager.regions[4].display = 'block';
+            this.regionManager.regions[3].display = 'block';
           } else {
             this.regionManager.regions[0].display = 'block';
             this.regionManager.regions[1].display = this.splitScreen ? 'block' : 'none';
-            this.regionManager.regions[4].display = 'none';
+            this.regionManager.regions[3].display = 'none';
           }
 
           const width = window.innerWidth;
