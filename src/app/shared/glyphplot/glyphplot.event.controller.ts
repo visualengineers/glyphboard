@@ -444,11 +444,12 @@ export class GlyphplotEventController {
 
   };
 
-  private manualZoom = (payload: number) => {
-
-    this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * payload) / 2 + this.formerTranslation.x * payload;
-    this.component.configuration.zoomIdentity.y = (this.component.height - this.component.height * payload) / 2 + this.formerTranslation.y * payload;
-    this.component.configuration.zoomIdentity.k = payload;
+  private manualZoom = (payload: any[]) => {
+    
+    var newValue = payload[0];
+    this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * newValue) / 2 + this.formerTranslation.x * newValue;
+    this.component.configuration.zoomIdentity.y = (this.component.height - this.component.height * newValue) / 2 + this.formerTranslation.y * newValue;
+    this.component.configuration.zoomIdentity.k = newValue;
     this.component.updateGlyphLayout();
     this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.animate();

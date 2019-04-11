@@ -21,7 +21,8 @@ export class DoubleSliderComponent implements OnInit {
   public draggingMax = false;
   public draggingIndicator = false;
 
-  @Input() currentValue: number;
+  @Input() currentValuePrimary: number;
+  @Input() currentValueSecondary: number;
   @Output() onChange = new EventEmitter<any>();
 
   static dragging(component: DoubleSliderComponent, slider: string): void {
@@ -33,10 +34,14 @@ export class DoubleSliderComponent implements OnInit {
       component.draggingMax = true;
       component.upperBound = Math.max(Math.min(d3.event.x, component.max), component.lowerBound + 10);
       component.onChange.emit({ 'slider': 1, 'value': component.upperBound * 20 / 50 / component.max });
-    } else if (slider === 'indicator') {
+    } else if (slider === 'indicatorPrimary') {
       component.draggingIndicator = true;
-      component.currentValue = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
-      component.eventAggregator.getEvent(ManualZoom).publish(component.currentValue);
+      component.currentValuePrimary = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
+      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValuePrimary, 1]);
+    }else if (slider === 'indicatorSecondary') {
+      component.draggingIndicator = true;
+      component.currentValueSecondary = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
+      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValueSecondary, 0]);
     }
   }
 
