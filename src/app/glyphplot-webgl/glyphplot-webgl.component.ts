@@ -53,6 +53,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _data_MinY: number;
   private _data_MaxY: number;
 
+  private _data_ScaleX = 1;
+  private _data_ScaleY = 1;
+
   private _interactionEvent: Interaction;
   private _interaction: InteractionEventData = new InteractionEventData(null);
   private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
@@ -73,10 +76,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
     fragmentShader: "varying  vec3 vColor; void main(){float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); delta = fwidth(r); alpha = 1.0 - smoothstep(0.5 - delta, 0.5 + delta, r); gl_FragColor = vec4(vColor, alpha);}",    
-    blending: THREE.NormalBlending,   
-    depthTest: false,    
-    transparent: true,    
-    vertexColors: THREE.VertexColors
+    blending: THREE.NormalBlending,
+    depthTest: false,
+    transparent: true,
+    vertexColors: THREE.VertexColors,
+    side: THREE.BackSide
   } );
 
   private _particleGeometry: THREE.BufferGeometry = new THREE.BufferGeometry();
@@ -113,6 +117,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   ngOnChanges(): void {
+    this.buildParticles();
     this.setViewFrustum();
   }
 
@@ -157,7 +162,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     // Set position and look at
     this.camera.position.x = 0;
     this.camera.position.y = 0;
-    this.camera.position.z = -100;
+    this.camera.position.z = 100;
+
+    this.camera.lookAt(0, 0, 0);
   }
 
   private getAspectRatio(): number {
@@ -184,8 +191,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.renderer.setPixelRatio(devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
     this.renderer.shadowMap.enabled = false;
-    this.renderer.setClearColor(0xFFFFFF, 1);
-    this.scene.background = new THREE.Color( 0xFFFFFF );
+    this.renderer.setClearColor(0xEEEEEE, 1);
+    this.scene.background = new THREE.Color( 0xEEEEEE );
     this.renderer.autoClear = true;
 
     this.buildParticles();
@@ -282,10 +289,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const aspect = this.getAspectRatio();
 
-    this.camera.left = this._data_MinX / this._transformation.GetScale();
-    this.camera.right = this._data_MaxX / this._transformation.GetScale();
-    this.camera.top = (this._data_MinY / this._transformation.GetScale());
-    this.camera.bottom = (this._data_MaxY / this._transformation.GetScale());
+    this.camera.left = this._data_MinX * this._data_ScaleX / this._transformation.GetScale();
+    this.camera.right = this._data_MaxX * this._data_ScaleX / this._transformation.GetScale();
+    this.camera.top = (this._data_MinY * this._data_ScaleY / this._transformation.GetScale());
+    this.camera.bottom = (this._data_MaxY * this._data_ScaleY / this._transformation.GetScale());
 
     this.camera.position.setX(this._transformation.GetTranslateX());
     this.camera.position.setY(this._transformation.GetTranslateY());
@@ -325,24 +332,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           : this._configuration.color(+item[colorFeature]);
       };
 
+      // step 1: find min, max values
       this.data.positions.forEach(item => {
-        const pX = item.position.x;
-        const pY = item.position.y;
+        const pX = item.position.ox;
+        const pY = item.position.oy;
         const pZ = -10;
-
-        particlePositions.push(pX);
-        particlePositions.push(pY);
-        particlePositions.push(pZ);
-
-        const isPassive =
-          !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
-          (this._configuration.featureFilters.length === 0));
-
-        const feature = this.getFeaturesForItem(item, this._configuration).features;
-        const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
-        particleColors.push( color.r, color.g, color.b);
-
-        particleSizes.push(10);
 
         if (pX < this._data_MinX) {
           this._data_MinX = pX;
@@ -359,6 +353,37 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         if (pY > this._data_MaxY) {
           this._data_MaxY = pY;
         }
+      });
+
+      // step 2: compute scale to fit into screen space (simlar to glyphplot.layout.controller.updatePositions())
+      var dataDomainX = (this._data_MaxX - (this._data_MaxX / 20)) - (this._data_MinX + (this._data_MinX / 20));
+      var dataDomainY = (this._data_MaxY - (this._data_MaxY / 20)) - (this._data_MinY + (this._data_MinY / 20));
+
+      var renderRangeX = this.width - 10;
+      var renderRangeY = this.height -10;
+
+      this._data_ScaleX = renderRangeX / dataDomainX;
+      this._data_ScaleY = renderRangeY / dataDomainY;
+
+      // step 3: push window-scaled positions
+      this.data.positions.forEach(item => {
+        const pX = item.position.ox * this._data_ScaleX;
+        const pY = (1.05 * renderRangeY) - (item.position.oy * this._data_ScaleY);
+        const pZ = -10;
+
+        particlePositions.push(pX);
+        particlePositions.push(pY);
+        particlePositions.push(pZ);
+
+        const isPassive =
+          !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
+          (this._configuration.featureFilters.length === 0));
+
+        const feature = this.getFeaturesForItem(item, this._configuration).features;
+        const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
+        particleColors.push( color.r, color.g, color.b);
+
+        particleSizes.push(10);
       });
 
       this.setViewFrustum();
