@@ -319,11 +319,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const particleSizes = [];
 
     if (this.data != null) {
-      this._data_MinX = 0;
-      this._data_MaxX = 0;
+      this._data_MinX = this.data.positions[0].position.ox;
+      this._data_MaxX = this.data.positions[0].position.ox;
 
-      this._data_MinY = 0;
-      this._data_MaxY = 0;
+      this._data_MinY = this.data.positions[0].position.oy;
+      this._data_MaxY = this.data.positions[0].position.oy;
 
       const colorFeature = this.data.schema.color;
       const colorScale = item => {
@@ -331,6 +331,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           ? 0
           : this._configuration.color(+item[colorFeature]);
       };
+
+      // let first = true;
 
       // step 1: find min, max values
       this.data.positions.forEach(item => {
@@ -367,13 +369,13 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
       // step 3: push window-scaled positions
       this.data.positions.forEach(item => {
-        const pX = item.position.ox * this._data_ScaleX;
-        const pY = (1.05 * renderRangeY) - (item.position.oy * this._data_ScaleY);
-        const pZ = -10;
+        const renderPosX = (item.position.ox * this._data_ScaleX);
+        const renderPosY = (((this._data_MaxY - item.position.oy) + this._data_MinY) * this._data_ScaleY);
+        const renderPosZ = -10;
 
-        particlePositions.push(pX);
-        particlePositions.push(pY);
-        particlePositions.push(pZ);
+        particlePositions.push(renderPosX);
+        particlePositions.push(renderPosY);
+        particlePositions.push(renderPosZ);
 
         const isPassive =
           !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
@@ -390,8 +392,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
       this.resetView();
 
-      console.log('number of particles total: ' + particlePositions.length);
-
       this._particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
       this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
       this._particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( particleSizes, 1 ) );
@@ -402,6 +402,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
       // add it to the scene
       this.scene.add(this._particleSystem);
+
+      this.render();
     }
   }
 
