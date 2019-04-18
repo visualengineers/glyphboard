@@ -307,8 +307,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private buildParticles() {
     this._shaderDiskMaterial.extensions.derivatives = true;
 
-    this.setViewFrustum();
-
     if (this._particleSystem) {
        this.scene.remove(this._particleSystem);
        this._particleSystem = null;
@@ -389,8 +387,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       });
 
       this.setViewFrustum();
-
-      this.resetView();
 
       this._particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
       this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
