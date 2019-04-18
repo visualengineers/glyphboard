@@ -481,8 +481,12 @@ export class GlyphplotEventController {
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
   };
 
-  private onRefreshHover = (payload: RefreshHoverEventData) => {
+  private onRefreshHover = (payload: RefreshHoverEventData) => {   
     this.component.draw();
+    if (this.configuration === undefined) {
+      return;
+    }
+
     if (this.configuration.useDragSelection) {
       this.component.selectionRect.drawHighlightedGlyph();
     }

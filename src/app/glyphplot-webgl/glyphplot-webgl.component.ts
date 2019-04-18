@@ -63,19 +63,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _selectionRect: SelectionRect;
   private _context: any;
 
-  private _shaderMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
-    vertexShader: 'attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }',
-    fragmentShader: 'varying vec3 vColor; void main() { gl_FragColor = vec4( vColor, 1.0 ); }',
-
-    blending: THREE.NoBlending,
-    depthTest: false,
-    transparent: false,
-    vertexColors: THREE.VertexColors
-  } );
-
-  private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
-    vertexShader: "attribute float size; varying vec3 vColor; void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 ); gl_PointSize = size; gl_Position = projectionMatrix * mvPosition; }",
-    fragmentShader: "varying  vec3 vColor; void main(){float r = 0.0, delta = 0.0, alpha = 1.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy); delta = fwidth(r); alpha = 1.0 - smoothstep(0.5 - delta, 0.5 + delta, r); gl_FragColor = vec4(vColor, alpha);}",    
+  private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {    
     blending: THREE.NormalBlending,
     depthTest: false,
     transparent: true,
@@ -97,14 +85,21 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService
   ) {
+    const fl = new THREE.FileLoader();
+    fl.load('/assets/shader/glyphplot_vertex.vert', vertexShader => {
+      this._shaderDiskMaterial.vertexShader = vertexShader as string
+    });
+    fl.load('/assets/shader/glyphplot_fragment.frag', fragmentShader => {
+      this._shaderDiskMaterial.fragmentShader = fragmentShader as string
+    });
+
     this.configurationService.configurations[0].getData().subscribe(message => {
       if (message != null) {
         this._data = message;
-        console.log("msg" + message);
         this.buildParticles();
       }
     });
-    console.log("msg" );
+
     this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
 
@@ -356,11 +351,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       });
 
       // step 2: compute scale to fit into screen space (simlar to glyphplot.layout.controller.updatePositions())
-      var dataDomainX = (this._data_MaxX - (this._data_MaxX / 20)) - (this._data_MinX + (this._data_MinX / 20));
-      var dataDomainY = (this._data_MaxY - (this._data_MaxY / 20)) - (this._data_MinY + (this._data_MinY / 20));
+      var dataDomainX = (this._data_MaxX - (this._data_MinX / 20)) - (this._data_MinX + (this._data_MinX / 20));
+      var dataDomainY = (this._data_MaxY - (this._data_MinY / 20)) - (this._data_MinY + (this._data_MinY / 20));
 
-      var renderRangeX = this.width - 10;
-      var renderRangeY = this.height -10;
+      var renderRangeX = this.width;
+      var renderRangeY = this.height;
 
       this._data_ScaleX = renderRangeX / dataDomainX;
       this._data_ScaleY = renderRangeY / dataDomainY;
