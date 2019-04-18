@@ -19,6 +19,7 @@ import { Interaction} from 'app/shared/util/interaction';
 
 import { SelectionRect } from 'app/glyphplot/selection-rect';
 import { Helper } from 'app/glyph/glyph.helper';
+import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -63,7 +64,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _selectionRect: SelectionRect;
   private _context: any;
 
-  private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {    
+  private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     blending: THREE.NormalBlending,
     depthTest: false,
     transparent: true,
@@ -223,7 +224,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   @HostListener('mousemove', ['$event'])
   mouseMove(e: MouseEvent) {
     if (e.buttons === 1) {
-      if(!this.configuration.useDragSelection){
+      if (!this.configuration.useDragSelection) {
         const position = this.camera.position;
         const scale = this._transformation.GetScale();
         const translateX = position.x + (-e.movementX / scale)
@@ -264,10 +265,17 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     zoom += change;
 
     if (zoom < 0.1) {
-      zoom = 0.1; }
+      zoom = 0.1;
+    }
+
+    const zoomOffset = this.ComputeZoomOffset(new THREE.Vector2(e.clientX, e.clientY), change);
 
     const data = new ViewportTransformationEventData(
-      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, 
+      UpdateItemsStrategy.DefaultUpdate, zoomOffset.x, zoomOffset.y, 0);
+
+    // const data = new ViewportTransformationEventData(
+    //   this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -289,14 +297,30 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.camera.top = (this._data_MinY * this._data_ScaleY / this._transformation.GetScale());
     this.camera.bottom = (this._data_MaxY * this._data_ScaleY / this._transformation.GetScale());
 
-    this.camera.position.setX(this._transformation.GetTranslateX());
-    this.camera.position.setY(this._transformation.GetTranslateY());
+    this.camera.position.setX(this._transformation.GetTranslateX() + this._transformation.GetCenterX());
+    this.camera.position.setY(this._transformation.GetTranslateY() + this._transformation.GetCenterY());
 
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(this.width, this.height);
 
     this.render();
+  }
+
+  private ComputeZoomOffset(mousePosition: THREE.Vector2, zoomOffset: number): THREE.Vector2 {
+    let maxTrans = new THREE.Vector2(this.width, this.height);
+    maxTrans.multiplyScalar(0.9 * zoomOffset);
+
+
+    // const mX = (mousePosition.x + (this._transformation.GetTranslateX() / this._transformation.GetScale()))  / this.width;
+    // const mY = (mousePosition.y + (this._transformation.GetTranslateY() / this._transformation.GetScale())) / this.height;
+
+    const mX = mousePosition.x / this.width;
+    const mY = mousePosition.y / this.height;
+
+    console.log(mX + ' | ' + mY + ' - ' + maxTrans.x + ' | ' + maxTrans.y);
+
+    return new THREE.Vector2(mX * maxTrans.x, mY * maxTrans.y);
   }
 
   private buildParticles() {
@@ -351,11 +375,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       });
 
       // step 2: compute scale to fit into screen space (simlar to glyphplot.layout.controller.updatePositions())
-      var dataDomainX = (this._data_MaxX - (this._data_MinX / 20)) - (this._data_MinX + (this._data_MinX / 20));
-      var dataDomainY = (this._data_MaxY - (this._data_MinY / 20)) - (this._data_MinY + (this._data_MinY / 20));
+      const dataDomainX = (this._data_MaxX - (this._data_MinX / 20)) - (this._data_MinX + (this._data_MinX / 20));
+      const dataDomainY = (this._data_MaxY - (this._data_MinY / 20)) - (this._data_MinY + (this._data_MinY / 20));
 
-      var renderRangeX = this.width;
-      var renderRangeY = this.height;
+      const renderRangeX = this.width;
+      const renderRangeY = this.height;
 
       this._data_ScaleX = renderRangeX / dataDomainX;
       this._data_ScaleY = renderRangeY / dataDomainY;
