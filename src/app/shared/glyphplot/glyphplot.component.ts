@@ -145,6 +145,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.createChart();
       }
     });
+    this.configuration.uniqueID = this.uniqueID;
     this.eventAggregator
       .getEvent(FitToSelectionTransmitterEvent)
       .subscribe(this.fitToSelectionTransmitter);

@@ -33,7 +33,7 @@
     <div class="dashboard-tab-glyphs__row">
       <div class="dashboard-tab-glyphs__description">LEVEL OF DETAIL</div>
       <div class="dashboard-tab-glyphs__configuration">
-        <app-doubleslider [currentValuePrimary]="configuration.configurations[0].zoomIdentity.k" [currentValueSecondary]="configuration.configurations[1].zoomIdentity.k" (onChange)="onLODSliderChange($event)"></app-doubleslider>
+        <app-doubleslider [primaryID]="configuration.configurations[0].uniqueID" [secondaryID]="configuration.configurations[1].uniqueID"  [currentValuePrimary]="configuration.configurations[0].zoomIdentity.k" [currentValueSecondary]="configuration.configurations[1].zoomIdentity.k" (onChange)="onLODSliderChange($event)"></app-doubleslider>
       </div>
     </div>
     <div class="dashboard-tab-glyphs__row">

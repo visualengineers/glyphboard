@@ -90,6 +90,7 @@ export class ConfigurationData {
   private _leftSide: boolean;
   private _filteredItemsIds = [];
   private _filteredItemsCount = 0;
+  private _uniqueID: string;
 
   constructor(configuration: Configuration, eventAggregator: EventAggregatorService
   ) {
@@ -219,6 +220,9 @@ export class ConfigurationData {
 
   get featureFilters(): FeatureFilter[] { return this._featureFilters; }
   get currentZoomLevel(): number { return this._currentZoomLevel; }
+
+  get uniqueID(): string { return this._uniqueID; }
+  set uniqueID( uniqueID: string) { this._uniqueID = uniqueID; }
 
   get selectedDataSetInfo(): {
     name: string;

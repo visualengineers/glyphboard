@@ -21,8 +21,11 @@ export class DoubleSliderComponent implements OnInit {
   public draggingMax = false;
   public draggingIndicator = false;
 
+
   @Input() currentValuePrimary: number;
   @Input() currentValueSecondary: number;
+  @Input() primaryID: string;
+  @Input() secondaryID: string;
   @Output() onChange = new EventEmitter<any>();
 
   static dragging(component: DoubleSliderComponent, slider: string): void {
@@ -34,14 +37,14 @@ export class DoubleSliderComponent implements OnInit {
       component.draggingMax = true;
       component.upperBound = Math.max(Math.min(d3.event.x, component.max), component.lowerBound + 10);
       component.onChange.emit({ 'slider': 1, 'value': component.upperBound * 20 / 50 / component.max });
-    } else if (slider === 'indicatorPrimary') {
+    } else if (slider === 'primary') {
       component.draggingIndicator = true;
       component.currentValuePrimary = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
-      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValuePrimary, 1]);
-    }else if (slider === 'indicatorSecondary') {
+      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValuePrimary, component.primaryID]);
+    } else if (slider === 'secondary') {
       component.draggingIndicator = true;
       component.currentValueSecondary = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
-      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValueSecondary, 0]);
+      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValueSecondary, component.secondaryID ]);
     }
   }
 
@@ -66,10 +69,15 @@ export class DoubleSliderComponent implements OnInit {
         .on('drag', () => DoubleSliderComponent.dragging(that, 'max'))
         .on('end', () => this.draggingMax = false)
       );
-      d3.select('.indicator')
-        .call(d3.drag()
-          .on('drag', () => DoubleSliderComponent.dragging(that, 'indicator'))
-          .on('end', () => this.draggingIndicator = false)
-        );
+    d3.select('.indicator.primary')
+      .call(d3.drag()
+      .on('drag', () => DoubleSliderComponent.dragging(that, 'primary'))
+      .on('end', () => this.draggingIndicator = false)
+      );
+    d3.select('.indicator.secondary')
+      .call(d3.drag()
+      .on('drag', () => DoubleSliderComponent.dragging(that, 'secondary'))
+      .on('end', () => this.draggingIndicator = false)
+      );
   }
 };

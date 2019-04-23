@@ -6,7 +6,7 @@
   margin-bottom: -15px;
 }
 .slide {
-  transform: translateY(11px);
+  transform: translateY(14px);
 
   &.zoomed{
     transition: all 0.2s;
@@ -41,7 +41,6 @@
   border-radius: 15px;
 
   background: $button-dark-color;
-  transition: border 0.2s;
 
   &.dragging {
     background-color: $button-active-color;
@@ -49,11 +48,11 @@
   }
 
   &.min {
-    transform: translateY(-14px);
+    transform: translateY(-26px);
   }
 
   &.max {
-    transform: translateY(-34px);
+    transform: translateY(-46px);
   }
 
   &:hover{
@@ -73,16 +72,14 @@
     border-left: calc(15px/0.866/2) solid transparent;
     border-right: calc(15px/0.866/2) solid transparent;
     border-bottom: 15px solid $button-active-color;
-    transform: translateY(16px);
-    transition: all 0.2s;
+    transform: translateY(18px);
   }
 
   &.secondary{
     border-left: calc(15px/0.866/2) solid transparent;
     border-right: calc(15px/0.866/2) solid transparent;
     border-top: 15px solid #0000FF;
-    transform: translateY(-16px);
-    transition: all 0.2s;
+    transform: translateY(-20px);
   }
 
   &.dragging {
