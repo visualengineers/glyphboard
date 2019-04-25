@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { TextFilter } from 'app/shared/filter/text-filter';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
+import { RefreshGroupsEvent } from '../../shared/events/refresh-groups.event';
 
 @Component({
   selector: 'app-dashboard-tab-filter',
@@ -15,12 +16,51 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
 
   public eventsSubject: Subject<void> = new Subject<void>();
   private _freeSearchFilter: TextFilter;
+  private groups = [];
+  private helper = 0;
 
   constructor(injector: Injector) {
     super(injector);
+    this.eventAggregator.getEvent(RefreshGroupsEvent).subscribe(this.refreshGroups);
   }
 
   ngOnInit() {
+    var that = this;
+    this.dataProvider.getDataSet().subscribe(message => {
+      if (message == null) { return; }
+      Object.keys(message.schema.groups).forEach(function (groupId) {
+        if (!that.groups.includes(message.schema.groups[groupId])){
+          that.groups.push(message.schema.groups[groupId]);
+        }
+      });
+    });
+  }
+
+  onChanges() {
+
+  }
+
+  private refreshGroups(): void {
+    this.groups = [];
+    var that = this;
+    this.dataProvider.getDataSet().subscribe(message => {
+      if (message == null) { return; }
+      Object.keys(message.schema.groups).forEach(function (groupId) {
+        if (!that.groups.includes(message.schema.groups[groupId])){
+          that.groups.push(message.schema.groups[groupId]);
+        }
+      });
+    });
+  }
+
+  private featuresInGroup(group: any): any {
+    var featureGroup = [];
+    this.configuration.configurations[0].activeFeatures.forEach( d => {
+      if (group.member.indexOf(d.property) > -1) {
+        featureGroup.push(d);
+      }
+    });
+    return featureGroup;
   }
 
   private onColorChange(e: any): void {
