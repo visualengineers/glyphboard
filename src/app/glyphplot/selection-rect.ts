@@ -59,7 +59,6 @@ export class SelectionRect {
   }
 
   public drawWebGl(event: InteractionEventData): void {
-    console.log("draw webgl");
     if (!arguments.length) { return; }
     
     this.clear();

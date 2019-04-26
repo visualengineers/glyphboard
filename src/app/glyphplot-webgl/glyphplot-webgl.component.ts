@@ -70,6 +70,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private selectionEnded: boolean;
   private saveEndTransform = { x: 0, y: 0 };
   private saveStartTransform = { x: 0, y: 0 };
+  private _isDraggingActive: boolean = false;
 
   private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     blending: THREE.NormalBlending,
@@ -214,6 +215,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
    //#region HostListeners
   @HostListener('document:mousedown', ['$event'])
   onMousedown(e: MouseEvent){
+    this._isDraggingActive = false;
     this._interactionEvent = Interaction.TouchBegin;
     const data = new InteractionEventData(this._interactionEvent, 
       e.offsetX, e.offsetY);
@@ -226,6 +228,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const data = new InteractionEventData(this._interactionEvent, 
       e.offsetX, e.offsetY);
     this.eventAggregator.getEvent(InteractionEvent).publish(data);
+    this._isDraggingActive = false;
   }
  
   @HostListener('mousemove', ['$event'])
@@ -241,6 +244,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
 
       } else {
+        this._isDraggingActive = true;
         this._interactionEvent = Interaction.Drag;
         const data = new InteractionEventData(this._interactionEvent,
           e.offsetX, e.offsetY);
@@ -457,39 +461,30 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         }
     
         this.counter = 0;
-        // this.component.simulation.stop();
     
         if (!this.configuration.useDragSelection) {
           this.configuration.currentLayout = GlyphLayout.Cluster;
           return;
         }
     
-        // if (!d3.event.sourceEvent) { return; }
-    
         this.selectionEnded = false;
         const startX: number = payload.GetPositionX();
         const startY: number = payload.GetPositionY();
         this._selectionRect.start = { x: startX, y: startY };
-        // const startX: number = payload.GetPositionX();
-        // const startY: number = payload.GetPositionY();
-        // this._selectionRect.start = { x: startX, y: startY };
         break;
       }
       case Interaction.TouchEnd: {
-        if(!this.configuration.useDragSelection){
+        //touchend vs dragend
+        if(!this._isDraggingActive)
           return;
-        }
 
+        if(!this.configuration.useDragSelection)
+          return;
+          
         this.saveEndTransform = {x: payload.GetPositionX(), y: payload.GetPositionY()};
 
         this._selectionRect.clear();
         this._selectionRect.data = this.data;
-        // prevent selection if event was zoom (eventType is something like wheel)
-        // if (!this.configuration.useDragSelection || this.currentEventType !== 'mousemove') {
-        //   this.currentEventType = null;
-        //   return;
-        // }
-        // this.currentEventType = null;
     
         const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
           if (filter instanceof IdFilter) {
