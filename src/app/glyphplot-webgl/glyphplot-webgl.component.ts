@@ -262,9 +262,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   this._transformation = new ViewportTransformationEventData();
   }
 
-  @HostListener('mousewheel', ['$event'])
+  @HostListener('wheel', ['$event'])
   mousewheel(e: WheelEvent) {
-    const wheelDelta = e.deltaY / -100;
+    const wheelDelta = e.deltaY < 0 ? 1 : -1;
 
     let zoom = this._transformation.GetScale();
     const change = wheelDelta * 0.1;
