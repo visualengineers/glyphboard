@@ -17,6 +17,7 @@ import { InteractionEvent} from 'app/shared/events/interaction.event';
 import { InteractionEventData} from 'app/shared/events/interaction.event.data';
 import { Interaction} from 'app/shared/util/interaction';
 
+import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { SelectionRect } from 'app/glyphplot/selection-rect';
 import { Helper } from 'app/glyph/glyph.helper';
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
@@ -64,6 +65,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _selectionRect: SelectionRect;
   private _context: any;
 
+  //event controller
+  private counter: number;
+  private selectionEnded: boolean;
+  private saveEndTransform = { x: 0, y: 0 };
+  private saveStartTransform = { x: 0, y: 0 };
+
   private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     blending: THREE.NormalBlending,
     depthTest: false,
@@ -84,7 +91,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     private helper: Helper,
     private regionManager: RegionManager,
     private configurationService: Configuration,
-    private eventAggregator: EventAggregatorService
+    private eventAggregator: EventAggregatorService,
   ) {
     const fl = new THREE.FileLoader();
     fl.load('/assets/shader/glyphplot_vertex.vert', vertexShader => {
@@ -445,54 +452,92 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     var interaction : Interaction  = payload.GetInteractionEvent();
     switch(interaction){
       case Interaction.TouchBegin: {
+        if (this.selectionEnded) {
+          this.saveStartTransform = {x: payload.GetPositionX(), y: payload.GetPositionY()};
+        }
+    
+        this.counter = 0;
+        // this.component.simulation.stop();
+    
+        if (!this.configuration.useDragSelection) {
+          this.configuration.currentLayout = GlyphLayout.Cluster;
+          return;
+        }
+    
+        // if (!d3.event.sourceEvent) { return; }
+    
+        this.selectionEnded = false;
         const startX: number = payload.GetPositionX();
         const startY: number = payload.GetPositionY();
         this._selectionRect.start = { x: startX, y: startY };
+        // const startX: number = payload.GetPositionX();
+        // const startY: number = payload.GetPositionY();
+        // this._selectionRect.start = { x: startX, y: startY };
         break;
       }
       case Interaction.TouchEnd: {
-        if(this.configuration.useDragSelection)
-        {
-          this._selectionRect.clear();
-
-          if(this.data != null){
-            this._selectionRect.data = this.data;
-            const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
-              if (filter instanceof IdFilter) {
-                return true;
-              }
-            });
-
-            const selection = this._selectionRect.selectedGlyphs;
-            const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
-              arrayOfIds.push(item.id);
-              return arrayOfIds;
-            }, []);
-
-            // this.clearIdFilters();
-
-            // filter only if at least one glyph was selected
-            if (selectedIds.length > 0) {
-              let idFilter: IdFilter;
-
-              if (this.configuration.extendSelection && existingIdFilters.length > 0) {
-                const existingFilter = existingIdFilters[0];
-                if (existingFilter instanceof IdFilter) {
-                  idFilter = existingFilter;
-                }
-                idFilter.extendAccaptableIds(selectedIds);
-              } else {
-                idFilter = new IdFilter('id', selectedIds);
-              }
-              this.configuration.featureFilters.push(idFilter);
-              this.configuration.filterRefresh();
-            }
-          }
-          this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+        if(!this.configuration.useDragSelection){
+          return;
         }
+
+        this.saveEndTransform = {x: payload.GetPositionX(), y: payload.GetPositionY()};
+
+        this._selectionRect.clear();
+        this._selectionRect.data = this.data;
+        // prevent selection if event was zoom (eventType is something like wheel)
+        // if (!this.configuration.useDragSelection || this.currentEventType !== 'mousemove') {
+        //   this.currentEventType = null;
+        //   return;
+        // }
+        // this.currentEventType = null;
+    
+        const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
+          if (filter instanceof IdFilter) {
+            return true;
+          }
+        });
+    
+        const selection = this._selectionRect.selectedGlyphs;
+        const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
+          arrayOfIds.push(item.id);
+          return arrayOfIds;
+        }, []);
+    
+        this.clearIdFilters();
+    
+        // filter only if at least one glyph was selected
+        if (selectedIds.length > 0) {
+          let idFilter: IdFilter;
+    
+          if (this.configuration.extendSelection && existingIdFilters.length > 0) {
+            const existingFilter = existingIdFilters[0];
+            if (existingFilter instanceof IdFilter) {
+              idFilter = existingFilter;
+            }
+            idFilter.extendAccaptableIds(selectedIds);
+          } else {
+            idFilter = new IdFilter('id', selectedIds);
+          }
+          if (this.viewsShowTheSameDataSet()) {
+            this.configurationService.configurations[0].featureFilters.push(idFilter);
+            this.configurationService.configurations[1].featureFilters.push(idFilter);
+            this.configurationService.configurations[0].filterRefresh();
+            this.configurationService.configurations[1].filterRefresh();
+          } else {
+            this.configuration.featureFilters.push(idFilter);
+            this.configuration.filterRefresh();
+          }
+        }
+        // draws the selection rectangle if the user is currently in the specific mode
+        if (this.configuration.useDragSelection) {
+          this._selectionRect.drawWebGl(payload);
+        }
+        this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+        this._selectionRect.clear();
         break;
       }
       case Interaction.Drag: {
+        this.selectionEnded = true;
         if (this.configuration.useDragSelection){
           // draw rectangle and lock camera
           this._selectionRect.drawWebGl(payload);
@@ -501,6 +546,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       }
     }
   }
+  private viewsShowTheSameDataSet(): boolean {
+    return this.configurationService.configurations[0].selectedDataSetInfo.name ===
+      this.configurationService.configurations[1].selectedDataSetInfo.name;
+  }
+
   //#endregions subscribed events
 
   private clearIdFilters() {
@@ -544,15 +594,17 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const particleColors = [];
 
-    this.data.positions.forEach((e: { id: number; }) => {
-          const isPassive =
-            !((this._configuration.filteredItemsIds.indexOf(e.id) > -1) ||
+    this.data.positions.forEach(item => {
+      const isPassive =
+            !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
             (this._configuration.featureFilters.length === 0));
-          const feature = this.getFeaturesForItem(e, this._configuration).features;
+          const feature = this.getFeaturesForItem(item, this._configuration).features;
           const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
           particleColors.push( color.r, color.g, color.b);
     });
+
     this._particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
+    this.render();
   }
 
   //#region getters and setters
