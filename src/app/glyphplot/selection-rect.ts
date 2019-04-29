@@ -148,7 +148,7 @@ export class SelectionRect {
 
         this.clear();
         this.context.save();
-        const featuresOfHoveredGlyph = this.component.layoutController.getFeaturesForItem(hoveredGlyph);
+        const featuresOfHoveredGlyph = this.component.configuration.getFeaturesForItem(hoveredGlyph);
         this.component.circle.context = this.context;
         this.component.configuration.glyph.context = this.context;
         const positions = {

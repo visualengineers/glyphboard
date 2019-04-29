@@ -4,7 +4,7 @@ import { LenseCursor } from './../lense/cursor.service';
 import { Logger } from 'app/shared/services/logger.service';
 import { IdFilter } from 'app/shared/filter/id-filter';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
-import { Configuration } from '../shared/services/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 
 import * as d3 from 'd3';
 import { FlowerGlyph } from 'app/glyph/glyph.flower';
@@ -414,7 +414,7 @@ export class GlyphplotEventController {
     const that = this;
     const filteredPositions = [];
     this.component.layoutController.getPositions().forEach(d => {
-      const data = this.component.layoutController.getFeaturesForItem(d);
+      const data = that.component.configuration.getFeaturesForItem(d);
 
         if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
           filteredPositions.push(d.position);

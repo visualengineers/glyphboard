@@ -21,6 +21,7 @@ import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { SelectionRect } from 'app/glyphplot/selection-rect';
 import { Helper } from 'app/glyph/glyph.helper';
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
+import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -114,6 +115,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
     this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
+    this.eventAggregator.getEvent(FitToSelectionEvent).subscribe(this.fitToSelection);
   }
 
   ngOnInit(): void {
@@ -303,10 +305,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const aspect = this.getAspectRatio();
 
-    this.camera.left = this._data_MinX * this._data_ScaleX / this._transformation.GetScale();
-    this.camera.right = this._data_MaxX * this._data_ScaleX / this._transformation.GetScale();
-    this.camera.top = (this._data_MinY * this._data_ScaleY / this._transformation.GetScale());
-    this.camera.bottom = (this._data_MaxY * this._data_ScaleY / this._transformation.GetScale());
+    const scale = this._transformation.GetScale() * 0.945;
+
+    this.camera.left = this._data_MinX * this._data_ScaleX / scale;
+    this.camera.right = this._data_MaxX * this._data_ScaleX / scale;
+    this.camera.top = (this._data_MinY * this._data_ScaleY / scale);
+    this.camera.bottom = (this._data_MaxY * this._data_ScaleY / scale);
 
     this.camera.position.setX(this._transformation.GetTranslateX() + this._transformation.GetCenterX());
     this.camera.position.setY(this._transformation.GetTranslateY() + this._transformation.GetCenterY());
@@ -409,7 +413,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
           (this._configuration.featureFilters.length === 0));
 
-        const feature = this.getFeaturesForItem(item, this._configuration).features;
+        const feature = this.configuration.getFeaturesForItem(item).features;
         const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
         particleColors.push( color.r, color.g, color.b);
 
@@ -450,6 +454,50 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this._transformation = payload;
     this.setViewFrustum();
   }
+
+  private fitToSelection = (payload: boolean) => {
+    const filteredPositions = [];
+    this.data.getPositions().forEach(d => {
+      const data = this.configuration.getFeaturesForItem(d);
+
+        if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
+          filteredPositions.push(d.position);
+        }
+      });
+    if (filteredPositions.length === this._data.getPositions().length || filteredPositions.length === 0) {
+      return;
+    }
+    let minX, maxX, minY, maxY: number;
+    minX = filteredPositions[0].x;
+    maxX = filteredPositions[0].x;
+    minY = filteredPositions[0].y;
+    maxY = filteredPositions[0].y;
+    filteredPositions.forEach( d => {
+        if (d.x < minX) {
+          minX = d.x;
+        }
+        if (d.x > maxX) {
+          maxX = d.x;
+        }
+        if (d.y < minY) {
+          minY = d.y;
+        }
+        if (d.y > maxY) {
+          maxY = d.y;
+        }
+    });
+
+
+    const transX = ((maxX + minX) / 2);
+    const transY = ((maxY + minY) / 2);
+
+    console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ');
+
+    const args = new ViewportTransformationEventData(minX, minY, 0, 100, UpdateItemsStrategy.DefaultUpdate);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
+
+  };
 
   private onInteractionUpdated = (payload: InteractionEventData) => {
     // TODO
@@ -559,25 +607,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       this.configuration.featureFilters.forEach(removeIdFilters);
   }
 
-  private getFeaturesForItem(d: any, config: ConfigurationData) {
-    const item = this.data.features.find(f => {
-      return f.id === d.id;
-    });
-    let itemContext = config.individualFeatureContexts[d.id];
-    if (itemContext === undefined) {
-      if (config.globalFeatureContext >= 0) {
-        itemContext = config.globalFeatureContext;
-      } else {
-        itemContext = item['default-context'];
-      }
-    }
-    const ret = {
-      features: Object.assign(item.features[itemContext], item.features['global']),
-      values: item.values
-    }
-    return ret;
-  }
-
   private updateParticles() {
     const colorFeature = this.data.schema.color;
     const configuration = this.configurationService.configurations[0];
@@ -593,7 +622,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       const isPassive =
             !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
             (this._configuration.featureFilters.length === 0));
-          const feature = this.getFeaturesForItem(item, this._configuration).features;
+          const feature = this.configuration.getFeaturesForItem(item).features;
           const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
           particleColors.push( color.r, color.g, color.b);
     });

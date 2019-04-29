@@ -197,24 +197,5 @@ export class GlyphplotLayoutController {
     return this.component.configuration.currentLevelOfDetail === 0 && this.component.data.clusterPositions !== undefined
       ? this.component.data.clusterPositions
       : this.component.data.positions;
-  }
-
-  public getFeaturesForItem(d: any) {
-    const item = this.component.data.features.find(f => {
-      return f.id === d.id;
-    });
-    let itemContext = this.component.configuration.individualFeatureContexts[d.id];
-    if (itemContext === undefined) {
-      if (this.component.configuration.globalFeatureContext >= 0) {
-        itemContext = this.component.configuration.globalFeatureContext;
-      } else {
-        itemContext = item['default-context'];
-      }
-    }
-    const ret = {
-      features: Object.assign(item.features[itemContext], item.features['global']),
-      values: item.values
-    }
-    return ret;
-  }
+  }  
 }

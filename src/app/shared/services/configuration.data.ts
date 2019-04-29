@@ -347,7 +347,7 @@ export class ConfigurationData {
     }
   }
 
-  private getFeaturesForItem(d: any) {
+  public getFeaturesForItem(d: any) {
     const item = this._data.getValue().features.find(f => {
         return f.id === d.id;
     });

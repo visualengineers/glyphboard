@@ -315,7 +315,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.context.beginPath();
         this.context.moveTo(d.position.x, d.position.y);
 
-        const data = this.layoutController.getFeaturesForItem(d);
+        const data = this.configuration.getFeaturesForItem(d);
 
         if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length == 0) {
           this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
@@ -364,7 +364,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * by draw().
    */
   public updateGlyphLayout(updateAllItems: boolean = false): void {
-    if (this.data === undefined || this.data.length === 0) {
+    if (this.data === undefined || this.data === null || this.data.length === 0) {
       return;
     }
     const that = this;
@@ -494,7 +494,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.context.beginPath();
       this.context.moveTo(d.position.x, d.position.y);
 
-      const features = this._layoutController.getFeaturesForItem(d).features;
+      const features = this.configuration.getFeaturesForItem(d).features;
 
       // draw the circle glyph and the current glyph to improve the blossoming effect
       if (this.configuration.currentLevelOfDetail > 0) {
