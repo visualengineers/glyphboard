@@ -36,6 +36,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
   private brushMax = -1;
   public colorSteps: any;
   private dataSteps: number;
+  private block = false;
 
   private activeFilterInConfiguration: FeatureFilter;
   private propertyInConfiguration: string;
@@ -55,7 +56,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       component.removeFilterFromConfiguration();
       return;
     }
-
+    
     let filter: FeatureFilter = component.activeFilterInConfiguration;
 
     if (filter == null) {
@@ -65,9 +66,8 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       component.activeFilterInConfiguration = filter;
       component.configuration.configurations[0].featureFilters.push(filter);
       component.configuration.configurations[1].featureFilters.push(filter);
-
+      
     }
-
     const absoluteMinValue: number = +d3.min(d3.event.selection);
     const absoluteMaxValue: number = +d3.max(d3.event.selection);
 
@@ -85,7 +85,6 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
     component.configuration.configurations[0].filterRefresh();
     component.configuration.configurations[1].filterRefresh();
-
     component.onLayoutChange();
   };
 
@@ -134,8 +133,8 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     ];
 
     if (this.data) {
-      this.createChart();
-      this.updateChart();
+      this.createChart(true);
+      this.updateChart(true);
     }
 
     // since the label is a string and the items only have indexed properties, find the property
@@ -188,8 +187,16 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       }
   }
 
-  private createChart() {
+  private createChart(init: boolean = false) {
     const element = this.chartContainer.nativeElement;
+    if (init) {
+      this.configuration.configurations[0].featureFilters.forEach( d => {
+        if (d.featureName == this.property) {
+          this.small = false;
+          this.width = 340;
+        }
+      });
+    }
     this.svg = d3.select(element).append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
@@ -209,7 +216,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.yScale = d3.scaleLinear().domain(yDomain).range([this.height, 0]);
 }
 
-  private updateChart() {
+  private updateChart(init: boolean = false) {
     // update scales
     this.xScale.domain(this.data.map(d => d[0]));
     this.yScale.domain([0, d3.max(this.data, d => d[1])]);
@@ -292,6 +299,23 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
               + '-'
               + Math.round(((Math.floor(d3.mouse(this)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       });
+
+      if (init && this.configuration.configurations[0].featureFilters.length != 0) {
+        var min, max;
+        this.configuration.configurations[0].featureFilters.forEach( d => {
+          if (d.featureName == this.property) {
+            min = Math.floor(d.minValue*this.width+1);
+            max = Math.floor(d.maxValue*this.width-1);
+            this.activeFilterInConfiguration = d;
+          }
+        });
+        this.propertyInConfiguration = this.property;
+        this.brush.move(this.chart.select('#overlay-wrap'), [min, max]);
+        this.configuration.configurations[0].filterRefresh();
+        this.configuration.configurations[1].filterRefresh();
+        this.onLayoutChange();
+        this.updateChart();
+      }
     }
     };
 
