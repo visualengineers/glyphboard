@@ -3,6 +3,7 @@ import { RegionManager } from 'app/region/region.manager';
 import { Input } from '@angular/core';
 import { IdFilter } from 'app/shared/filter/id-filter';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
+import { LenseCursor } from './../lense/cursor.service';
 
 import {Configuration } from 'app/shared/services/configuration.service';
 import {ConfigurationData} from 'app/shared/services/configuration.data';
@@ -93,6 +94,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     private regionManager: RegionManager,
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService,
+    private cursor: LenseCursor,
   ) {
     const fl = new THREE.FileLoader();
     fl.load('/assets/shader/glyphplot_vertex.vert', vertexShader => {
@@ -250,6 +252,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           e.offsetX, e.offsetY);
         this.eventAggregator.getEvent(InteractionEvent).publish(data);
       }
+    }
+
+    //mouse movement for magic lens
+    if (this.cursor.isVisible && !this.cursor.isFixed) {
+      this.cursor.position = { left: e.clientX, top: e.clientY };
+      //TODO: disable tooltip
     }
   }
 
