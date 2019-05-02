@@ -5,21 +5,24 @@
     <button class="dashboard-tab-filter__erasebutton" (click)="resetFilters()" matTooltip="Reset all filters"><i class="icon-menubar icon-erase"></i></button>
     <span class="dashboard-tab-filter__filtereditemcounter">{{ this.configuration.configurations[0].filteredItemsCount === 0 ? 'None' : this.configuration.configurations[0].filteredItemsCount | number:'':'de' }} Selected</span>
   </div>
-  <div id="featureOptions" *ngIf="this.groups !== []"> 
-    <div class="group" *ngFor="let g of this.groups">
-      <div>{{ g.name }}</div>
-      <hr/>
-      <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
-        *ngFor="let f of featuresInGroup(g)" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
-        [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
+  <div id="featureOptions" [style.display]="this.configuration.configurations[0].featureGroups == undefined ? 'none' : '' "> 
+    <div class="group" *ngFor="let g of this.configuration.configurations[0].featureGroups | keyvalue">
+      <details>
+        <summary>
+          {{ g.key }}. {{ g.value.name }} + -
+          <hr/>
+      </summary>
+        <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
+          *ngFor="let f of featuresInGroup(this.configuration.configurations[0].featureGroups[g.key])" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
+          [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
+      </details>
     </div>
   </div>
-  <div id="featureOptions" *ngIf="this.groups == []"> 
-    <feature-config-item class="featureOption" ngIf="this.groups == []" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
+<div id="featureOptions" [style.display]="this.configuration.configurations[0].featureGroups == undefined ? '' : 'none' "> 
+    <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
       *ngFor="let f of this.configuration.configurations[0].activeFeatures" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
       [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
   </div>
   <div class="infobox" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures !== undefined }">
     Please select dataset first. Then you can filter your visualization using the histograms displayed in this tab.
   </div>
-</div>

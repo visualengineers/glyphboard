@@ -21,7 +21,6 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
 
   constructor(injector: Injector) {
     super(injector);
-    this.eventAggregator.getEvent(RefreshGroupsEvent).subscribe(this.refreshGroups);
   }
 
   ngOnInit() {
@@ -37,20 +36,6 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   }
 
   onChanges() {
-
-  }
-
-  private refreshGroups(): void {
-    this.groups = [];
-    var that = this;
-    this.dataProvider.getDataSet().subscribe(message => {
-      if (message == null) { return; }
-      Object.keys(message.schema.groups).forEach(function (groupId) {
-        if (!that.groups.includes(message.schema.groups[groupId])){
-          that.groups.push(message.schema.groups[groupId]);
-        }
-      });
-    });
   }
 
   private featuresInGroup(group: any): any {
