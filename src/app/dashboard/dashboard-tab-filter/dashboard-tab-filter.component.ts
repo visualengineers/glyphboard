@@ -4,7 +4,6 @@ import * as d3 from 'd3';
 import { TextFilter } from 'app/shared/filter/text-filter';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
-import { RefreshGroupsEvent } from '../../shared/events/refresh-groups.event';
 
 @Component({
   selector: 'app-dashboard-tab-filter',
