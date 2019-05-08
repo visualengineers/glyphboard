@@ -305,12 +305,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const aspect = this.getAspectRatio();
 
-    const scale = this._transformation.GetScale() * 0.945;
+    const scale = this._transformation.GetScale();
 
-    this.camera.left = this._data_MinX * this._data_ScaleX / scale;
-    this.camera.right = this._data_MaxX * this._data_ScaleX / scale;
-    this.camera.top = (this._data_MinY * this._data_ScaleY / scale);
-    this.camera.bottom = (this._data_MaxY * this._data_ScaleY / scale);
+    this.camera.left = (this._data_MinX)  * this._data_ScaleX / scale;
+    this.camera.right = (this._data_MaxX) * this._data_ScaleX / scale;
+    this.camera.top = (this._data_MinY) * this._data_ScaleY / scale;
+    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY / scale;
 
     this.camera.position.setX(this._transformation.GetTranslateX() + this._transformation.GetCenterX());
     this.camera.position.setY(this._transformation.GetTranslateY() + this._transformation.GetCenterY());
@@ -325,10 +325,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private ComputeZoomOffset(mousePosition: THREE.Vector2, zoomOffset: number): THREE.Vector2 {
     let maxTrans = new THREE.Vector2(this.width, this.height);
     maxTrans.multiplyScalar(0.9 * zoomOffset);
-
-
-    // const mX = (mousePosition.x + (this._transformation.GetTranslateX() / this._transformation.GetScale()))  / this.width;
-    // const mY = (mousePosition.y + (this._transformation.GetTranslateY() / this._transformation.GetScale())) / this.height;
 
     const mX = mousePosition.x / this.width;
     const mY = mousePosition.y / this.height;
@@ -389,9 +385,18 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         }
       });
 
+      const borderX = (this._data_MaxX - this._data_MinX) / 20;
+      const borderY = (this._data_MaxY - this._data_MinY) / 20;
+
+      this._data_MinX -= borderX;
+      this._data_MaxX += borderX;
+
+      this._data_MinY -= borderY;
+      this._data_MaxY += borderY;
+
       // step 2: compute scale to fit into screen space (simlar to glyphplot.layout.controller.updatePositions())
-      const dataDomainX = (this._data_MaxX - (this._data_MinX / 20)) - (this._data_MinX + (this._data_MinX / 20));
-      const dataDomainY = (this._data_MaxY - (this._data_MinY / 20)) - (this._data_MinY + (this._data_MinY / 20));
+      const dataDomainX = (this._data_MaxX) - (this._data_MinX);
+      const dataDomainY = (this._data_MaxY) - (this._data_MinY);
 
       const renderRangeX = this.width;
       const renderRangeY = this.height;
@@ -434,6 +439,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       this.scene.add(this._particleSystem);
 
       this.render();
+
+      console.log('THREE.js: width=' + this.width + ', height=' + this.height + ', RangeX=[' + this._data_MinX + ' | ' + this._data_MaxX + '] , RangeY=[' + this._data_MinY + ' | ' + this._data_MaxY + ']');
     }
   }
 

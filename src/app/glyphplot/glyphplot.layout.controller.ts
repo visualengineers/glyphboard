@@ -65,15 +65,18 @@ export class GlyphplotLayoutController {
       }
     });
 
+    const borderX = (maxX - minX) / 20;
+    const borderY = (maxY - minY) / 20;
+
     this.component.xAxis = d3
       .scaleLinear()
-      .domain([minX + minX / 20, maxX - minX / 20])
-      .range([5, this.component.width - 5]);
+      .domain([minX - borderX, maxX + borderX])
+      .range([0, this.component.width]);
 
     this.component.yAxis = d3
       .scaleLinear()
-      .domain([minY + minY / 20, maxY - minY / 20])
-      .range([this.component.height - 5, 5]);
+      .domain([minY - borderY, maxY + borderY])
+      .range([this.component.height, 0]);
 
     const accessorScale = d3
       .scaleLinear()
@@ -85,6 +88,8 @@ export class GlyphplotLayoutController {
       .x(d => this.component.xAxis(d[0]))
       .y(d => this.component.yAxis(d[1]))
       .addAll(this.component.data.positionsRaw);
+
+      console.log('D3: width=' + this.component.width + ', height=' + this.component.height + ', RangeX=[' + minX + ' | ' + maxX + '] , RangeY=[' + minY + ' | ' + maxY + ']');
 
     this.component.clusterPoints = [];
     const clusterRange = 15;
