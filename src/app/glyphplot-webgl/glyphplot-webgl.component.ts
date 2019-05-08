@@ -75,6 +75,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private saveStartTransform = { x: 0, y: 0 };
   private _isDraggingActive: boolean = false;
 
+  //tooltip
+  private _isOverTooltip: boolean;
+
   private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     blending: THREE.NormalBlending,
     depthTest: false,
@@ -147,10 +150,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     };
 
     this.tooltip.data = this._data;
-  }
 
-  private get canvas(): HTMLCanvasElement {
-    return this.canvasRef.nativeElement;
+    //todo refactor listener?
+    this.tooltip.tooltipElement.addEventListener('mouseover', this.onHoverTooltip);
+    this.tooltip.tooltipElement.addEventListener('mouseout', this.onEndHoverTooltip);
   }
 
   private createScene() {
@@ -231,7 +234,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     if (this.tooltip.isVisible && !this.tooltip.isFixed) {
       this.tooltip.isFixed = true;
     } else if (!this.tooltip.isEdit) {
-      // this.tooltip.isFixed = false;
+      if(this._isOverTooltip == false){
+        this.tooltip.isFixed = false;
+      }
     }
   }
 
@@ -331,6 +336,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   public onResize(event: Event) {
     this.setViewFrustum();
   }
+
+  //#endregion HostListeners
 
   private setViewFrustum(): void {
     if (this.camera == null) {
@@ -469,7 +476,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
   }
 
-  //#region subscribed events
+  //#region SubscribedEvents
   private onRefreshPlot = (payload: boolean) => {
     if (this.data == null) {
       return;
@@ -581,8 +588,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     return this.configurationService.configurations[0].selectedDataSetInfo.name ===
       this.configurationService.configurations[1].selectedDataSetInfo.name;
   }
-
-  //#endregions subscribed events
+  //#endregions SubscribedEvents
 
   private clearIdFilters() {
     function removeIdFilters(filter: FeatureFilter, index: number, featureFilters: FeatureFilter[]) {
@@ -638,11 +644,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.render();
   }
 
-  //#region tooltip
-  private showTooltip(){
-
+  //#region Tooltip
+  private onHoverTooltip = () =>{
+    this.isOverTooltip = true;
   }
-  //#endregion tooltip
+
+  private onEndHoverTooltip = () =>{
+    this.isOverTooltip = false;
+  }
+  //#endregion Tooltip
 
   //#region getters and setters
   get configuration() { return this._configuration; }
@@ -652,6 +662,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   }
   set data(value: any) {
     this._data = value;
+  }
+  private get canvas(): HTMLCanvasElement {
+    return this.canvasRef.nativeElement;
+  }
+  get isOverTooltip(): boolean {
+    return this._isOverTooltip;
+  }
+  set isOverTooltip(value: boolean) {
+    this._isOverTooltip = value;
   }
   //#endregion
 }
