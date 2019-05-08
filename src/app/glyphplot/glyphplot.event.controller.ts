@@ -62,8 +62,8 @@ export class GlyphplotEventController {
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
 
-    this.component.transform.x = -payload.GetTranslateX() * payload.GetScale();
-    this.component.transform.y = -payload.GetTranslateY() * payload.GetScale();
+    this.component.transform.x = -payload.GetTranslateX();
+    this.component.transform.y = -payload.GetTranslateY();
     this.component.transform.k = payload.GetScale();
 
     this.formerTranslation.x = this.component.transform.x;
@@ -96,8 +96,8 @@ export class GlyphplotEventController {
     // apply transformation only, if event was a scroll or if we are not using DragSelection
     if (d3.event && (d3.event.sourceEvent.type === 'wheel' || !this.configuration.useDragSelection)) {
       const trans = d3.event.transform;
-      trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
-      trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
+      trans.x = d3.event.transform.x;
+      trans.y = d3.event.transform.y;
 
       this.selectionEnded = true;
 
@@ -105,8 +105,8 @@ export class GlyphplotEventController {
 
       // broadcast transformation using eventaggregator
       const transformArgs = new ViewportTransformationEventData(
-        -trans.x / this.component.transform.k,
-        -trans.y / this.component.transform.k,
+        -trans.x,
+        -trans.y,
         0,
         trans.k);
       this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);

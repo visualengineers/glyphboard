@@ -281,14 +281,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
-    const zoomOffset = this.ComputeZoomOffset(new THREE.Vector2(e.clientX, e.clientY), change);
 
     const data = new ViewportTransformationEventData(
-      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, 
-      UpdateItemsStrategy.DefaultUpdate, zoomOffset.x, zoomOffset.y, 0);
-
-    // const data = new ViewportTransformationEventData(
-    //   this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, UpdateItemsStrategy.DefaultUpdate);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -307,31 +302,21 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const scale = this._transformation.GetScale();
 
-    this.camera.left = (this._data_MinX)  * this._data_ScaleX / scale;
-    this.camera.right = (this._data_MaxX) * this._data_ScaleX / scale;
-    this.camera.top = (this._data_MinY) * this._data_ScaleY / scale;
-    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY / scale;
+    this.camera.left = (this._data_MinX)  * this._data_ScaleX;
+    this.camera.right = (this._data_MaxX) * this._data_ScaleX;
+    this.camera.top = (this._data_MinY) * this._data_ScaleY;
+    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY;
 
-    this.camera.position.setX(this._transformation.GetTranslateX() + this._transformation.GetCenterX());
-    this.camera.position.setY(this._transformation.GetTranslateY() + this._transformation.GetCenterY());
+    this.camera.position.setX(this._transformation.GetTranslateX());
+    this.camera.position.setY(this._transformation.GetTranslateY());
+
+    this.camera.zoom = scale;
 
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(this.width, this.height);
 
     this.render();
-  }
-
-  private ComputeZoomOffset(mousePosition: THREE.Vector2, zoomOffset: number): THREE.Vector2 {
-    let maxTrans = new THREE.Vector2(this.width, this.height);
-    maxTrans.multiplyScalar(0.9 * zoomOffset);
-
-    const mX = mousePosition.x / this.width;
-    const mY = mousePosition.y / this.height;
-
-    console.log(mX + ' | ' + mY + ' - ' + maxTrans.x + ' | ' + maxTrans.y);
-
-    return new THREE.Vector2(mX * maxTrans.x, mY * maxTrans.y);
   }
 
   private buildParticles() {
@@ -435,12 +420,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         this._particleGeometry,
         this._shaderDiskMaterial);
 
+       this._particleSystem.frustumCulled = false;
+
       // add it to the scene
       this.scene.add(this._particleSystem);
 
       this.render();
-
-      console.log('THREE.js: width=' + this.width + ', height=' + this.height + ', RangeX=[' + this._data_MinX + ' | ' + this._data_MaxX + '] , RangeY=[' + this._data_MinY + ' | ' + this._data_MaxY + ']');
     }
   }
 

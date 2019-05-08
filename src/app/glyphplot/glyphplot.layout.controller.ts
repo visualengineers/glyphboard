@@ -89,8 +89,6 @@ export class GlyphplotLayoutController {
       .y(d => this.component.yAxis(d[1]))
       .addAll(this.component.data.positionsRaw);
 
-      console.log('D3: width=' + this.component.width + ', height=' + this.component.height + ', RangeX=[' + minX + ' | ' + maxX + '] , RangeY=[' + minY + ' | ' + maxY + ']');
-
     this.component.clusterPoints = [];
     const clusterRange = 15;
 
