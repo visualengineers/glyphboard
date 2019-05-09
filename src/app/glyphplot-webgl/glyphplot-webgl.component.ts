@@ -255,10 +255,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   mouseMove(e: MouseEvent) {
     if (e.buttons === 1) {
       if (!this.configuration.useDragSelection) {
-        const position = this.camera.position;
         const scale = this._transformation.GetScale();
-        const translateX = position.x + (-e.movementX / scale)
-        const translateY = position.y + (-e.movementY / scale);
+        const translateX = this._transformation.GetTranslateX() + (-e.movementX / scale)
+        const translateY = this._transformation.GetTranslateY() + (-e.movementY / scale);
 
         const data = new ViewportTransformationEventData(translateX, translateY, 0, scale);
         this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
@@ -322,9 +321,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
-
-    const data = new ViewportTransformationEventData(
-      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, UpdateItemsStrategy.DefaultUpdate);
+   const data = new ViewportTransformationEventData(
+    this._transformation.GetTranslateX(),  this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, UpdateItemsStrategy.DefaultUpdate);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -345,15 +343,27 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const scale = this._transformation.GetScale();
 
-    this.camera.left = (this._data_MinX)  * this._data_ScaleX;
-    this.camera.right = (this._data_MaxX) * this._data_ScaleX;
-    this.camera.top = (this._data_MinY) * this._data_ScaleY;
-    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY;
+    const vpWidth =  (this._data_MaxX - this._data_MinX) * this._data_ScaleX;
+    const vpHeight =  (this._data_MaxY - this._data_MinY) * this._data_ScaleY;
 
-    this.camera.position.setX(this._transformation.GetTranslateX());
-    this.camera.position.setY(this._transformation.GetTranslateY());
+    const scaledOffsetX = (vpWidth - (vpWidth / scale)) * 0.5;
+    const scaledOffsetY = (vpHeight - (vpHeight / scale)) * 0.5;
 
-    this.camera.zoom = scale;
+
+    this.camera.left = (this._data_MinX) * this._data_ScaleX + scaledOffsetX + this._transformation.GetTranslateX();
+    this.camera.right = (this._data_MaxX) * this._data_ScaleX - scaledOffsetX + this._transformation.GetTranslateX();
+    this.camera.top = (this._data_MinY) * this._data_ScaleY + scaledOffsetY + this._transformation.GetTranslateY();
+    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY - scaledOffsetY + this._transformation.GetTranslateY();
+
+    // this.camera.left = (this._data_MinX) * this._data_ScaleX + this._transformation.GetTranslateX();
+    // this.camera.right = (this._data_MaxX) * this._data_ScaleX + this._transformation.GetTranslateX();
+    // this.camera.top = (this._data_MinY) * this._data_ScaleY + this._transformation.GetTranslateY();
+    // this.camera.bottom = (this._data_MaxY) * this._data_ScaleY + this._transformation.GetTranslateY();
+
+    // this.camera.position.setX(this._transformation.GetTranslateX());
+    // this.camera.position.setY(this._transformation.GetTranslateY());
+
+    // this.camera.zoom = scale;
 
     this.camera.updateProjectionMatrix();
 
