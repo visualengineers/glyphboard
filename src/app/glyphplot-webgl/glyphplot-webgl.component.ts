@@ -24,6 +24,7 @@ import { SelectionRect } from 'app/glyphplot/selection-rect';
 import { Helper } from 'app/glyph/glyph.helper';
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
+import { Vector2 } from 'three';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -310,8 +311,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
 
-    const normMouseX = e.clientX / this.width;
-    const normMouseY = e.clientY / this.height;
+    const normMouse = new THREE.Vector2(
+      e.clientX / this.width,
+      e.clientY / this.height
+    );
 
     const wheelDelta = e.deltaY < 0 ? 1 : -1;
 
@@ -324,9 +327,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
+   const offsets = this.computeZoomOffset(zoom, normMouse);
+
    const data = new ViewportTransformationEventData(
     this._transformation.GetTranslateX(),  this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, 
-    UpdateItemsStrategy.DefaultUpdate, normMouseX, normMouseY);
+    UpdateItemsStrategy.DefaultUpdate, offsets[0].x, offsets[0].y, 0, offsets[1].x, offsets[1].y, 0);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -338,6 +343,28 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   //#endregion HostListeners
 
+  private computeZoomOffset(scale: number, normMousePos: THREE.Vector2): THREE.Vector2[] {
+    const vpSize = new THREE.Vector2(
+      (this._data_MaxX - this._data_MinX) * this._data_ScaleX,
+      (this._data_MaxY - this._data_MinY) * this._data_ScaleY
+    );
+
+    const vpScaleOffset = new THREE.Vector2(
+      (vpSize.x - (vpSize.x / scale)) * 0.5,
+      (vpSize.y - (vpSize.y / scale)) * 0.5
+    );
+
+    const mouseOffsetFromCenter = normMousePos.sub(new THREE.Vector2(0.5, 0.5));
+
+    const cursorOffset =  new THREE.Vector2(
+      vpScaleOffset.x * mouseOffsetFromCenter.x * 2,
+      vpScaleOffset.y * mouseOffsetFromCenter.y * 2
+    );
+
+    // return offset resulting in zoom (changing viewport size) and from zoom center (simple translation)
+    return [ vpScaleOffset, cursorOffset ];
+  }
+
   private setViewFrustum(): void {
     if (this.camera == null) {
       return;
@@ -347,32 +374,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const scale = this._transformation.GetScale();
 
-    const vpWidth =  (this._data_MaxX - this._data_MinX) * this._data_ScaleX;
-    const vpHeight =  (this._data_MaxY - this._data_MinY) * this._data_ScaleY;
-
-    const vpScaleOffsetX = (vpWidth - (vpWidth / scale)) * 0.5;
-    const vpScaleOffsetY = (vpHeight - (vpHeight / scale)) * 0.5;
-
-    const mouseOffsetFromCenterX = this._transformation.GetNormalizedTargetCoordinateX() - 0.5;
-    const mouseOffsetFromCenterY = this._transformation.GetNormalizedTargetCoordinateY() - 0.5;
-
-    const cursorOffsetX = 2 * vpScaleOffsetX * mouseOffsetFromCenterX;
-    const cursorOffsetY = 2 * vpScaleOffsetY * mouseOffsetFromCenterY;
-
-    this.camera.left = (this._data_MinX) * this._data_ScaleX + vpScaleOffsetX + cursorOffsetX + this._transformation.GetTranslateX();
-    this.camera.right = (this._data_MaxX) * this._data_ScaleX - vpScaleOffsetX + cursorOffsetX + this._transformation.GetTranslateX();
-    this.camera.top = (this._data_MinY) * this._data_ScaleY + vpScaleOffsetY + cursorOffsetY + this._transformation.GetTranslateY();
-    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY - vpScaleOffsetY + cursorOffsetY + this._transformation.GetTranslateY();
-
-    // this.camera.left = (this._data_MinX) * this._data_ScaleX + this._transformation.GetTranslateX();
-    // this.camera.right = (this._data_MaxX) * this._data_ScaleX + this._transformation.GetTranslateX();
-    // this.camera.top = (this._data_MinY) * this._data_ScaleY + this._transformation.GetTranslateY();
-    // this.camera.bottom = (this._data_MaxY) * this._data_ScaleY + this._transformation.GetTranslateY();
-
-    // this.camera.position.setX(this._transformation.GetTranslateX());
-    // this.camera.position.setY(this._transformation.GetTranslateY());
-
-    // this.camera.zoom = scale;
+    this.camera.left = (this._data_MinX) * this._data_ScaleX + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
+    this.camera.right = (this._data_MaxX) * this._data_ScaleX - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
+    this.camera.top = (this._data_MinY) * this._data_ScaleY + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
+    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
 
     this.camera.updateProjectionMatrix();
 

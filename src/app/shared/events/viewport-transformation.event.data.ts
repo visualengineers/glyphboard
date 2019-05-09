@@ -10,23 +10,31 @@ export class ViewportTransformationEventData {
     private _translateY: number;
     private _translateZ: number;
 
-    private _normTargetCoordX: number;
-    private _normTargetCoordY: number;
-    private _normTargetCoordZ: number;
+    private _zoomViewportOffsetX: number;
+    private _zoomViewportOffsetY: number;
+    private _zoomViewportOffsetZ: number;
+
+    private _zoomCursorOffsetX: number;
+    private _zoomCursorOffsetY: number;
+    private _zoomCursorOffsetZ: number;
 
     private _updateItems: UpdateItemsStrategy;
 
     /// constructing new event, if no values are provided --> 
     constructor(absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, 
-        normTargetCoordX = 0.5, normTargetCoordY = 0.5, normTargetCoordZ = 0.5) {
+        zoomViewportOffsetX = 0, zoomViewportOffsetY = 0, zoomViewportOffsetZ = 0,
+        zoomCursorOffsetX = 0, zoomCursorOffsetY = 0, zoomCursorOffsetZ = 0) {
         this._scale = absScale;
         this._translateX = absTranslateX;
         this._translateY = absTranslateY;
         this._translateZ = absTranslateZ;
         this._updateItems = updateItems;
-        this._normTargetCoordX = normTargetCoordX;
-        this._normTargetCoordY = normTargetCoordY;
-        this._normTargetCoordZ = normTargetCoordZ;
+        this._zoomViewportOffsetX = zoomViewportOffsetX;
+        this._zoomViewportOffsetY = zoomViewportOffsetY;
+        this._zoomViewportOffsetZ = zoomViewportOffsetZ;
+        this._zoomCursorOffsetX = zoomCursorOffsetX;
+        this._zoomCursorOffsetY = zoomCursorOffsetY;
+        this._zoomCursorOffsetZ = zoomCursorOffsetZ;
     }
 
     public GetScale(): number { return this._scale };
@@ -36,9 +44,13 @@ export class ViewportTransformationEventData {
     public GetTranslateY(): number {return this._translateY; }
     public GetTranslateZ(): number {return this._translateZ; }
 
-    public GetNormalizedTargetCoordinateX(): number {return this._normTargetCoordX; }
-    public GetNormalizedTargetCoordinateY(): number {return this._normTargetCoordY; }
-    public GetNormalizedTargetCoordinateZ(): number {return this._normTargetCoordZ; }
+    public GetZoomViewportOffsetX(): number {return this._zoomViewportOffsetX; }
+    public GetZoomViewportOffsetY(): number {return this._zoomViewportOffsetY; }
+    public GetZoomViewportOffsetZ(): number {return this._zoomViewportOffsetZ; }
+
+    public GetZoomCursorOffsetX(): number {return this._zoomCursorOffsetX; }
+    public GetZoomCursorOffsetY(): number {return this._zoomCursorOffsetY; }
+    public GetZoomCursorOffsetZ(): number {return this._zoomCursorOffsetZ; }
 
     public GetUpdateStrategy(): UpdateItemsStrategy { return this._updateItems; }
 }
