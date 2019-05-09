@@ -310,6 +310,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
 
+    const normMouseX = e.clientX / this.width;
+    const normMouseY = e.clientY / this.height;
+
     const wheelDelta = e.deltaY < 0 ? 1 : -1;
 
     let zoom = this._transformation.GetScale();
@@ -322,7 +325,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
 
    const data = new ViewportTransformationEventData(
-    this._transformation.GetTranslateX(),  this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, UpdateItemsStrategy.DefaultUpdate);
+    this._transformation.GetTranslateX(),  this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, 
+    UpdateItemsStrategy.DefaultUpdate, normMouseX, normMouseY);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -346,14 +350,19 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const vpWidth =  (this._data_MaxX - this._data_MinX) * this._data_ScaleX;
     const vpHeight =  (this._data_MaxY - this._data_MinY) * this._data_ScaleY;
 
-    const scaledOffsetX = (vpWidth - (vpWidth / scale)) * 0.5;
-    const scaledOffsetY = (vpHeight - (vpHeight / scale)) * 0.5;
+    const vpScaleOffsetX = (vpWidth - (vpWidth / scale)) * 0.5;
+    const vpScaleOffsetY = (vpHeight - (vpHeight / scale)) * 0.5;
 
+    const mouseOffsetFromCenterX = this._transformation.GetNormalizedTargetCoordinateX() - 0.5;
+    const mouseOffsetFromCenterY = this._transformation.GetNormalizedTargetCoordinateY() - 0.5;
 
-    this.camera.left = (this._data_MinX) * this._data_ScaleX + scaledOffsetX + this._transformation.GetTranslateX();
-    this.camera.right = (this._data_MaxX) * this._data_ScaleX - scaledOffsetX + this._transformation.GetTranslateX();
-    this.camera.top = (this._data_MinY) * this._data_ScaleY + scaledOffsetY + this._transformation.GetTranslateY();
-    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY - scaledOffsetY + this._transformation.GetTranslateY();
+    const cursorOffsetX = 2 * vpScaleOffsetX * mouseOffsetFromCenterX;
+    const cursorOffsetY = 2 * vpScaleOffsetY * mouseOffsetFromCenterY;
+
+    this.camera.left = (this._data_MinX) * this._data_ScaleX + vpScaleOffsetX + cursorOffsetX + this._transformation.GetTranslateX();
+    this.camera.right = (this._data_MaxX) * this._data_ScaleX - vpScaleOffsetX + cursorOffsetX + this._transformation.GetTranslateX();
+    this.camera.top = (this._data_MinY) * this._data_ScaleY + vpScaleOffsetY + cursorOffsetY + this._transformation.GetTranslateY();
+    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY - vpScaleOffsetY + cursorOffsetY + this._transformation.GetTranslateY();
 
     // this.camera.left = (this._data_MinX) * this._data_ScaleX + this._transformation.GetTranslateX();
     // this.camera.right = (this._data_MaxX) * this._data_ScaleX + this._transformation.GetTranslateX();

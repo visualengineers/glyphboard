@@ -10,22 +10,23 @@ export class ViewportTransformationEventData {
     private _translateY: number;
     private _translateZ: number;
 
-    private _centerX: number;
-    private _centerY: number;
-    private _centerZ: number;
+    private _normTargetCoordX: number;
+    private _normTargetCoordY: number;
+    private _normTargetCoordZ: number;
 
     private _updateItems: UpdateItemsStrategy;
 
     /// constructing new event, if no values are provided --> 
-    constructor(absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, centerX  = 0, centerY  = 0, centerZ = 0) {
+    constructor(absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, 
+        normTargetCoordX = 0.5, normTargetCoordY = 0.5, normTargetCoordZ = 0.5) {
         this._scale = absScale;
         this._translateX = absTranslateX;
         this._translateY = absTranslateY;
         this._translateZ = absTranslateZ;
         this._updateItems = updateItems;
-        this._centerX = centerX;
-        this._centerY = centerY;
-        this._centerZ = centerZ;
+        this._normTargetCoordX = normTargetCoordX;
+        this._normTargetCoordY = normTargetCoordY;
+        this._normTargetCoordZ = normTargetCoordZ;
     }
 
     public GetScale(): number { return this._scale };
@@ -35,9 +36,9 @@ export class ViewportTransformationEventData {
     public GetTranslateY(): number {return this._translateY; }
     public GetTranslateZ(): number {return this._translateZ; }
 
-    public GetCenterX(): number {return this._centerX; }
-    public GetCenterY(): number {return this._centerY; }
-    public GetCenterZ(): number {return this._centerZ; }
+    public GetNormalizedTargetCoordinateX(): number {return this._normTargetCoordX; }
+    public GetNormalizedTargetCoordinateY(): number {return this._normTargetCoordY; }
+    public GetNormalizedTargetCoordinateZ(): number {return this._normTargetCoordZ; }
 
     public GetUpdateStrategy(): UpdateItemsStrategy { return this._updateItems; }
 }
