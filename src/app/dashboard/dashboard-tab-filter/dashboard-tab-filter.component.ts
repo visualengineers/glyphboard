@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { TextFilter } from 'app/shared/filter/text-filter';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
+import { ToggleGroupEvent } from '../../shared/events/toggle-group.event';
 
 @Component({
   selector: 'app-dashboard-tab-filter',
@@ -45,6 +46,18 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
       }
     });
     return featureGroup;
+  }
+
+  private toggleGroupActive(group: string) {
+    console.log(group);
+    this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, true]);
+    return;
+  }
+
+  private toggleGroupInactive(group: string) {
+    console.log(group);
+    this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, false]);
+    return;
   }
 
   private onColorChange(e: any): void {

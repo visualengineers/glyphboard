@@ -1,7 +1,6 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { ConfigurationData } from '../../shared/services/configuration.data';
-import { RefreshGroupsEvent } from '../../shared/events/refresh-groups.event';
 
 @Component({
   selector: 'app-dashboard-tab-data',
@@ -138,7 +137,6 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
 
     this.updateDataSetInfo(false);
     this.updateData(0);
-    this.eventAggregator.getEvent(RefreshGroupsEvent).publish(true);
   }
 
   dashboardVersionChanged() {
