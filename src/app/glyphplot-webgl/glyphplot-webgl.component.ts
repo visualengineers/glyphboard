@@ -3,6 +3,8 @@ import { RegionManager } from 'app/region/region.manager';
 import { Input } from '@angular/core';
 import { IdFilter } from 'app/shared/filter/id-filter';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
+import { LenseCursor } from './../lense/cursor.service';
+import {TooltipComponent} from 'app/tooltip/tooltip.component';
 
 import {Configuration } from 'app/shared/services/configuration.service';
 import {ConfigurationData} from 'app/shared/services/configuration.data';
@@ -34,6 +36,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   @Input() height: number;
 
   @ViewChild('selectionrectangle') public selectionRectangle: ElementRef;
+  @ViewChild('tooltip') public tooltip: TooltipComponent;
 
   private renderer: THREE.WebGLRenderer;
   private camera: THREE.OrthographicCamera;
@@ -73,6 +76,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private saveStartTransform = { x: 0, y: 0 };
   private _isDraggingActive: boolean = false;
 
+  //tooltip
+  private _isOverTooltip: boolean;
+
   private _shaderDiskMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial( {
     blending: THREE.NormalBlending,
     depthTest: false,
@@ -94,6 +100,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     private regionManager: RegionManager,
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService,
+    private cursor: LenseCursor,
   ) {
     const fl = new THREE.FileLoader();
     fl.load('/assets/shader/glyphplot_vertex.vert', vertexShader => {
@@ -138,15 +145,17 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this._context = this.selectionRectangle.nativeElement.getContext('2d');
 
     this._selectionRect = new SelectionRect(this, this._context, this.helper);
-    this._selectionRect.data = this.data;
+    this._selectionRect.data = this._data;
     this._selectionRect.offset = {
       x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
       y: 0
     };
-  }
 
-  private get canvas(): HTMLCanvasElement {
-    return this.canvasRef.nativeElement;
+    this.tooltip.data = this._data;
+
+    //todo refactor listener?
+    this.tooltip.tooltipElement.addEventListener('mouseover', this.onHoverTooltip);
+    this.tooltip.tooltipElement.addEventListener('mouseout', this.onEndHoverTooltip);
   }
 
   private createScene() {
@@ -222,6 +231,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const data = new InteractionEventData(this._interactionEvent, 
       e.offsetX, e.offsetY);
     this.eventAggregator.getEvent(InteractionEvent).publish(data);
+
+    //tooltip
+    if (this.tooltip.isVisible && !this.tooltip.isFixed) {
+      this.tooltip.isFixed = true;
+    } else if (!this.tooltip.isEdit) {
+      if(this._isOverTooltip == false){
+        this.tooltip.isFixed = false;
+      }
+    }
   }
 
   @HostListener('document:mouseup', ['$event'])
@@ -253,6 +271,23 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         this.eventAggregator.getEvent(InteractionEvent).publish(data);
       }
     }
+
+    //mouse movement for magic lens
+    if (this.cursor.isVisible && !this.cursor.isFixed) {
+      this.cursor.position = { left: e.clientX, top: e.clientY };
+      this.tooltip.isVisible = false;
+    } 
+    //show tooltip when hovering
+    else if (!this.tooltip.isFixed && !this.configuration.useDragSelection) {
+      if (this.tooltip.data == null) {
+        this.tooltip.data = this._data;
+      }
+      this.tooltip.updateClosestPoint(e, this._transformation);
+    } 
+    //hide tooltip when point was clicked
+    else if (!this.tooltip.isFixed) {
+      this.tooltip.isVisible = false;
+    }
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -270,6 +305,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   @HostListener('wheel', ['$event'])
   mousewheel(e: WheelEvent) {
+    //if tooltip is active disable zooming
+    //TODO: disable zooming only when hovering over tooltip
+    if(this.tooltip.isFixed){
+      return;
+    }
+
     const wheelDelta = e.deltaY < 0 ? 1 : -1;
 
     let zoom = this._transformation.GetScale();
@@ -292,6 +333,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   public onResize(event: Event) {
     this.setViewFrustum();
   }
+
+  //#endregion HostListeners
 
   private setViewFrustum(): void {
     if (this.camera == null) {
@@ -429,7 +472,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
   }
 
-  //#region subscribed events
+  //#region SubscribedEvents
   private onRefreshPlot = (payload: boolean) => {
     if (this.data == null) {
       return;
@@ -585,8 +628,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     return this.configurationService.configurations[0].selectedDataSetInfo.name ===
       this.configurationService.configurations[1].selectedDataSetInfo.name;
   }
-
-  //#endregions subscribed events
+  //#endregions SubscribedEvents
 
   private clearIdFilters() {
     function removeIdFilters(filter: FeatureFilter, index: number, featureFilters: FeatureFilter[]) {
@@ -623,6 +665,16 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.render();
   }
 
+  //#region Tooltip
+  private onHoverTooltip = () =>{
+    this.isOverTooltip = true;
+  }
+
+  private onEndHoverTooltip = () =>{
+    this.isOverTooltip = false;
+  }
+  //#endregion Tooltip
+
   //#region getters and setters
   get configuration() { return this._configuration; }
   set configuration(value: ConfigurationData) { this._configuration = value; }
@@ -631,6 +683,15 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   }
   set data(value: any) {
     this._data = value;
+  }
+  private get canvas(): HTMLCanvasElement {
+    return this.canvasRef.nativeElement;
+  }
+  get isOverTooltip(): boolean {
+    return this._isOverTooltip;
+  }
+  set isOverTooltip(value: boolean) {
+    this._isOverTooltip = value;
   }
   //#endregion
 }
