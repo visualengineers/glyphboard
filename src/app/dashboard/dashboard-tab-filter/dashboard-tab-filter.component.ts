@@ -49,13 +49,11 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   }
 
   private toggleGroupActive(group: string) {
-    console.log(group);
     this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, true]);
     return;
   }
 
   private toggleGroupInactive(group: string) {
-    console.log(group);
     this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, false]);
     return;
   }
