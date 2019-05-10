@@ -3,6 +3,8 @@ import { Logger } from 'app/shared/services/logger.service';
 import * as d3 from 'd3';
 import { Configuration } from '../shared/services/configuration.service';
 import { DotGlyphConfiguration } from '../glyph/glyph.dot.configuration';
+import * as THREE from 'three';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 
 export class GlyphplotLayoutController {
   constructor(
@@ -67,6 +69,13 @@ export class GlyphplotLayoutController {
 
     const borderX = (maxX - minX) / 20;
     const borderY = (maxY - minY) / 20;
+
+    const min = new THREE.Vector2(minX - borderX, minY - borderY);
+    const max = new THREE.Vector2(maxX + borderX, maxY + borderY);
+
+    const scale = new THREE.Vector2((maxX - minX) / this.component.width, (maxY - minY) / this.component.height);
+
+    this.component.cameraUtil = new CameraSyncUtilities(min, max, scale);
 
     this.component.xAxis = d3
       .scaleLinear()

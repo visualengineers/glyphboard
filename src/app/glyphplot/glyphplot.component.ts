@@ -24,6 +24,7 @@ import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 
 @Component({
   selector: 'app-glyphplot',
@@ -60,6 +61,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _quadtree: any;
   private _clusterPoints;
   private _dataUpdated: boolean;
+  private _cameraUtil: CameraSyncUtilities;
 
   //#region static methods
   static zoomed(component: GlyphplotComponent): void {
@@ -627,5 +629,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   get layoutController() { return this._layoutController; }
   get dataUpdated() { return this._dataUpdated; }
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
+  get cameraUtil() { return this._cameraUtil; }
+  set cameraUtil(value: CameraSyncUtilities) { this._cameraUtil = value; }
+
   //#endregion
 }

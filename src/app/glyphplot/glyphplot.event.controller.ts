@@ -22,6 +22,7 @@ import { ViewportTransformationEventData } from 'app/shared/events/viewport-tran
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
 import { RegionManager } from 'app/region/region.manager';
+import * as THREE from 'three';
 
 export class GlyphplotEventController {
   private counter: number;
@@ -62,8 +63,8 @@ export class GlyphplotEventController {
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
 
-    this.component.transform.x = -payload.GetTranslateX() - payload.GetNormalizedTargetCoordinateX();
-    this.component.transform.y = -payload.GetTranslateY() - payload.GetNormalizedTargetCoordinateY();
+    this.component.transform.x = -payload.GetTranslateX() - payload.GetZoomViewportOffsetX();
+    this.component.transform.y = -payload.GetTranslateY() - payload.GetZoomViewportOffsetY();
     this.component.transform.k = payload.GetScale();
 
     this.formerTranslation.x = this.component.transform.x;
@@ -101,18 +102,30 @@ export class GlyphplotEventController {
 
       this.selectionEnded = true;
 
-      // const normMouseX = d3.event.pageX / this.component.width;
-      // const normMouseY = 1.0 - (d3.event.pageY / this.component.height);
+      const normMouseX = trans.x / this.component.width;
+      const normMouseY = 1.0 - (trans.y / this.component.height);
 
       this.configuration.currentLayout = GlyphLayout.Cluster;
 
+      const offsets = this.component.cameraUtil.ComputeZoomOffset(trans.k, new THREE.Vector2(normMouseX, normMouseY));
+
       // broadcast transformation using eventaggregator
+      // const transformArgs = new ViewportTransformationEventData(
+      //   0,
+      //   0,
+      //   0,
+      //   trans.k, UpdateItemsStrategy.DefaultUpdate, -trans.x,
+      //   -trans.y);
+
       const transformArgs = new ViewportTransformationEventData(
+        -trans.x,
+        -trans.y,
         0,
-        0,
-        0,
-        trans.k, UpdateItemsStrategy.DefaultUpdate, -trans.x,
-        -trans.y);
+        trans.k, UpdateItemsStrategy.DefaultUpdate,
+        offsets.ViewportScaleOffset.x,
+        offsets.ViewportScaleOffset.y, 0,
+        offsets.CursorOffset.x,
+        offsets.CursorOffset.y, 0);
       this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
     }
 

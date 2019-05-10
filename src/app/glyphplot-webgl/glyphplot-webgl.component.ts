@@ -25,6 +25,7 @@ import { Helper } from 'app/glyph/glyph.helper';
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
 import { Vector2 } from 'three';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -55,17 +56,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _data: any;
   private _particleSystem: THREE.Points;
 
-  private _data_MinX: number;
-  private _data_MaxX: number;
-  private _data_MinY: number;
-  private _data_MaxY: number;
-
-  private _data_ScaleX = 1;
-  private _data_ScaleY = 1;
-
   private _interactionEvent: Interaction;
   private _interaction: InteractionEventData = new InteractionEventData(null);
   private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
+  private _cameraUtil: CameraSyncUtilities;
 
   private _selectionRect: SelectionRect;
   private _context: any;
@@ -260,7 +254,13 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         const translateX = this._transformation.GetTranslateX() + (-e.movementX / scale)
         const translateY = this._transformation.GetTranslateY() + (-e.movementY / scale);
 
-        const data = new ViewportTransformationEventData(translateX, translateY, 0, scale);
+        const data = new ViewportTransformationEventData(translateX, translateY, 0, scale, UpdateItemsStrategy.DefaultUpdate,
+          this._transformation.GetZoomViewportOffsetX(),
+          this._transformation.GetZoomViewportOffsetY(),
+          this._transformation.GetZoomViewportOffsetZ(),
+          this._transformation.GetZoomCursorOffsetX(),
+          this._transformation.GetZoomCursorOffsetY(),
+          this._transformation.GetZoomCursorOffsetZ());
         this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
 
       } else {
@@ -307,7 +307,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   mousewheel(e: WheelEvent) {
     //if tooltip is active disable zooming
     //TODO: disable zooming only when hovering over tooltip
-    if(this.tooltip.isFixed){
+    if (this.tooltip.isFixed || this._cameraUtil === undefined){
       return;
     }
 
@@ -327,11 +327,17 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
-   const offsets = this.computeZoomOffset(zoom, normMouse);
+   const offsets = this._cameraUtil.ComputeZoomOffset(zoom, normMouse);
 
    const data = new ViewportTransformationEventData(
-    this._transformation.GetTranslateX(),  this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, 
-    UpdateItemsStrategy.DefaultUpdate, offsets[0].x, offsets[0].y, 0, offsets[1].x, offsets[1].y, 0);
+    this._transformation.GetTranslateX(),
+    this._transformation.GetTranslateY(),
+    this._transformation.GetTranslateZ(), zoom,
+    UpdateItemsStrategy.DefaultUpdate,
+    offsets.ViewportScaleOffset.x,
+    offsets.ViewportScaleOffset.y, 0,
+    offsets.CursorOffset.x,
+    offsets.CursorOffset.y, 0);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -343,41 +349,20 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   //#endregion HostListeners
 
-  private computeZoomOffset(scale: number, normMousePos: THREE.Vector2): THREE.Vector2[] {
-    const vpSize = new THREE.Vector2(
-      (this._data_MaxX - this._data_MinX) * this._data_ScaleX,
-      (this._data_MaxY - this._data_MinY) * this._data_ScaleY
-    );
-
-    const vpScaleOffset = new THREE.Vector2(
-      (vpSize.x - (vpSize.x / scale)) * 0.5,
-      (vpSize.y - (vpSize.y / scale)) * 0.5
-    );
-
-    const mouseOffsetFromCenter = normMousePos.sub(new THREE.Vector2(0.5, 0.5));
-
-    const cursorOffset =  new THREE.Vector2(
-      vpScaleOffset.x * mouseOffsetFromCenter.x * 2,
-      vpScaleOffset.y * mouseOffsetFromCenter.y * 2
-    );
-
-    // return offset resulting in zoom (changing viewport size) and from zoom center (simple translation)
-    return [ vpScaleOffset, cursorOffset ];
-  }
 
   private setViewFrustum(): void {
     if (this.camera == null) {
       return;
     }
 
-    const aspect = this.getAspectRatio();
+    const dataMin = this._cameraUtil.DataMin;
+    const dataMax = this._cameraUtil.DataMax;
+    const dataScale = this._cameraUtil.DataScale;
 
-    const scale = this._transformation.GetScale();
-
-    this.camera.left = (this._data_MinX) * this._data_ScaleX + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
-    this.camera.right = (this._data_MaxX) * this._data_ScaleX - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
-    this.camera.top = (this._data_MinY) * this._data_ScaleY + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
-    this.camera.bottom = (this._data_MaxY) * this._data_ScaleY - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
+    this.camera.left = dataMin.x * dataScale.x + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
+    this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
+    this.camera.top = dataMin.y * dataScale.y + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
+    this.camera.bottom = dataMax.y * dataScale.y - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
 
     this.camera.updateProjectionMatrix();
 
@@ -398,12 +383,14 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const particleColors = [];
     const particleSizes = [];
 
-    if (this.data != null) {
-      this._data_MinX = this.data.positions[0].position.ox;
-      this._data_MaxX = this.data.positions[0].position.ox;
+    let dataMinX, dataMinY, dataMaxX, dataMaxY = 0;
 
-      this._data_MinY = this.data.positions[0].position.oy;
-      this._data_MaxY = this.data.positions[0].position.oy;
+    if (this.data != null) {
+      dataMinX = this.data.positions[0].position.ox;
+      dataMaxX = this.data.positions[0].position.ox;
+
+      dataMinY = this.data.positions[0].position.oy;
+      dataMaxY = this.data.positions[0].position.oy;
 
       const colorFeature = this.data.schema.color;
       const colorScale = item => {
@@ -420,46 +407,53 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         const pY = item.position.oy;
         const pZ = -10;
 
-        if (pX < this._data_MinX) {
-          this._data_MinX = pX;
+        if (pX < dataMinX) {
+          dataMinX = pX;
         }
 
-        if (pY < this._data_MinY) {
-          this._data_MinY = pY;
+        if (pY < dataMinY) {
+          dataMinY = pY;
         }
 
-        if (pX > this._data_MaxX ) {
-          this._data_MaxX  = pX;
+        if (pX > dataMaxX ) {
+          dataMaxX  = pX;
         }
 
-        if (pY > this._data_MaxY) {
-          this._data_MaxY = pY;
+        if (pY > dataMaxY) {
+          dataMaxY = pY;
         }
       });
 
-      const borderX = (this._data_MaxX - this._data_MinX) / 20;
-      const borderY = (this._data_MaxY - this._data_MinY) / 20;
+      // add 5% border
+      const borderX = (dataMaxX - dataMinX) / 20;
+      const borderY = (dataMaxY - dataMinY) / 20;
 
-      this._data_MinX -= borderX;
-      this._data_MaxX += borderX;
+      // adjust drawing range
+      dataMinX -= borderX;
+      dataMaxX += borderX;
 
-      this._data_MinY -= borderY;
-      this._data_MaxY += borderY;
+      dataMinY -= borderY;
+      dataMaxY += borderY;
 
       // step 2: compute scale to fit into screen space (simlar to glyphplot.layout.controller.updatePositions())
-      const dataDomainX = (this._data_MaxX) - (this._data_MinX);
-      const dataDomainY = (this._data_MaxY) - (this._data_MinY);
+      const dataDomainX = (dataMaxX) - (dataMinX);
+      const dataDomainY = (dataMaxY) - (dataMinY);
 
       const renderRangeX = this.width;
       const renderRangeY = this.height;
 
-      this._data_ScaleX = renderRangeX / dataDomainX;
-      this._data_ScaleY = renderRangeY / dataDomainY;
+      const dataScaleX = renderRangeX / dataDomainX;
+      const dataScaleY = renderRangeY / dataDomainY;
+
+      this._cameraUtil = new CameraSyncUtilities(
+        new THREE.Vector2(dataMinX, dataMinY),
+        new THREE.Vector2(dataMaxX, dataMaxY),
+        new THREE.Vector2(dataScaleX, dataScaleY));
 
       // step 3: push window-scaled positions
       this.data.positions.forEach(item => {
-        const renderPosX = (item.position.ox * this._data_ScaleX);
-        const renderPosY = (((this._data_MaxY - item.position.oy) + this._data_MinY) * this._data_ScaleY);
+        const renderPosX = (item.position.ox * dataScaleX);
+        const renderPosY = (((dataMaxY - item.position.oy) + dataMinY) * dataScaleY);
         const renderPosZ = -10;
 
         particlePositions.push(renderPosX);
