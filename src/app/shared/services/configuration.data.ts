@@ -4,15 +4,13 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import * as d3 from 'd3';
 import { GlyphConfiguration } from 'app/glyph/glyph.configuration';
-import { Configuration } from './configuration.service';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { SelectionService } from './selection.service';
 
 export class ConfigurationData {
-  private configuration: Configuration;
-  private eventAggregator: EventAggregatorService;
   
   // categorical color scale, that uses discrete color values on the domain 0-1
   private _categoryColor = d3
@@ -54,8 +52,6 @@ export class ConfigurationData {
 
   private _useColorRange = false; // switch between continuous and discrete color scale
 
-  private _featureFilters: FeatureFilter[] = []; // list of filters applied to glyphs
-
   private _glyph: Glyph; // class of used glyph type (flower, star, dot)
   private _activeFeatures: any[];
   private _activeDataSet: any; // currently active dataset (schema, features, position)
@@ -71,7 +67,7 @@ export class ConfigurationData {
   private _useDragSelection = false; // whether or not selection by drag is possible
   private _extendSelection = false; // extend the selection in dragSelection-Mode by pressing 'Shift'
   private _useForceLayout = false; // whether or not glyphs are repositioned with force
-  private _layouts: GlyphLayout;
+
   private _currentLayout = 0;
 
   private _data = new BehaviorSubject<any>(null);
@@ -86,13 +82,8 @@ export class ConfigurationData {
   private _aggregateItems = false;
   private _itemsCount: number;
   private _leftSide: boolean;
-  private _filteredItemsIds = [];
-  private _filteredItemsCount = 0;
-
-  constructor(configuration: Configuration, eventAggregator: EventAggregatorService
-  ) {
-    this.configuration = configuration;
-    this.eventAggregator = eventAggregator;
+  
+  constructor(private eventAggregator: EventAggregatorService) {
     this.maxZoom = 50;
     this._levelOfDetails = [
       1, // zoom level 0 --> dots
@@ -215,9 +206,6 @@ export class ConfigurationData {
   get individualFeatureContexts(): any { return this._individualFeatureContexts; }
   set individualFeatureContexts(contexts: any) { this._individualFeatureContexts = contexts; }
 
-  get featureFilters(): FeatureFilter[] { return this._featureFilters; }
-  set featureFilters(filter: FeatureFilter[]) { this._featureFilters = filter;}
-
   get currentZoomLevel(): number { return this._currentZoomLevel; }
 
   get selectedDataSetInfo(): {
@@ -240,7 +228,7 @@ export class ConfigurationData {
     const changed = this._idOfHoveredGlyph !== value && value >= 0;
     this._idOfHoveredGlyph = value;
 
-    if (this._idOfHoveredGlyph >= 0 && changed) {
+    if (this._idOfHoveredGlyph >= 0 && changed && this._data.getValue()) {
       this.selectedItemVersions = [];
       const data = this._data.getValue();
       const item = data.features.find(f => {
@@ -303,60 +291,7 @@ export class ConfigurationData {
   get leftSide() { return this._leftSide; }
   set leftSide(value: boolean) { this._leftSide = value; }
 
-  get filteredItemsCount() { return this._filteredItemsCount }
-  set filteredItemsCount(value: number) { this._filteredItemsCount = value; }
-
-
-  get filteredItemsIds() { return this._filteredItemsIds }
-  set filteredItemsIds(value: number[]) { this._filteredItemsIds = value; }
-
   get minScaleLevel() { return this._minScaleLevel }
   set minScaleLevel(value: number) { this._minScaleLevel = value; }
 
-  // Refresh ID list
-  public filterRefresh() {
-    var filteredIds = [];
-
-    this._data.getValue().positions.forEach(d => {
-      let itemConfirmsFilter = true;
-      let featureItem = this.getFeaturesForItem(d);
-      const filters: FeatureFilter[] = this.featureFilters;
-      let filter: FeatureFilter;
-
-      for (let i = 0; i < filters.length; i++) {
-        filter = filters[i];
-        itemConfirmsFilter = itemConfirmsFilter && filter.itemConfirmsToFilter(d.id, featureItem.features, featureItem.values);
-      }
-
-      if (itemConfirmsFilter) {
-        filteredIds.push(d.id);
-      }
- 
-    });
-    this._filteredItemsIds = filteredIds;
-    if (this._featureFilters.length == 0) {
-      this._filteredItemsCount = this._data.getValue().positions.length;
-    } else {
-      this._filteredItemsCount = this._filteredItemsIds.length;
-    }
-  }
-
-  private getFeaturesForItem(d: any) {
-    const item = this._data.getValue().features.find(f => {
-        return f.id === d.id;
-    });
-    let itemContext = this.individualFeatureContexts[d.id];
-    if (itemContext === undefined) {
-        if (this.globalFeatureContext >= 0) {
-            itemContext = this.globalFeatureContext;
-        } else {
-            itemContext = item['default-context'];
-        }
-    }
-    const ret = {
-        features: Object.assign(item.features[itemContext], item.features['global']),
-        values: item.values
-    }
-    return ret;
-  }
 }

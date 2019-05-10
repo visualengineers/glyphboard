@@ -10,6 +10,7 @@ import * as d3 from 'd3';
 import { FlowerGlyph } from 'app/glyph/glyph.flower';
 import { StarGlyph } from 'app/glyph/glyph.star';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
+import { SelectionService} from 'app/shared/services/selection.service'
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { FitToScreenEvent } from 'app/shared/events/fit-to-screen.event';
 import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
@@ -31,7 +32,8 @@ export class GlyphplotEventController {
     private cursor: LenseCursor,
     private logger: Logger,
     private configurationService: Configuration,
-    private eventAggregator: EventAggregatorService
+    private eventAggregator: EventAggregatorService,
+    private selectionService: SelectionService
   ) {
     this.eventAggregator
       .getEvent(RefreshPlotEvent)
@@ -141,17 +143,15 @@ export class GlyphplotEventController {
     }
     this.currentEventType = null;
 
-    const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
+    const existingIdFilters: FeatureFilter[] = this.selectionService.featureFilters.filter((filter: FeatureFilter) => {
       if (filter instanceof IdFilter) {
         return true;
       }
     });
 
-    const selection = this.component.selectionRect.selectedGlyphs;
-    const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
-      arrayOfIds.push(item.id);
-      return arrayOfIds;
-    }, []);
+    this.selectionService.data = this.component.data;
+    this.selectionService.selectByArea(this.component.selectionRect.start, this.component.selectionRect.end);
+    const selectedIds = this.selectionService.selectedItemsIds;
 
     this.clearIdFilters();
 
@@ -169,13 +169,11 @@ export class GlyphplotEventController {
         idFilter = new IdFilter('id', selectedIds);
       }
       if (this.viewsShowTheSameDataSet()) {
-        this.configurationService.configurations[0].featureFilters.push(idFilter);
-        this.configurationService.configurations[1].featureFilters.push(idFilter);
-        this.configurationService.configurations[0].filterRefresh();
-        this.configurationService.configurations[1].filterRefresh();
+        this.selectionService.featureFilters.push(idFilter);
+        this.selectionService.filterRefresh();
       } else {
-        this.configuration.featureFilters.push(idFilter);
-        this.configuration.filterRefresh();
+        this.selectionService.featureFilters.push(idFilter);
+        this.selectionService.filterRefresh();
       }
     }
     // draws the selection rectangle if the user is currently in the specific mode
@@ -202,10 +200,10 @@ export class GlyphplotEventController {
 
     // remove old idFilters
     if (this.viewsShowTheSameDataSet()) {
-      this.configurationService.configurations[0].featureFilters.forEach(removeIdFilters);
-      this.configurationService.configurations[1].featureFilters.forEach(removeIdFilters);
+      this.selectionService.featureFilters.forEach(removeIdFilters);
+      this.selectionService.featureFilters.forEach(removeIdFilters);
     } else {
-      this.configuration.featureFilters.forEach(removeIdFilters);
+      this.selectionService.featureFilters.forEach(removeIdFilters);
     }
   }
 
@@ -379,9 +377,8 @@ export class GlyphplotEventController {
     const that = this;
     const filteredPositions = [];
     this.component.layoutController.getPositions().forEach(d => {
-      const data = this.component.layoutController.getFeaturesForItem(d);
 
-        if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
+        if (that.selectionService.filteredItemsIds.indexOf(d.id) > -1 || this.selectionService.featureFilters.length === 0) {
           filteredPositions.push(d.position);
         }
       });

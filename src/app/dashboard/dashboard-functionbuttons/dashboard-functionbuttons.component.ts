@@ -6,6 +6,7 @@ import { environment } from 'environments/environment';
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
 import { GlobalDialogEvent, GlobalDialogPayload } from 'app/shared/events/global-dialog.event';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
   selector: 'app-dashboard-functionbuttons',
@@ -29,7 +30,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   };
   public resetUploadVar = false;
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector, private selectionService: SelectionService) {
     super(injector);
   }
 
@@ -124,7 +125,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
     const expFirst = new ExportService();
     expFirst.exportData(
       dataFirst,
-      this.configuration.configurations[0].filteredItemsIds,
+      this.selectionService.filteredItemsIds,
       [
         this.configuration.configurations[0].selectedDataSetInfo.name,
         this.configuration.configurations[0].selectedDataSetInfo
@@ -132,7 +133,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
         this.configuration.configurations[0].selectedDataSetInfo.version
       ],
       this.configuration.configurations[0].activeFeatures,
-      (this.configuration.configurations[0].featureFilters.length == 0)
+      (this.selectionService.featureFilters.length == 0)
     );
   }
 

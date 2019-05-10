@@ -1,6 +1,7 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { ConfigurationData } from '../../shared/services/configuration.data';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
   selector: 'app-dashboard-tab-data',
@@ -29,7 +30,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   public positionAlgorithmsSecond = new Array<string>();
   public featureContextsSecond = new Array<any>();
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector, private selectionService: SelectionService) {
     super(injector);
   }
 
@@ -102,8 +103,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
 
   // Rebuild the dataset list every time its changed.
   dashboardDataSetChanged() {
-    this.configuration.configurations[0].featureFilters.length = 0;
-    this.configuration.configurations[1].featureFilters.length = 0;
+    this.selectionService.featureFilters.length = 0;
     if (this.allDatasets.length === 0) {
       return;
     }
@@ -166,8 +166,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   }
 
   dashboardDataSetChangedSecond() {
-    this.configuration.configurations[0].featureFilters.length = 0;
-    this.configuration.configurations[1].featureFilters.length = 0;
+    this.selectionService.featureFilters.length = 0;
     if (this.allDatasets.length === 0) {
       return;
     }

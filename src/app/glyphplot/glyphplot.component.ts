@@ -23,6 +23,7 @@ import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
   selector: 'app-glyphplot',
@@ -101,7 +102,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private helper: Helper,
     private configurationService: Configuration,
     private cursor: LenseCursor,
-    private eventAggregator: EventAggregatorService
+    private eventAggregator: EventAggregatorService,
+    private selectionService: SelectionService
   ) {
     this.configuration = this.configurationService.addConfiguration();
 
@@ -111,7 +113,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.cursor,
       this.logger,
       this.configurationService,
-      this.eventAggregator
+      this.eventAggregator,
+      this.selectionService
     );
     this._flexiWallController = new FlexiWallController(
       this,
@@ -191,7 +194,6 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     );
     this.circle = new DotGlyph(this.context, colorScale, new DotGlyphConfiguration());
     this.selectionRect = new SelectionRect(this, this.selectionContext, this.helper);
-    this.selectionRect.data = this.data;
     this.selectionRect.offset = {
       x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
       y: 0
@@ -311,7 +313,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
 
         const data = this.layoutController.getFeaturesForItem(d);
 
-        if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length == 0) {
+        if (this.selectionService.filteredItemsIds.indexOf(d.id) > -1 || this.selectionService.featureFilters.length == 0) {
           this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
         } else {
           this.layoutController.drawSingleGlyph(d.position, data.features, 1.0, true, d.id === this.configuration.idOfHoveredGlyph, 0);

@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { TextFilter } from 'app/shared/filter/text-filter';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
   selector: 'app-dashboard-tab-filter',
@@ -16,7 +17,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   public eventsSubject: Subject<void> = new Subject<void>();
   private _freeSearchFilter: TextFilter;
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector, private selectionService: SelectionService) {
     super(injector);
   }
 
@@ -84,10 +85,10 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
 
   public search(searchtext: string) {
     const myFilter = this._freeSearchFilter;
-    _.remove(this.configuration.configurations[0].featureFilters, function(currentObject) {
+    _.remove(this.selectionService.featureFilters, function(currentObject) {
       return currentObject === myFilter;
     });
-    _.remove(this.configuration.configurations[1].featureFilters, function(currentObject) {
+    _.remove(this.selectionService.featureFilters, function(currentObject) {
       return currentObject === myFilter;
     });
     if (searchtext === '' || searchtext === undefined) {
@@ -98,19 +99,15 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
     const searchStrings = [];
     searchStrings.push(searchtext);
     this._freeSearchFilter = new TextFilter(searchStrings);
-    this.configuration.configurations[0].featureFilters.push(this._freeSearchFilter);
-    this.configuration.configurations[1].featureFilters.push(this._freeSearchFilter);
-    this.configuration.configurations[0].filterRefresh();
-    this.configuration.configurations[1].filterRefresh();
+    this.selectionService.featureFilters.push(this._freeSearchFilter);
+    this.selectionService.filterRefresh();
     this.onLayoutChange();
   }
 
   public resetFilters() {
     this.searchfield.nativeElement.value = '';
-    this.configuration.configurations[0].featureFilters.splice(0, this.configuration.configurations[0].featureFilters.length);
-    this.configuration.configurations[1].featureFilters.splice(0, this.configuration.configurations[1].featureFilters.length);
-    this.configuration.configurations[0].filterRefresh();
-    this.configuration.configurations[1].filterRefresh();
+    this.selectionService.featureFilters.splice(0, this.selectionService.featureFilters.length);
+    this.selectionService.filterRefresh();
     this.eventsSubject.next();
     this.onLayoutChange();
   }

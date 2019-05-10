@@ -6,6 +6,7 @@ import { Configuration } from '../../shared/services/configuration.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { Observable } from 'rxjs';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -64,8 +65,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
       filter.featureName = component.propertyInConfiguration;
       component.activeFilterInConfiguration = filter;
-      component.configuration.configurations[0].featureFilters.push(filter);
-      component.configuration.configurations[1].featureFilters.push(filter);
+      component.selectionService.featureFilters.push(filter);
       
     }
     const absoluteMinValue: number = +d3.min(d3.event.selection);
@@ -83,8 +83,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     filter.minValue = minValue;
     filter.maxValue = Math.min(maxValue, 1.0);
 
-    component.configuration.configurations[0].filterRefresh();
-    component.configuration.configurations[1].filterRefresh();
+    component.selectionService.filterRefresh();
     component.onLayoutChange();
   };
 
@@ -152,7 +151,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
   ngOnChanges() { }
 
-  constructor(private dataProvider: DataproviderService, private eventAggregator: EventAggregatorService) { }
+  constructor(private dataProvider: DataproviderService, private eventAggregator: EventAggregatorService, private selectionService: SelectionService) { }
 
   public changed(): void {
     this.active = !this.active;
@@ -190,7 +189,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
   private createChart(init: boolean = false) {
     const element = this.chartContainer.nativeElement;
     if (init) {
-      this.configuration.configurations[0].featureFilters.forEach( d => {
+      this.selectionService.featureFilters.forEach( d => {
         if (d.featureName == this.property) {
           this.small = false;
           this.width = 340;
@@ -300,9 +299,9 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
               + Math.round(((Math.floor(d3.mouse(this)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       });
 
-      if (init && this.configuration.configurations[0].featureFilters.length != 0) {
+      if (init && this.selectionService.featureFilters.length != 0) {
         var min, max;
-        this.configuration.configurations[0].featureFilters.forEach( d => {
+        this.selectionService.featureFilters.forEach( d => {
           if (d.featureName == this.property) {
             min = Math.floor(d.minValue*this.width+1);
             max = Math.floor(d.maxValue*this.width-1);
@@ -311,8 +310,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
         });
         this.propertyInConfiguration = this.property;
         this.brush.move(this.chart.select('#overlay-wrap'), [min, max]);
-        this.configuration.configurations[0].filterRefresh();
-        this.configuration.configurations[1].filterRefresh();
+        this.selectionService.filterRefresh();
         this.onLayoutChange();
         this.updateChart();
       }
@@ -322,12 +320,10 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
   private removeFilterFromConfiguration(): void {
     if (this.activeFilterInConfiguration == null) { return; }
 
-    const featureFilters = this.configuration.configurations[0].featureFilters;
-    const featureFiltersSecond = this.configuration.configurations[1].featureFilters;
+    const featureFilters = this.selectionService.featureFilters;
     const activeIndex = featureFilters.indexOf(this.activeFilterInConfiguration);
     this.activeFilterInConfiguration = null;
     featureFilters.splice(activeIndex, 1);
-    featureFiltersSecond.splice(activeIndex, 1);
     this.onLayoutChange();
   };
 
@@ -339,8 +335,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.chart.selectAll('.bar').style('fill',  d => this.colorDecision(d));
     this.removeFilterFromConfiguration();
     this.chart.select('#overlay-wrap').call(this.brush.move, null);
-    this.configuration.configurations[0].filterRefresh();
-    this.configuration.configurations[1].filterRefresh();
+    this.selectionService.filterRefresh();
     this.updateChart();
   }
 
