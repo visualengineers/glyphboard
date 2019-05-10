@@ -362,7 +362,6 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
   private toggleGroupState = (payload: [string, boolean]) => {
     if (this.configuration.configurations[0].featureGroups[payload[0]].member.indexOf(this.property) > -1) {
-      var index = this.configuration.configurations[0].activeFeatures.indexOf(this.object);
       this.configuration.configurations[0].activeFeatures[this.configuration.configurations[0].activeFeatures.indexOf(this.object)].active = payload[1];
       this.active = payload[1];
       this.updateColoring();
