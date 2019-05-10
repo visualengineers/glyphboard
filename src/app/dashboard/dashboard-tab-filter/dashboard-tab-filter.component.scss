@@ -114,8 +114,12 @@
         &.last {
             margin-right: 2px;
 
-            &:checked {
-                transform: rotate(-90deg);
+            &.collapsed {
+                transform: rotate(-180deg);
+                -webkit-transform: rotate(-180deg);
+                -moz-transform: rotate(-180deg);
+                -ms-transform: rotate(-180deg);
+                transform: rotate(-180deg);
             }
         }
     }
@@ -125,28 +129,9 @@
     }
 }
 
-input[type="checkbox"]{
-    -webkit-appearance: initial;
-    appearance: initial;
-    background: none;
-    border: none;
-    position: relative;
-
-    &:after {
-        content: "U";
-        color: #fff;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        -webkit-transform: translate(-50%,-50%);
-        -moz-transform: translate(-50%,-50%);
-        -ms-transform: translate(-50%,-50%);
-        transform: translate(-50%,-50%);
+.histogramBox {
+    &.collapsed {
+        display: none;
+        transition: 0.3;
     }
-}
-
-input[type="checkbox"]:checked:after {
-    content: "X";
-    color: #fff;
-    position: absolute;
 }

@@ -17,6 +17,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   public eventsSubject: Subject<void> = new Subject<void>();
   private _freeSearchFilter: TextFilter;
   private groups = [];
+  private groupCollapsed: {[key: string]: boolean} = {};
   private helper = 0;
 
   constructor(injector: Injector) {
@@ -31,6 +32,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
         if (!that.groups.includes(message.schema.groups[groupId])){
           that.groups.push(message.schema.groups[groupId]);
         }
+      this.groupCollapsed[groupId] = true;
       });
     });
   }
@@ -56,6 +58,10 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   private toggleGroupInactive(group: string) {
     this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, false]);
     return;
+  }
+
+  private resizeGroup(key: string): void{
+    this.groupCollapsed[key] = !this.groupCollapsed[key];
   }
 
   private onColorChange(e: any): void {
