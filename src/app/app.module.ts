@@ -32,7 +32,9 @@ import {
   MatSelectModule,
   MatSlideToggleModule,
   MatButtonModule,
-  MatIconModule
+  MatIconModule,
+  MatButtonToggleModule,
+  MatCardModule
 } from '@angular/material';
 import { DashboardGlyphlegendComponent } from './dashboard/dashboard-glyphlegend/dashboard-glyphlegend.component';
 import { DashboardTabComponent } from './dashboard/dashboard-tab/dashboard-tab.component';
@@ -44,6 +46,7 @@ import { DashboardTogglesComponent } from './dashboard/dashboard-toggles/dashboa
 import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functionbuttons/dashboard-functionbuttons.component';
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
+import { TooltipNewComponent } from './tooltip-new/tooltip-new.component';
 
 @NgModule({
   declarations: [
@@ -67,7 +70,8 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
     DashboardTabContextComponent,
     DashboardTogglesComponent,
     DashboardFunctionbuttonsComponent,
-    GlobalDialogComponent
+    GlobalDialogComponent,
+    TooltipNewComponent
   ],
   imports: [
     BrowserModule,
@@ -84,6 +88,8 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
     MatSlideToggleModule,
     MatButtonModule,
     MatIconModule,
+    MatButtonToggleModule,
+    MatCardModule,
     AngularFileUploaderModule
   ],
   providers: [
@@ -96,5 +102,4 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
   ],
   bootstrap: [AppComponent]
 })
-
-export class AppModule { }
+export class AppModule {}

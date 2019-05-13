@@ -1,0 +1,21 @@
+<div
+  #tooltip
+  id="tooltip"
+  [style.left]="x + 'px'"
+  [style.top]="y + 'px'"
+  [ngClass]="{ hidden: !isVisible, fixed: isFixed }"
+>
+  <div>
+    <mat-icon>music_note</mat-icon>
+    <mat-button-toggle-group>
+      <mat-button-toggle value="yes">Ja</mat-button-toggle>
+      <mat-button-toggle value="no">Nein</mat-button-toggle>
+    </mat-button-toggle-group>
+    <mat-icon>date_range</mat-icon>
+    <mat-button-toggle-group>
+      <mat-button-toggle value="yes">Ja</mat-button-toggle>
+      <mat-button-toggle value="no">Nein</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+  <div></div>
+</div>

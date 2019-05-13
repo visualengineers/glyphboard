@@ -1,0 +1,23 @@
+#tooltip {
+  position: absolute;
+  display: grid;
+
+  min-width: 300px;
+  height: auto;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+
+  font-size: 0.8rem;
+  font-family: 'Glyphboard-Regular', sans-serif;
+
+  max-height: 90vh;
+  overflow-y: hidden;
+  overflow-x: hidden;
+
+  &.fixed {
+    border: 2px solid teal;
+    overflow-y: auto !important;
+  }
+}
