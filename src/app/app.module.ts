@@ -47,6 +47,7 @@ import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functio
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
 import { TooltipNewComponent } from './label-tooltip/label-tooltip.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { TooltipNewComponent } from './label-tooltip/label-tooltip.component';
     BrowserAnimationsModule,
     FormsModule,
     HttpModule,
+    HttpClientModule,
     routing,
     AngularFontAwesomeModule,
     MatTooltipModule,

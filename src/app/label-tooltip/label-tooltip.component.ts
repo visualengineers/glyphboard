@@ -42,10 +42,12 @@ export class TooltipNewComponent implements OnInit {
     this.tooltipElement = this.tooltipContainer.nativeElement;
   }
 
-  labelData(event: MatButtonToggleChange): Observable<boolean> {
+  labelData(event: MatButtonToggleChange): void {
     const id = this.closestPoint.id;
     console.log('Labeling:', id, event);
-    return this.label.labelData(id, event.source.name, event.value);
+    this.label
+      .labelData(id, event.source.name, event.value)
+      .subscribe(res => console.log(res));
   }
 
   public updateClosestPoint(event: any, transform: any): void {
