@@ -5,7 +5,7 @@
   "angular-cli": {},
   "scripts": {
     "ng": "ng",
-    "start": "concurrently \"ng serve --open\" \"python3 backend/server.py\"",
+    "start": "concurrently \"ng serve --open\" \"python backend/server.py\"",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

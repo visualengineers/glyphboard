@@ -1,11 +1,13 @@
 import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
 import { Helper } from 'app/glyph/glyph.helper';
 import { Configuration } from 'app/shared/services/configuration.service';
+import { Observable, of } from 'rxjs';
+import { LabelingService } from 'app/labeling/labeling.service';
 
 @Component({
-  selector: 'app-tooltip-new',
-  templateUrl: './tooltip-new.component.html',
-  styleUrls: ['./tooltip-new.component.scss']
+  selector: 'app-label-tooltip',
+  templateUrl: './label-tooltip.component.html',
+  styleUrls: ['./label-tooltip.component.scss']
 })
 export class TooltipNewComponent implements OnInit {
   // @Input() isVisible;
@@ -29,10 +31,20 @@ export class TooltipNewComponent implements OnInit {
 
   private readonly cursorOffset = 5;
 
-  constructor(private helper: Helper, private configuration: Configuration) {}
+  constructor(
+    private helper: Helper,
+    private configuration: Configuration,
+    private label: LabelingService
+  ) {}
 
   ngOnInit(): void {
     this.tooltipElement = this.tooltipContainer.nativeElement;
+  }
+
+  labelData(feature: string, value: string): Observable<boolean> {
+    const id = this.closestPoint.id;
+    console.log('Labeling:', this.closestPoint.id, feature, value);
+    return this.label.labelData(id, feature, value);
   }
 
   public updateClosestPoint(event: any, transform: any): void {

@@ -46,7 +46,7 @@ import { DashboardTogglesComponent } from './dashboard/dashboard-toggles/dashboa
 import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functionbuttons/dashboard-functionbuttons.component';
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
-import { TooltipNewComponent } from './tooltip-new/tooltip-new.component';
+import { TooltipNewComponent } from './label-tooltip/label-tooltip.component';
 
 @NgModule({
   declarations: [
