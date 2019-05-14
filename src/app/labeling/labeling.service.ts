@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 
 interface LabelMessage {
   questionId: string;
-  answer: string;
+  answer: number;
   text: string;
 }
 
@@ -14,11 +14,16 @@ interface LabelMessage {
 export class LabelingService {
   constructor(private http: HttpClient) {}
 
-  labelData(id: number, feature: string, value: string): Observable<boolean> {
+  labelData(
+    id: number,
+    text: string,
+    feature: string,
+    value: string
+  ): Observable<boolean> {
     const message: LabelMessage = {
       questionId: feature,
-      answer: value,
-      text: 'random text'
+      answer: value === 'yes' ? 1 : 0,
+      text: text
     };
     return this.http.post<boolean>('http://127.0.0.1:5000/label', message);
   }

@@ -44,9 +44,11 @@ export class TooltipNewComponent implements OnInit {
 
   labelData(event: MatButtonToggleChange): void {
     const id = this.closestPoint.id;
+    const text = this.values[6][1];
     console.log('Labeling:', id, event);
+    console.log('Data:', this.data);
     this.label
-      .labelData(id, event.source.name, event.value)
+      .labelData(id, text, event.source.name, event.value)
       .subscribe(res => console.log(res));
   }
 
@@ -198,6 +200,7 @@ export class TooltipNewComponent implements OnInit {
   }
 
   get values(): any[] {
+    // console.log(this._values);
     return this._values;
   }
 }

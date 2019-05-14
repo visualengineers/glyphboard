@@ -17,7 +17,7 @@
       <mat-button-toggle value="no">Nein</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
-  <div>{{ closestPoint?.id }}</div>
-  <div>{{ _values }}</div>
-  <div>{{ _data }}</div>
+  <!-- <div>{{ closestPoint?.id }}</div> -->
+  <div *ngIf="values[6]">{{ values[6][1] }}</div>
+  <!-- <div>{{ _data | json }}</div> -->
 </div>
