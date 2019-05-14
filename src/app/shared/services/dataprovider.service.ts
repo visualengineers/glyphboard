@@ -5,6 +5,13 @@ import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeWhile';
 import { environment } from 'environments/environment';
 
+export interface JsonFeature {
+  id: number;
+  'default-context': string;
+  features: { 1: { [key: string]: string } };
+  values: { [key: string]: string };
+}
+
 @Injectable()
 export class DataproviderService {
   private backendAddress: string;
@@ -26,24 +33,24 @@ export class DataproviderService {
     this.alive = true;
     this.interval = 10000;
     this.timer = Observable.timer(0, this.interval);
-    this.backendAddress = environment.backendAddress === undefined
-      ? 'http://localhost:4201'
-      : environment.backendAddress;
+    this.backendAddress =
+      environment.backendAddress === undefined
+        ? 'http://localhost:4201'
+        : environment.backendAddress;
 
     this.timer
-    .takeWhile(() => this.alive)
-    .subscribe(() => {
-      this.http.get(this.backendAddress + 'datasets')
-        .subscribe((data) => {
-            const response = data['_body'] || '';
-            const newData = JSON.parse(response);
-            if (this.jsonEqual(newData, this.dataSets)) {
-              return; // check if changes occured in datasets
-            }
-            this.dataSets = newData;
-            this.setDataSets(this.dataSets);
-          });
-    });
+      .takeWhile(() => this.alive)
+      .subscribe(() => {
+        this.http.get(this.backendAddress + 'datasets').subscribe(data => {
+          const response = data['_body'] || '';
+          const newData = JSON.parse(response);
+          if (this.jsonEqual(newData, this.dataSets)) {
+            return; // check if changes occured in datasets
+          }
+          this.dataSets = newData;
+          this.setDataSets(this.dataSets);
+        });
+      });
   }
 
   private jsonEqual(a, b) {
@@ -53,29 +60,54 @@ export class DataproviderService {
   public downloadDataSet(name: string, version: string, position: string) {
     this.http
       .get(this.backendAddress + 'datasets/' + name + '/' + version + '/schema')
-      .subscribe((schemaData) => {
+      .subscribe(schemaData => {
         const schemaResponse = schemaData['_body'] || '';
         this.deliverSchema = JSON.parse(schemaResponse);
         this.http
-          .get(this.backendAddress + 'datasets/' + name + '/' + version + '/feature')
-          .subscribe((featureData) => {
+          .get(
+            this.backendAddress +
+              'datasets/' +
+              name +
+              '/' +
+              version +
+              '/feature'
+          )
+          .subscribe(featureData => {
             const featureResponse = featureData['_body'] || '';
             this.deliverFeature = JSON.parse(featureResponse);
             this.http
-              .get(this.backendAddress + 'datasets/' + name + '/' + version + '/position/' + position)
-              .subscribe((positionData) => {
+              .get(
+                this.backendAddress +
+                  'datasets/' +
+                  name +
+                  '/' +
+                  version +
+                  '/position/' +
+                  position
+              )
+              .subscribe(positionData => {
                 const positionResponse = positionData['_body'] || '';
                 this.deliverPosition = JSON.parse(positionResponse);
                 // if meta is available
                 this.http
-                  .get(this.backendAddress + 'datasets/' + name + '/' + version + '/meta')
-                  .subscribe((metaData) => {
-                    const metaResponse = metaData['_body'] || '';
-                    this.deliverMeta = JSON.parse(metaResponse);
-                    this.doSetDownloadedData();
-                  }, error => {
-                    this.doSetDownloadedData();
-                  });
+                  .get(
+                    this.backendAddress +
+                      'datasets/' +
+                      name +
+                      '/' +
+                      version +
+                      '/meta'
+                  )
+                  .subscribe(
+                    metaData => {
+                      const metaResponse = metaData['_body'] || '';
+                      this.deliverMeta = JSON.parse(metaResponse);
+                      this.doSetDownloadedData();
+                    },
+                    error => {
+                      this.doSetDownloadedData();
+                    }
+                  );
               });
           });
       });
@@ -88,7 +120,27 @@ export class DataproviderService {
       positions: this.deliverPosition,
       meta: this.deliverMeta
     };
+    this.dataSet.features = this.mockDataset(this.dataSet.features);
     this.setDataSet(this.dataSet);
+  }
+
+  private mockDataset(data: JsonFeature[]): JsonFeature[] {
+    const features = data;
+    console.log(features);
+    // Add labels property to each data point
+    for (let i = 0; i < features.length; i++) {
+      features[i]['labels'] = [];
+    }
+    // Mark half the data set as labeled
+    for (let i = 0; i < features.length / 2; i++) {
+      features[i]['labels'].push({
+        questionId: 'isMusic',
+        answer: 1
+      });
+      // features[i]['labels'][0]['questionId'] = 'isMusic';
+      // features[i]['labels'][0]['answer'] = 1;
+    }
+    return features;
   }
 
   private setDataSets(value: string) {

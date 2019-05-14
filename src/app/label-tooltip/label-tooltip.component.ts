@@ -136,6 +136,7 @@ export class TooltipNewComponent implements OnInit {
       }
 
       this._isVisible = true;
+      console.log(this.closestPoint.labels);
     }
   }
 
