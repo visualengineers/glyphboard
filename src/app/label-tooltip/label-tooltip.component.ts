@@ -3,6 +3,7 @@ import { Helper } from 'app/glyph/glyph.helper';
 import { Configuration } from 'app/shared/services/configuration.service';
 import { Observable, of } from 'rxjs';
 import { LabelingService } from 'app/labeling/labeling.service';
+import { MatButtonToggleChange } from '@angular/material';
 
 @Component({
   selector: 'app-label-tooltip',
@@ -41,10 +42,10 @@ export class TooltipNewComponent implements OnInit {
     this.tooltipElement = this.tooltipContainer.nativeElement;
   }
 
-  labelData(feature: string, value: string): Observable<boolean> {
+  labelData(event: MatButtonToggleChange): Observable<boolean> {
     const id = this.closestPoint.id;
-    console.log('Labeling:', this.closestPoint.id, feature, value);
-    return this.label.labelData(id, feature, value);
+    console.log('Labeling:', id, event);
+    return this.label.labelData(id, event.source.name, event.value);
   }
 
   public updateClosestPoint(event: any, transform: any): void {
