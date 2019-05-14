@@ -10,7 +10,8 @@
     <div class="group" *ngFor="let g of this.configuration.configurations[0].featureGroups | keyvalue">
       <div class="grouplabelBox">
           <div class="grouplabel left"> {{ g.key }}: {{ g.value.name }} </div>
-          <div class="grouplabel right last"><span [ngClass]="{ 'collapsed': groupCollapsed[g.key]}" (click)="resizeGroup(g.key)">U</span></div>
+          <div class="grouplabel right last" [ngClass]="{ 'collapsed': !groupCollapsed[g.key]}"><i class="icon-arrow_down" (click)="resizeGroup(g.key)"></i></div>
+          <div class="grouplabel right last" [ngClass]="{ 'collapsed': groupCollapsed[g.key]}" ><i class="icon-arrow_up" (click)="resizeGroup(g.key)"></i></div>
           <div class="grouplabel right"><i class="icon-minus" (click)="toggleGroupInactive(g.key)"></i></div>
           <div class="grouplabel right"><i class="icon-plus" (click)="toggleGroupActive(g.key)"></i></div>
       </div>
