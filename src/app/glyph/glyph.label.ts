@@ -71,11 +71,37 @@ export class LabelGlyph extends Glyph {
       this.context.fill();
     }
 
+    // Handle unlabeled data
+    if (!features.isLabeled) {
+      this.context.beginPath();
+      this.context.fillStyle = '#9e9e9e';
+      this.context.arc(
+        position.x,
+        position.y,
+        radius * (1 + features.score),
+        0,
+        2 * Math.PI
+      );
+      this.context.fill();
+    } else {
+      this.context.beginPath();
+      this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
+      if (
+        position.weight === undefined ||
+        position.weight === 1 ||
+        !this.dotConfig().drawAggregate
+      ) {
+        this.context.fill();
+      } else {
+        this.context.stroke();
+      }
+    }
+
     // const fillColor = isPassive ? '#ccc' : this.color(features);
-    const fillColor = '#ccc';
-    this.context.fillStyle = fillColor;
-    this.context.strokeStyle = fillColor;
-    this.context.lineWidth = isHighlighted ? 5 : 1;
+    // const fillColor = '#ccc';
+    // this.context.fillStyle = fillColor;
+    // this.context.strokeStyle = fillColor;
+    // this.context.lineWidth = isHighlighted ? 5 : 1;
 
     this.context.beginPath();
     this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI);

@@ -207,7 +207,11 @@ export class GlyphplotLayoutController {
     }
     const ret = {
       features: Object.assign(item.features[itemContext], item.features['global']),
-      values: item.values
+      values: item.values,
+      meta: {
+        isLabeled: item.isLabeled,
+        score: item.selectionScore
+      }
     }
     return ret;
   }

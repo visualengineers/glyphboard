@@ -191,7 +191,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.configurationService.flowerConfigs[2] as FlowerGlyphConfiguration
     );
     // this.circle = new DotGlyph(this.context, colorScale, new DotGlyphConfiguration());
-    this.circle = new LabelGlyph(this.context, colorScale, new DotGlyphConfiguration());
+    this.circle = new LabelGlyph(this.context, colorScale, new DotGlyphConfiguration(), );
     this.selectionRect = new SelectionRect(this, this.selectionContext, this.helper);
     this.selectionRect.data = this.data;
     this.selectionRect.offset = {
@@ -312,6 +312,9 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.context.moveTo(d.position.x, d.position.y);
 
         const data = this.layoutController.getFeaturesForItem(d);
+        // Add meta data for labeling
+        data.features['isLabeled'] = data.meta.isLabeled;
+        data.features['score'] = data.meta.score;
 
         if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length == 0) {
           this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
