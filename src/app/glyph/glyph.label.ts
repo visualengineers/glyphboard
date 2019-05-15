@@ -129,6 +129,14 @@ export class LabelGlyph extends Glyph {
     return this.configuration as DotGlyphConfiguration;
   }
 
+  /**
+   * Helper function: Normalizes a value into specified min-max-range
+   * @param val value to be normalized
+   * @param target_min min boundary
+   * @param target_max max boundary
+   * @param min minimum real value can reach
+   * @param max maximum reaö value can reach
+   */
   private normalize(
     val: number,
     target_min: number,
