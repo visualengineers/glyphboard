@@ -4,7 +4,7 @@ import { GlyphConfiguration } from './glyph.configuration';
 
 export abstract class Glyph {
     private _configuration: GlyphConfiguration;
-    public context: any;
+    public context: CanvasRenderingContext2D;
     color: any;
     glyphType: GlyphType;
 

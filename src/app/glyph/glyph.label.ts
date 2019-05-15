@@ -4,7 +4,7 @@ import { DotGlyphConfiguration } from './glyph.dot.configuration';
 
 export class LabelGlyph extends Glyph {
   private preferredRadius = 3.5;
-  constructor(context: any, color: any, configuration: DotGlyphConfiguration) {
+  constructor(context: CanvasRenderingContext2D, color: any, configuration: DotGlyphConfiguration) {
     super(context, color);
     this.configuration = configuration;
     this.glyphType = GlyphType.Dot;
@@ -80,6 +80,7 @@ export class LabelGlyph extends Glyph {
     if (!features.isLabeled) {
       this.context.beginPath();
       this.context.fillStyle = '#9e9e9e';
+      this.context.strokeStyle = 'black';
       this.context.arc(
         position.x,
         position.y,
@@ -87,6 +88,7 @@ export class LabelGlyph extends Glyph {
         0,
         2 * Math.PI
       );
+      this.context.stroke();
       this.context.fill();
     } else {
       this.context.beginPath();
