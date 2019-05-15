@@ -4,7 +4,11 @@ import { DotGlyphConfiguration } from './glyph.dot.configuration';
 
 export class LabelGlyph extends Glyph {
   private preferredRadius = 3.5;
-  constructor(context: CanvasRenderingContext2D, color: any, configuration: DotGlyphConfiguration) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    color: any,
+    configuration: DotGlyphConfiguration
+  ) {
     super(context, color);
     this.configuration = configuration;
     this.glyphType = GlyphType.Dot;
@@ -84,7 +88,7 @@ export class LabelGlyph extends Glyph {
       this.context.arc(
         position.x,
         position.y,
-        radius * (1 + features.score),
+        radius * this.normalize(features.score, 1, 2),
         0,
         2 * Math.PI
       );
@@ -123,5 +127,15 @@ export class LabelGlyph extends Glyph {
 
   public dotConfig() {
     return this.configuration as DotGlyphConfiguration;
+  }
+
+  private normalize(
+    val: number,
+    target_min: number,
+    target_max: number,
+    min: number = 0.5,
+    max: number = 1
+  ): number {
+    return ((target_max - target_min) / (max - min)) * (val - max) + target_max;
   }
 }
