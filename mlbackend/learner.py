@@ -140,7 +140,7 @@ def train(train_data, test_data, algo: Any) -> dict:
 def getHistory():
     history = []
     with open(
-            "metrics.csv", "r", encoding="utf8") as file:
+            "mlbackend/metrics.csv", "r", encoding="utf8") as file:
         reader = csv.reader(file, delimiter=';')
         for line in reader:
             history.append(line[0])
@@ -150,11 +150,13 @@ def getHistory():
 
 def addHistory(metrics):
     with open(
-            "metrics.csv", "a",  newline="", encoding="utf8") as file:
+            "mlbackend/metrics.csv", "a",  newline="", encoding="utf8") as file:
         writer = csv.writer(file, delimiter=';')
         writer.writerow([str(metrics)])
         file.close()
 
+def getCurrentScore() -> int:
+    return getHistory().pop()
 
 # def preprocessText(text: str) -> str:
 #     # print('Original: ', text)

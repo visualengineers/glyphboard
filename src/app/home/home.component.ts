@@ -11,7 +11,7 @@ import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
   selector: 'app-home',
   templateUrl: './home.component.html',
   providers: [ DataproviderService, Logger, RegionManager ],
-  styleUrls: ['./home.component.css']
+  styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
   private splitScreen: boolean;

@@ -50,9 +50,7 @@ export class TooltipNewComponent implements OnInit {
     this.isMusic = event.value;
     console.log('Labeling:', id, event);
     console.log('Data:', this.data);
-    this.label
-      .labelData(id, text, event.source.name, event.value)
-      .subscribe(res => console.log(res));
+    this.label.labelData(id, text, event.source.name, event.value)
   }
 
   private updateTooltip(): void {

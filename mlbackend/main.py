@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
-from learner import handleNewAnswer
+from learner import handleNewAnswer, getCurrentScore
 import json
 
 app = Flask(__name__)
@@ -15,10 +15,14 @@ def label():
     # return result
     # print(result)
     print(result)
-    return json.dumps(result)
+    return result
     # return result
     # return json.dumps('thanks')
 
+@app.route("/score", methods=["GET"])
+def getScore():
+    return getCurrentScore()
 
 if __name__ == '__main__':
     app.run(debug=True)
+
