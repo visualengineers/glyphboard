@@ -23,6 +23,7 @@ import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
+import { LabelGlyph } from 'app/glyph/glyph.label';
 
 @Component({
   selector: 'app-glyphplot',
@@ -189,7 +190,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       colorScale,
       this.configurationService.flowerConfigs[2] as FlowerGlyphConfiguration
     );
-    this.circle = new DotGlyph(this.context, colorScale, new DotGlyphConfiguration());
+    // this.circle = new DotGlyph(this.context, colorScale, new DotGlyphConfiguration());
+    this.circle = new LabelGlyph(this.context, colorScale, new DotGlyphConfiguration());
     this.selectionRect = new SelectionRect(this, this.selectionContext, this.helper);
     this.selectionRect.data = this.data;
     this.selectionRect.offset = {
