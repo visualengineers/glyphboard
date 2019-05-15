@@ -1,3 +1,6 @@
-<div class="wrapper">
-  {{ currentScore | async }}
-</div>
+<mat-card class="wrapper">
+  <mat-card-header>
+    <div mat-card-avatar class="avatar"></div>
+    <mat-card-title>{{ currentScore | async }}</mat-card-title>
+  </mat-card-header>
+</mat-card>

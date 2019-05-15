@@ -88,7 +88,7 @@ export class LabelGlyph extends Glyph {
       this.context.arc(
         position.x,
         position.y,
-        radius * this.normalize(features.score, 1, 2),
+        radius * this.normalize(features.score, 0.8, 1.75),
         0,
         2 * Math.PI
       );

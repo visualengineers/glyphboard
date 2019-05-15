@@ -19,12 +19,12 @@ interface LabelAnswer {
   providedIn: 'root'
 })
 export class LabelingService {
-  private currentScore = new BehaviorSubject<number>(0);
+  private currentScore = new BehaviorSubject<number | string>(0);
   currentScore$ = this.currentScore.asObservable();
 
   constructor(private http: HttpClient) {
     this.http.get('http://127.0.0.1:5000/score').subscribe((score: number) => {
-      this.currentScore.next(score);
+      this.currentScore.next(this.formatScore(score));
     })
   }
 
@@ -40,12 +40,14 @@ export class LabelingService {
       text: text
     };
     this.http.post<LabelAnswer>('http://127.0.0.1:5000/label', message).subscribe(
-      (res: any) => {
+      (res: LabelAnswer) => {
         console.log(res);
-        this.currentScore.next(res.f1);
+        this.currentScore.next(this.formatScore(res.f1));
       }
     );
   }
 
-
+  formatScore(score: number): string {
+    return (score * 100).toFixed(2);
+  }
 }
