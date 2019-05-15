@@ -3,7 +3,7 @@ import { Helper } from 'app/glyph/glyph.helper';
 import { Configuration } from 'app/shared/services/configuration.service';
 import { Observable, of } from 'rxjs';
 import { LabelingService } from 'app/labeling/labeling.service';
-import { MatButtonToggleChange } from '@angular/material';
+import { MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material';
 
 @Component({
   selector: 'app-label-tooltip',
@@ -14,6 +14,8 @@ export class TooltipNewComponent implements OnInit {
   // @Input() isVisible;
 
   @ViewChild('tooltip') private tooltipContainer: ElementRef;
+
+  isMusic: number | string | null;
 
   public tooltipElement: any;
   private _data: any;
@@ -45,11 +47,21 @@ export class TooltipNewComponent implements OnInit {
   labelData(event: MatButtonToggleChange): void {
     const id = this.closestPoint.id;
     const text = this.values[6][1];
+    this.isMusic = event.value;
     console.log('Labeling:', id, event);
     console.log('Data:', this.data);
     this.label
       .labelData(id, text, event.source.name, event.value)
       .subscribe(res => console.log(res));
+  }
+
+  private updateTooltip(): void {
+    if (this.closestPoint.labels.length > 0) {
+      this.isMusic = String(this.closestPoint.labels[0].answer);
+      console.log(this.isMusic);
+    } else {
+      this.isMusic = null;
+    }
   }
 
   public updateClosestPoint(event: any, transform: any): void {
@@ -136,12 +148,24 @@ export class TooltipNewComponent implements OnInit {
       }
 
       this._isVisible = true;
-      console.log(this.closestPoint.labels);
+      this.updateTooltip();
+      // console.log(this.closestPoint);
     }
   }
 
   public saveChanges(e: any): void {
     this.isEdit = !this.isEdit;
+  }
+
+  getAnswer(): number | string {
+    if (this.closestPoint) {
+      if (this.closestPoint.labels[0]) {
+        console.log(this.closestPoint.labels[0].answer);
+        return this.closestPoint.labels[0].answer;
+      } else {
+        return '';
+      }
+    }
   }
 
   get x(): number {
