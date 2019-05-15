@@ -1,0 +1,8 @@
+jupyter
+numpy
+flask
+flask-cors
+sklearn
+pandas
+spacy
+matplotlib

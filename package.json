@@ -6,6 +6,7 @@
   "scripts": {
     "ng": "ng",
     "start": "concurrently \"ng serve --open\" \"python backend/server.py\"",
+    "ml": "python mlbackend/main.py",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
