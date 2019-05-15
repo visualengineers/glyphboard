@@ -132,15 +132,13 @@ export class DataproviderService {
       features[i]['labels'] = [];
       features[i]['selectionScore'] = Math.random() * 0.5 + 0.5;
     }
-    // Mark half the data set as labeled
+    // Mark parts of the data set as labeled
     for (let i = 0; i < features.length / 2; i++) {
       features[i]['isLabeled'] = true;
       features[i]['labels'].push({
         questionId: 'isMusic',
         answer: Math.random() > 0.5 ? 1 : 0
       });
-      // features[i]['labels'][0]['questionId'] = 'isMusic';
-      // features[i]['labels'][0]['answer'] = 1;
     }
     return features;
   }

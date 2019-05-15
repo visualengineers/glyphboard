@@ -71,6 +71,11 @@ export class LabelGlyph extends Glyph {
       this.context.fill();
     }
 
+    const fillColor = isPassive ? '#ccc' : this.color(features);
+    this.context.fillStyle = fillColor;
+    this.context.strokeStyle = fillColor;
+    this.context.lineWidth = isHighlighted ? 5 : 1;
+
     // Handle unlabeled data
     if (!features.isLabeled) {
       this.context.beginPath();
@@ -97,23 +102,17 @@ export class LabelGlyph extends Glyph {
       }
     }
 
-    // const fillColor = isPassive ? '#ccc' : this.color(features);
-    // const fillColor = '#ccc';
-    // this.context.fillStyle = fillColor;
-    // this.context.strokeStyle = fillColor;
-    // this.context.lineWidth = isHighlighted ? 5 : 1;
-
-    this.context.beginPath();
-    this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
-    if (
-      position.weight === undefined ||
-      position.weight === 1 ||
-      !this.dotConfig().drawAggregate
-    ) {
-      this.context.fill();
-    } else {
-      this.context.stroke();
-    }
+    // this.context.beginPath();
+    // this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
+    // if (
+    //   position.weight === undefined ||
+    //   position.weight === 1 ||
+    //   !this.dotConfig().drawAggregate
+    // ) {
+    //   this.context.fill();
+    // } else {
+    //   this.context.stroke();
+    // }
   }
 
   public drawWithLabels(position: any, features: any, progress?: number) {
