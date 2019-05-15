@@ -126,16 +126,17 @@ export class DataproviderService {
 
   private mockDataset(data: JsonFeature[]): JsonFeature[] {
     const features = data;
-    console.log(features);
     // Add labels property to each data point
     for (let i = 0; i < features.length; i++) {
       features[i]['labels'] = [];
+      features[i]['selectionScore'] = Math.random() * 0.2 + 0.8;
     }
     // Mark half the data set as labeled
     for (let i = 0; i < features.length / 2; i++) {
+      features[i]['isLabeled'] = true;
       features[i]['labels'].push({
         questionId: 'isMusic',
-        answer: 1
+        answer: Math.random() > 0.5 ? 1 : 0
       });
       // features[i]['labels'][0]['questionId'] = 'isMusic';
       // features[i]['labels'][0]['answer'] = 1;

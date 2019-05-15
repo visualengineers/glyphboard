@@ -58,7 +58,6 @@ export class TooltipNewComponent implements OnInit {
   private updateTooltip(): void {
     if (this.closestPoint.labels.length > 0) {
       this.isMusic = String(this.closestPoint.labels[0].answer);
-      console.log(this.isMusic);
     } else {
       this.isMusic = null;
     }
