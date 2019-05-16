@@ -5,7 +5,7 @@
   [style.top]="y + 'px'"
   [ngClass]="{ hidden: !isVisible, fixed: isFixed }"
 >
-  <mat-progress-bar *ngIf="isLoading | async" mode="indeterminate"></mat-progress-bar>
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
   <div class="row label-button-row">
     <div class="row-icon">
       <mat-icon>music_note</mat-icon>

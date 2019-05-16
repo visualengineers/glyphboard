@@ -23,8 +23,8 @@ export class LabelingService {
   private currentScore = new BehaviorSubject<number | string>(0);
   currentScore$ = this.currentScore.asObservable();
 
-  private isLoading = new BehaviorSubject<boolean>(false);
-  isLoading$ = this.isLoading.asObservable();
+  // private isLoading = new BehaviorSubject<boolean>(false);
+  // isLoading$ = this.isLoading.asObservable();
 
   constructor(private http: HttpClient) {
     this.http.get('http://127.0.0.1:5000/score').subscribe((score: number) => {
@@ -38,7 +38,7 @@ export class LabelingService {
     feature: string,
     value: number
   ): Observable<LabelAnswer> {
-    this.isLoading.next(true);
+    // this.isLoading.next(true);
     const message: LabelMessage = {
       questionId: feature,
       answer: value,
@@ -49,7 +49,7 @@ export class LabelingService {
       tap(res => {
         console.log(res);
         this.currentScore.next(this.formatScore(res.f1));
-        this.isLoading.next(false);
+        // this.isLoading.next(false);
       })
     )
   }
