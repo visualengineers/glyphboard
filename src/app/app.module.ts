@@ -34,7 +34,8 @@ import {
   MatButtonModule,
   MatIconModule,
   MatButtonToggleModule,
-  MatCardModule
+  MatCardModule,
+  MatProgressBarModule
 } from '@angular/material';
 import { DashboardGlyphlegendComponent } from './dashboard/dashboard-glyphlegend/dashboard-glyphlegend.component';
 import { DashboardTabComponent } from './dashboard/dashboard-tab/dashboard-tab.component';
@@ -49,6 +50,20 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
 import { TooltipNewComponent } from './label-tooltip/label-tooltip.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ScoreOverlayComponent } from './labeling/score-overlay/score-overlay.component';
+
+const MaterialModules = [
+  MatTooltipModule,
+  MatCheckboxModule,
+  MatRadioModule,
+  MatFormFieldModule,
+  MatSelectModule,
+  MatSlideToggleModule,
+  MatButtonModule,
+  MatIconModule,
+  MatButtonToggleModule,
+  MatCardModule,
+  MatProgressBarModule
+];
 
 @NgModule({
   declarations: [
@@ -84,16 +99,7 @@ import { ScoreOverlayComponent } from './labeling/score-overlay/score-overlay.co
     HttpClientModule,
     routing,
     AngularFontAwesomeModule,
-    MatTooltipModule,
-    MatCheckboxModule,
-    MatRadioModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatButtonModule,
-    MatIconModule,
-    MatButtonToggleModule,
-    MatCardModule,
+    MaterialModules,
     AngularFileUploaderModule
   ],
   providers: [

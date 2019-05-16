@@ -11,7 +11,7 @@ import { MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material';
   styleUrls: ['./label-tooltip.component.scss']
 })
 export class TooltipNewComponent implements OnInit {
-  // @Input() isVisible;
+  isLoading;
 
   @ViewChild('tooltip') private tooltipContainer: ElementRef;
 
@@ -42,6 +42,7 @@ export class TooltipNewComponent implements OnInit {
 
   ngOnInit(): void {
     this.tooltipElement = this.tooltipContainer.nativeElement;
+    this.isLoading = this.label.isLoading$;
   }
 
   labelData(event: MatButtonToggleChange): void {
@@ -50,7 +51,10 @@ export class TooltipNewComponent implements OnInit {
     this.isMusic = event.value;
     console.log('Labeling:', id, event);
     console.log('Data:', this.data);
-    this.label.labelData(id, text, event.source.name, event.value)
+    this.label.labelData(id, text, event.source.name, event.value).subscribe(res => {
+      // this._isVisible = false;
+      console.log(res);
+    })
   }
 
   private updateTooltip(): void {
