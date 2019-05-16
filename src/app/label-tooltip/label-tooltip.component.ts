@@ -105,7 +105,8 @@ export class TooltipNewComponent implements OnInit {
       if (distance < closestDistance) {
         if (
           (this.configuration.configurations[0].currentLevelOfDetail === 0 &&
-            distance <= 3.5) ||
+            // increased from 3.5 to 5 to accomondate bigger dots
+            distance <= 5) ||
           (this.configuration.configurations[0].currentLevelOfDetail === 1 &&
             distance <= 20) ||
           (this.configuration.configurations[0].currentLevelOfDetail > 1 &&
@@ -132,21 +133,14 @@ export class TooltipNewComponent implements OnInit {
         if (this._data.schema.tooltip.hasOwnProperty(property)) {
           label = this._data.schema.tooltip[property];
           if (this.closestPoint.values !== undefined) {
-            const value =
-              this.closestPoint.values[label] +
-              ' (' +
-              parseFloat(this.closestPoint.features[context][label]).toFixed(
-                4
-              ) +
-              ')';
-            this._values.push([this._data.schema.label[label], value]);
+            const value = this.closestPoint.values[label];
+            const num_value = parseFloat(this.closestPoint.features[context][label]).toFixed(4);
+            this._values.push([this._data.schema.label[label], value, num_value]);
           }
         }
       }
-
       this._isVisible = true;
       this.updateTooltip();
-      // console.log(this.closestPoint);
     }
   }
 
