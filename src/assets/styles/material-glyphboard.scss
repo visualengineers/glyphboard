@@ -80,22 +80,22 @@ $custom-typography: mat-typography-config(
 // that you are using.
 @include angular-material-theme($candy-app-theme);
 
-.mat-radio-button {
-    padding-right: 15px;
-}
+// .mat-radio-button {
+//     padding-right: 15px;
+// }
 
-.mat-raised-button {
-    box-shadow: none !important;
-}
+// .mat-raised-button {
+//     box-shadow: none !important;
+// }
 
-.mat-card {
-    padding: 24px 0px 0px 0px !important;
-    box-shadow: none !important;
-}
+// .mat-card {
+//     padding: 24px 0px 0px 0px !important;
+//     box-shadow: none !important;
+// }
 
-.mat-raised-button {
-    margin-right: 12px !important;
-}
+// .mat-raised-button {
+//     margin-right: 12px !important;
+// }
 
 .mat-tooltip {
     font-size: $dashboard-font-size;
