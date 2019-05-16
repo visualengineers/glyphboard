@@ -12,7 +12,10 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
+from sklearn.manifold import MDS, TSNE
+from sklearn.decomposition import TruncatedSVD
 import pandas as pd
+from gb_writer import GlyphboardWriter
 # from sklearn.model_selection import GridSearchCV
 from typing import Any
 # import spacy
@@ -39,13 +42,13 @@ def getTestData():
     test_texts = []
     test_labels = []
     for doc in test_data:
-        # only use confident labels
-        if (doc["features"]["1"]["4"] > 0.8):
+    #     # only use confident labels
+    #     if (doc["features"]["1"]["4"] > 0.8):
             test_labels.append(1)
             test_texts.append(doc["values"]["7"])
-        elif (doc["features"]["1"]["4"] < 0.2):
-            test_labels.append(0)
-            test_texts.append(doc["values"]["7"])
+        # elif (doc["features"]["1"]["4"] < 0.2):
+        #     test_labels.append(0)
+        #     test_texts.append(doc["values"]["7"])
     return pd.DataFrame({'text': test_texts, 'label': test_labels})
 
 
@@ -53,10 +56,29 @@ test_data = getTestData()
 
 
 def main():
-    print('test')
+    data = getTestData()
+    vec = TfidfVectorizer()
+    tfidf = vec.fit_transform(data.text)
+    print('Applying DR...')
+    DR = applyDR(tfidf, labels)
+
+    DR *= 500
+    # DR.x *= 500
+    # DR.y *= 500
+
+    print(DR)
+
+    writer = GlyphboardWriter('test_name')
+
+    # DR *= 2
+    print('Writing positions...')    
+    writer.write_position(DR, 'mds')
+    del DR
+    print('Done.')
+
     # doc = nlp('Hallo, dies ist ein Test, yay!')
     # print(doc[0].text)
-    metricsLR = createMetrics(MNB)
+    # metricsLR = createMetrics(MNB)
     # pd.DataFrame({'LR': metricsLR.f1}).plot(figsize=(15, 5))
 
 
@@ -64,7 +86,7 @@ def handleNewAnswer(answer):
     texts = []
     labels = []
     text = answer['text']
-    print(answer)
+    # print(answer)
     # df = pd.DataFrame(
     #     {'text': [answer['text']], 'question': [answer['questionId']], 'label': [answer['answer']]})
     # with open('rena_training.csv', 'a+', encoding="utf8", newline="", errors='ignore') as f:
@@ -157,6 +179,18 @@ def addHistory(metrics):
 
 def getCurrentScore() -> int:
     return getHistory().pop()
+
+def applyDR(tfidf, labels):
+    # mds = MDS(n_components=2, random_state=1).fit_transform(tfidf.toarray())
+    lsi = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
+    # mds = MDS(n_components=2, random_state=1).fit_transform(lsi)
+    with_labels = np.concatenate(lsi, labels)
+    mds = TSNE(n_components=2, random_state=1).fit_transform(with_labels)
+    df = pd.DataFrame(columns=['x', 'y'])
+    df['x'] = mds[:, 0]
+    df['y'] = mds[:, 1]
+    print(df)
+    return df
 
 # def preprocessText(text: str) -> str:
 #     # print('Original: ', text)
