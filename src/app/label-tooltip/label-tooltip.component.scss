@@ -2,8 +2,9 @@
   position: absolute;
   display: grid;
 
-  min-width: 300px;
-  max-width: 500px;
+  // min-width: 300px;
+  // max-width: 500px;
+  width: 500px;
   height: auto;
   padding: 1rem;
   background: #fff;
@@ -22,3 +23,50 @@
     overflow-y: auto !important;
   }
 }
+
+.label-button-row {
+  align-items: center;
+  mat-button-toggle-group {
+    width: 100%;
+    mat-button-toggle {
+      width: 50%;
+    }
+  }
+}
+
+.text {
+  overflow-y: auto;
+  max-height: 50vh;
+  p {
+    white-space: pre-line;
+    width: 100%;
+  }
+}
+
+.row {
+  display: flex;
+  padding-bottom: 8px;
+  // width: 100%;
+
+  .row-icon {
+    mat-icon {
+      font-size: 2em;
+    }
+    width: 40px;
+    // float: left;
+  }
+
+  .row-content {
+    // width: 85%;
+    // float: left;
+    flex: 1;
+  }
+}
+
+.score-row {
+  align-items: center;
+  span.score {
+    font-size: 1.2em;
+  }
+}
+

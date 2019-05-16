@@ -5,16 +5,21 @@
   [style.top]="y + 'px'"
   [ngClass]="{ hidden: !isVisible, fixed: isFixed }"
 >
-  <div>
-    <mat-icon>music_note</mat-icon>
-    <mat-button-toggle-group
-      [value]="isMusic"
-      name="isMusic"
-      (change)="labelData($event)"
-    >
-      <mat-button-toggle value="1">Ja</mat-button-toggle>
-      <mat-button-toggle value="0">Nein</mat-button-toggle>
-    </mat-button-toggle-group>
+  <div class="row label-button-row">
+    <div class="row-icon">
+        <mat-icon>music_note</mat-icon>
+    </div>
+    <div class="row-content">
+        <mat-button-toggle-group
+        [value]="isMusic"
+        name="isMusic"
+        (change)="labelData($event)"
+      >
+        <mat-button-toggle value="1">Ja</mat-button-toggle>
+        <mat-button-toggle value="0">Nein</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+    
     <!-- <mat-icon>date_range</mat-icon>
     <mat-button-toggle-group name="isEvent" (change)="labelData($event)">
       <mat-button-toggle value="1">Ja</mat-button-toggle>
@@ -22,7 +27,23 @@
     </mat-button-toggle-group> -->
   </div>
   <!-- <div>{{ closestPoint?.id }}</div> -->
-  <div *ngIf="values[6]">{{ values[6][1] }}</div>
-  <span>{{ closestPoint?.selectionScore }}</span>
+  <div class="row" *ngIf="values[6]">
+    <div class="row-icon">
+        <mat-icon>description</mat-icon>
+    </div>
+    <div class="row-content text">
+        <p>{{ values[6][1] }}</p>
+
+    </div>
+  </div>
+  <div class="row score-row">
+    <div class="row-icon">
+      <mat-icon>fitness_center</mat-icon>
+    </div>
+    <div class="row-content">
+      <span class="score">{{ (closestPoint?.selectionScore * 100).toFixed(2) }}%</span>
+    </div>
+  </div>
+  
   <!-- <div>{{ _data | json }}</div> -->
 </div>
