@@ -15,26 +15,53 @@ export class CameraSyncUtilities {
         this._data_Scale = scale;
     }
 
-    public ComputeZoomOffset(scale: number, normMousePos: THREE.Vector2): ZoomOffsetParameter {
+    public ComputeZoomOffset(
+      oldScale: number,
+      newScale: number,
+      normMousePos: THREE.Vector2,
+      mouseOffset: THREE.Vector2,
+      translation: THREE.Vector2): ZoomOffsetParameter {
+
+      // determine unscaled viewport
       const vpSize = new THREE.Vector2(
-        (this._data_Max.x - this._data_Min.x) * this._data_Scale.x,
-        (this._data_Max.y - this._data_Min.y) * this._data_Scale.y
+        (this._data_Max.x - this._data_Min.x),
+        (this._data_Max.y - this._data_Min.y)
       );
 
+
+      // scale viewport to scaling factor (scale to center (0.5, 0.5)
+      const vpSizeScaled = new THREE.Vector2(
+        vpSize.x * this._data_Scale.x,
+        vpSize.y * this._data_Scale.y
+      );
+
+      console.log('norm mouse pos: [ ' + normMousePos.x + ' | ' + normMousePos.y + ' ]');
+
+      // compute diagonal offset resulting from scale
       const vpScaleOffset = new THREE.Vector2(
-        (vpSize.x - (vpSize.x / scale)) * 0.5,
-        (vpSize.y - (vpSize.y / scale)) * 0.5
+        (vpSizeScaled.x - (vpSizeScaled.x / newScale)) * 0.5,
+        (vpSizeScaled.y - (vpSizeScaled.y / newScale)) * 0.5
       );
 
-      const mouseOffsetFromCenter = normMousePos.sub(new THREE.Vector2(0.5, 0.5));
+      // compute normalized mouse coordinates realtive to center
+      const mouseOffsetFromCenter = (normMousePos); // normMousePos.sub(new THREE.Vector2(0.5, 0.5));
 
+      // compute cursor coordinates in world coordinates
       const cursorOffset =  new THREE.Vector2(
-        vpScaleOffset.x * mouseOffsetFromCenter.x * 2,
-        vpScaleOffset.y * mouseOffsetFromCenter.y * 2
+        mouseOffsetFromCenter.x * 2 * vpScaleOffset.x,
+        mouseOffsetFromCenter.y * 2 * vpScaleOffset.y,
       );
+
+      // compute cursor coordinates in world coordinates
+      const cursorOffsetScaled =  new THREE.Vector2(
+        mouseOffsetFromCenter.x / oldScale * 2 * vpScaleOffset.x,
+        mouseOffsetFromCenter.y / oldScale * 2 * vpScaleOffset.y,
+      );
+
+      console.log('vpScaleOffset: [' + vpScaleOffset.x + ' | ' + vpScaleOffset.y + ' ] - MouseOffset: [' + cursorOffset.x + ' | ' + cursorOffset.y + ' ]');
 
       // return offset resulting in zoom (changing viewport size) and from zoom center (simple translation)
-      const result = new ZoomOffsetParameter(vpScaleOffset, cursorOffset);
+      const result = new ZoomOffsetParameter(vpScaleOffset, cursorOffsetScaled);
       return result;
     }
 

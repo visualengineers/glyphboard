@@ -26,6 +26,7 @@ import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
 import { Vector2 } from 'three';
 import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
+import { shiftInitState } from '@angular/core/src/view';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -311,11 +312,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
 
-    const normMouse = new THREE.Vector2(
-      e.clientX / this.width,
-      e.clientY / this.height
-    );
-
     const wheelDelta = e.deltaY < 0 ? 1 : -1;
 
     let zoom = this._transformation.GetScale();
@@ -327,7 +323,31 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
-   const offsets = this._cameraUtil.ComputeZoomOffset(zoom, normMouse);
+    const camSizeX = this.camera.right - this.camera.left; //  + (this._transformation.GetZoomCursorOffsetX() - this._transformation.GetTranslateX());
+    const camSizeY = this.camera.bottom - this.camera.top; // + (this._transformation.GetZoomCursorOffsetY() - this._transformation.GetTranslateY());
+
+    const camSizeOriginalX = (this._cameraUtil.DataMax.x - this._cameraUtil.DataMin.x) * this._cameraUtil.DataScale.x;
+    const camSizeOriginalY = (this._cameraUtil.DataMax.y - this._cameraUtil.DataMin.y) * this._cameraUtil.DataScale.y;
+
+    const centerVpX = this.width * 0.5;
+    const centerVpY = this.height * 0.5;
+
+    const zfX =  camSizeX / camSizeOriginalX;
+    const zfY = camSizeY / camSizeOriginalY;
+
+    console.log('zfx: ' + zfX);
+
+    const normMouse = new THREE.Vector2(
+      ((e.clientX - centerVpX)  / (this.width)),
+      ((e.clientY - centerVpY) / (this.height))
+    );
+
+    const translation = new THREE.Vector2(this._transformation.GetTranslateX(), this._transformation.GetTranslateY());
+
+    const mouseOffset = new THREE.Vector2(this._transformation.GetZoomCursorOffsetX() / this.width, this._transformation.GetZoomCursorOffsetY() / this.height);
+
+
+   const offsets = this._cameraUtil.ComputeZoomOffset(this._transformation.GetScale(), zoom, normMouse, mouseOffset, translation);
 
    const data = new ViewportTransformationEventData(
     this._transformation.GetTranslateX(),
@@ -363,6 +383,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
     this.camera.top = dataMin.y * dataScale.y + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
     this.camera.bottom = dataMax.y * dataScale.y - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
+
+    // this.camera.left = dataMin.x * dataScale.x + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetTranslateX();
+    // this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetTranslateX();
+    // this.camera.top = dataMin.y * dataScale.y + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetTranslateY();
+    // this.camera.bottom = dataMax.y * dataScale.y - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetTranslateY();
+
 
     this.camera.updateProjectionMatrix();
 
