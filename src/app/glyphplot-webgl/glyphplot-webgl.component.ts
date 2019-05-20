@@ -337,17 +337,14 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     console.log('zfx: ' + zfX);
 
-    const normMouse = new THREE.Vector2(
-      ((e.clientX - centerVpX)  / (this.width)),
-      ((e.clientY - centerVpY) / (this.height))
-    );
+    // const normMouse = new THREE.Vector2(
+    //   ((e.clientX - centerVpX)  / (this.width)),
+    //   ((e.clientY - centerVpY) / (this.height))
+    // );
 
-    const translation = new THREE.Vector2(this._transformation.GetTranslateX(), this._transformation.GetTranslateY());
+    const normMouse = new THREE.Vector2(0, 0);
 
-    const mouseOffset = new THREE.Vector2(this._transformation.GetZoomCursorOffsetX() / this.width, this._transformation.GetZoomCursorOffsetY() / this.height);
-
-
-   const offsets = this._cameraUtil.ComputeZoomOffset(this._transformation.GetScale(), zoom, normMouse, mouseOffset, translation);
+   const offsets = this._cameraUtil.ComputeZoomOffset(zoom, normMouse);
 
    const data = new ViewportTransformationEventData(
     this._transformation.GetTranslateX(),
@@ -379,10 +376,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const dataMax = this._cameraUtil.DataMax;
     const dataScale = this._cameraUtil.DataScale;
 
-    this.camera.left = dataMin.x * dataScale.x + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
-    this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
-    this.camera.top = dataMin.y * dataScale.y + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
-    this.camera.bottom = dataMax.y * dataScale.y - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
+    this.camera.left = dataMin.x * dataScale.x + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetTranslateX();
+    this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetTranslateX();
+    this.camera.top = dataMin.y * dataScale.y + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetTranslateY();
+    this.camera.bottom = dataMax.y * dataScale.y - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetTranslateY();
 
     // this.camera.left = dataMin.x * dataScale.x + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetTranslateX();
     // this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetTranslateX();

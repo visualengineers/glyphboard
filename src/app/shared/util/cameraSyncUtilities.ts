@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Vector2 } from "three";
 
 export class CameraSyncUtilities {
 
@@ -16,11 +17,8 @@ export class CameraSyncUtilities {
     }
 
     public ComputeZoomOffset(
-      oldScale: number,
       newScale: number,
-      normMousePos: THREE.Vector2,
-      mouseOffset: THREE.Vector2,
-      translation: THREE.Vector2): ZoomOffsetParameter {
+      normMousePos: THREE.Vector2): ZoomOffsetParameter {
 
       // determine unscaled viewport
       const vpSize = new THREE.Vector2(
@@ -52,16 +50,10 @@ export class CameraSyncUtilities {
         mouseOffsetFromCenter.y * 2 * vpScaleOffset.y,
       );
 
-      // compute cursor coordinates in world coordinates
-      const cursorOffsetScaled =  new THREE.Vector2(
-        mouseOffsetFromCenter.x / oldScale * 2 * vpScaleOffset.x,
-        mouseOffsetFromCenter.y / oldScale * 2 * vpScaleOffset.y,
-      );
-
       console.log('vpScaleOffset: [' + vpScaleOffset.x + ' | ' + vpScaleOffset.y + ' ] - MouseOffset: [' + cursorOffset.x + ' | ' + cursorOffset.y + ' ]');
 
       // return offset resulting in zoom (changing viewport size) and from zoom center (simple translation)
-      const result = new ZoomOffsetParameter(vpScaleOffset, cursorOffsetScaled);
+      const result = new ZoomOffsetParameter(vpScaleOffset, cursorOffset);
       return result;
     }
 

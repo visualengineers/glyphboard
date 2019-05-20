@@ -63,8 +63,8 @@ export class GlyphplotEventController {
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
 
-    this.component.transform.x = -payload.GetTranslateX() - payload.GetZoomViewportOffsetX();
-    this.component.transform.y = -payload.GetTranslateY() - payload.GetZoomViewportOffsetY();
+    this.component.transform.x = payload.GetScale() * (-payload.GetTranslateX() - payload.GetZoomViewportOffsetX());
+    this.component.transform.y = payload.GetScale() * (-payload.GetTranslateY() - payload.GetZoomViewportOffsetY());
     this.component.transform.k = payload.GetScale();
 
     this.formerTranslation.x = this.component.transform.x;
@@ -102,8 +102,11 @@ export class GlyphplotEventController {
 
       this.selectionEnded = true;
 
-      const normMouseX = trans.x / this.component.width;
-      const normMouseY = 1.0 - (trans.y / this.component.height);
+      // const normMouseX = trans.x / this.component.width;
+      // const normMouseY = 1.0 - (trans.y / this.component.height);
+
+      const normMouseX = 0;
+      const normMouseY = 0;
 
       this.configuration.currentLayout = GlyphLayout.Cluster;
 
