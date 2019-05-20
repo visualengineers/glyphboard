@@ -73,7 +73,7 @@ export class GlyphplotLayoutController {
     const min = new THREE.Vector2(minX - borderX, minY - borderY);
     const max = new THREE.Vector2(maxX + borderX, maxY + borderY);
 
-    const scale = new THREE.Vector2((maxX - minX) / this.component.width, (maxY - minY) / this.component.height);
+    const scale = new THREE.Vector2(this.component.width / (max.x - min.x), this.component.height / (max.y - min.y));
 
     this.component.cameraUtil = new CameraSyncUtilities(min, max, scale);
 
