@@ -1,11 +1,7 @@
-import { GlyphplotComponent } from 'app/glyphplot/glyphplot.component';
 import { InteractionEventData } from 'app/shared/events/interaction.event.data';
 import { DotGlyph } from 'app/glyph/glyph.dot';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
-import { RegionManager } from 'app/region/region.manager';
-import { GlyphplotWebglComponent } from 'app/glyphplot-webgl/glyphplot-webgl.component';
 import { Glyph } from 'app/glyph/glyph';
-import { timeHours } from 'd3';
 
 export class SelectionRect {
   private component: any; // GlyphplotWebglComponent or GlyplotComponent
