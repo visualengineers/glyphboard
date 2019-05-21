@@ -44,15 +44,20 @@ def initData():
     ids = []
     with open("mlbackend/test_data.json", "r") as read_file:
         test_data = json.load(read_file)
+
     
 
     for doc in test_data:
         ids.append(doc['id'])
-        test_labels.append(1)
-        test_texts.append(doc["values"]["7"])
+        if (doc["features"]["1"]["4"] > 0.5):
+            test_labels.append(1)
+            test_texts.append(doc["values"]["7"])
+        else:
+             test_labels.append(0)
+             test_texts.append(doc["values"]["7"])
 
     df = pd.DataFrame({'id': ids, 'text': test_texts, 'label': test_labels})
-    df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8")
+    df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
     return df
 
 
@@ -105,6 +110,7 @@ def loadData():
 def handleNewAnswer(answer):
     text = answer['text']
     docId = answer['documentId']
+    label = answer['answer']
     # print(answer)
     # df = pd.DataFrame(
     #     {'text': [answer['text']], 'question': [answer['questionId']], 'label': [answer['answer']]})
@@ -121,7 +127,9 @@ def handleNewAnswer(answer):
         'mlbackend/gb_training.csv', delimiter=';', encoding="utf8")
 
     
-    data = loadData()
+    data = updateDataWithLabel(docId, label)
+    # print(data)
+    # data = loadData()
     tfidf = vec.fit_transform(data.text)
     positions = applyDR(tfidf, data.label)
 
@@ -133,6 +141,23 @@ def handleNewAnswer(answer):
         })
     else:
         return ''
+
+def updateDataWithLabel(docId, label):
+    data = loadData()
+    print('before', data.loc[data['id'] == docId])
+    # new_row = pd.DataFrame({
+    #     'id': docId,
+    #     'label': label
+    # })
+    data.loc[data['id'] == docId, 'label'] = label
+    # data.at[docId, 'label'] = label
+    # data.loc[data['id'] == docId]['label'] = label
+    # data.update(new_row)
+    print('after', data.loc[data['id'] == docId])
+    # row.label = label
+    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+
+    return data
 
     # with open(
     #         "training_data.csv", "r", encoding="utf8") as file:
