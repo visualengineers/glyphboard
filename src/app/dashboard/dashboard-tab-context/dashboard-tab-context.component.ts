@@ -2,6 +2,7 @@ import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
 import { Subject } from 'rxjs';
+import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
 @Component({
   selector: 'app-dashboard-tab-context',
@@ -11,8 +12,8 @@ import { Subject } from 'rxjs';
 export class DashboardTabContextComponent extends DashboardTabComponent implements OnInit {
   public eventsSubject: Subject<void> = new Subject<void>();
 
-  constructor(injector: Injector) {
-    super(injector)
+  constructor(injector: Injector, public dataprovider: DataproviderService) {
+    super(injector, dataprovider)
 
     this.eventAggregator
       .getEvent(RefreshConfigEvent)

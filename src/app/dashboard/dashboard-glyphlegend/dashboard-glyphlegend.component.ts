@@ -12,6 +12,7 @@ import { registerLocaleData } from '@angular/common';
 import de from '@angular/common/locales/de';
 import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
 @Component({
   selector: 'app-dashboard-glyphlegend',
@@ -31,8 +32,8 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
 
   private dummyFeatures: any;
 
-  constructor(injector: Injector) {
-    super(injector);
+  constructor(injector: Injector, public dataprovider: DataproviderService) {
+    super(injector, dataprovider);
 
     this.eventAggregator.getEvent(RefreshHoverEvent).subscribe(this.onRefreshHover);
   }

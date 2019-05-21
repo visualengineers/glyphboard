@@ -10,7 +10,7 @@ import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  providers: [ DataproviderService, Logger, RegionManager ],
+  providers: [ Logger, RegionManager ],
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {

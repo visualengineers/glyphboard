@@ -16,15 +16,15 @@ import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
 export class DashboardTabComponent {
   protected logger: Logger;
   public configuration: Configuration;
-  protected dataProvider: DataproviderService;
+  // protected dataProvider: DataproviderService;
   protected eventAggregator: EventAggregatorService;
   protected regionManager: RegionManager;
   protected cursor: LenseCursor;
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector, public dataProvider: DataproviderService) {
     this.logger = injector.get(Logger);
     this.configuration = injector.get(Configuration);
-    this.dataProvider = injector.get(DataproviderService);
+    // this.dataProvider = injector.get(DataproviderService);
     this.eventAggregator = injector.get(EventAggregatorService);
     this.regionManager = injector.get(RegionManager);
     this.cursor = injector.get(LenseCursor);

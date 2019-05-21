@@ -6,6 +6,7 @@ import { environment } from 'environments/environment';
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
 import { GlobalDialogEvent, GlobalDialogPayload } from 'app/shared/events/global-dialog.event';
+import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
 @Component({
   selector: 'app-dashboard-functionbuttons',
@@ -29,8 +30,8 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   };
   public resetUploadVar = false;
 
-  constructor(injector: Injector) {
-    super(injector);
+  constructor(injector: Injector, private dataprovider: DataproviderService) {
+    super(injector, dataprovider);
   }
 
   ngOnInit() {}

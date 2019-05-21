@@ -53,7 +53,6 @@ def initData():
 
     df = pd.DataFrame({'id': ids, 'text': test_texts, 'label': test_labels})
     df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8")
-    print(df)
     return df
 
 

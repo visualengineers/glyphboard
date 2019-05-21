@@ -50,6 +50,7 @@ import { AngularFileUploaderModule } from 'angular-file-uploader';
 import { TooltipNewComponent } from './label-tooltip/label-tooltip.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ScoreOverlayComponent } from './labeling/score-overlay/score-overlay.component';
+import { DataproviderService } from './shared/services/dataprovider.service';
 
 const MaterialModules = [
   MatTooltipModule,
@@ -108,7 +109,8 @@ const MaterialModules = [
     Configuration,
     LenseCursor,
     Helper,
-    EventAggregatorService
+    EventAggregatorService,
+    DataproviderService
   ],
   bootstrap: [AppComponent]
 })

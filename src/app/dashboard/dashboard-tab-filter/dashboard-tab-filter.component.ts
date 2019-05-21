@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { TextFilter } from 'app/shared/filter/text-filter';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
+import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
 @Component({
   selector: 'app-dashboard-tab-filter',
@@ -16,8 +17,8 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   public eventsSubject: Subject<void> = new Subject<void>();
   private _freeSearchFilter: TextFilter;
 
-  constructor(injector: Injector) {
-    super(injector);
+  constructor(injector: Injector, public dataprovider: DataproviderService) {
+    super(injector, dataprovider);
   }
 
   ngOnInit() {

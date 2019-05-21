@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeWhile';
 import { environment } from 'environments/environment';
+import { Position } from 'app/labeling/labeling.service';
 
 export interface JsonFeature {
   id: number;
@@ -57,6 +58,7 @@ export class DataproviderService {
     return JSON.stringify(a) === JSON.stringify(b);
   }
 
+  // TODO: refactor nested subscribe hell
   public downloadDataSet(name: string, version: string, position: string) {
     this.http
       .get(this.backendAddress + 'datasets/' + name + '/' + version + '/schema')
@@ -122,6 +124,7 @@ export class DataproviderService {
     };
     this.dataSet.features = this.mockDataset(this.dataSet.features);
     this.setDataSet(this.dataSet);
+    console.log('Start positions...', this, this.dataSet);
   }
 
   private mockDataset(data: JsonFeature[]): JsonFeature[] {
@@ -141,6 +144,17 @@ export class DataproviderService {
     //   });
     // }
     return features;
+  }
+
+  updatePositions(positions: Position[]): void {
+    const dataSet = {
+      schema: this.deliverSchema,
+      features: this.deliverFeature,
+      positions: positions,
+      meta: this.deliverMeta
+    };
+    console.log('Updating positions...', dataSet);
+    this.setDataSet(dataSet);
   }
 
   private setDataSets(value: string) {

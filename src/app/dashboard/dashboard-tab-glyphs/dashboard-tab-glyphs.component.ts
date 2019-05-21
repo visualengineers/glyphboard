@@ -5,6 +5,7 @@ import { StarGlyph } from '../../glyph/glyph.star';
 import { StarGlyphConfiguration } from '../../glyph/glyph.star.configuration';
 import { FlowerGlyphConfiguration } from '../../glyph/glyph.flower.configuration';
 import { FlowerGlyph } from '../../glyph/glyph.flower';
+import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
 @Component({
   selector: 'app-dashboard-tab-glyphs',
@@ -16,8 +17,8 @@ export class DashboardTabGlyphsComponent extends DashboardTabComponent
   public typeStar = false;
   public typeFlower = true;
 
-  constructor(injector: Injector) {
-    super(injector);
+  constructor(injector: Injector, public dataprovider: DataproviderService) {
+    super(injector, dataprovider);
   }
 
   ngOnInit() {

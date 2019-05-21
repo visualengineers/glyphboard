@@ -1,6 +1,7 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { ConfigurationData } from '../../shared/services/configuration.data';
+import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
 @Component({
   selector: 'app-dashboard-tab-data',
@@ -29,8 +30,8 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   public positionAlgorithmsSecond = new Array<string>();
   public featureContextsSecond = new Array<any>();
 
-  constructor(injector: Injector) {
-    super(injector);
+  constructor(injector: Injector, public dataprovider: DataproviderService) {
+    super(injector, dataprovider);
   }
 
   ngOnInit() {

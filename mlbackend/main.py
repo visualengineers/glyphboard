@@ -14,7 +14,7 @@ def label():
     result = json.dumps(handleNewAnswer(answer))
     # return result
     # print(result)
-    print(result)
+    # print(result)
     return result
     # return result
     # return json.dumps('thanks')
