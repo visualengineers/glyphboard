@@ -4,16 +4,23 @@ import { map, tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 interface LabelMessage {
+  documentId: string | number;
   questionId: string;
   answer: number;
   text: string;
 }
 
 interface LabelAnswer {
-  f1: number;
-  precision: number;
-  recall: number;
-  history: number[];
+  positions: [{
+    x: number,
+    y: number
+  }],
+  train_result: {
+    f1: number;
+    precision: number;
+    recall: number;
+    history: number[];
+  }
 }
 
 @Injectable({
@@ -22,9 +29,6 @@ interface LabelAnswer {
 export class LabelingService {
   private currentScore = new BehaviorSubject<number | string>(0);
   currentScore$ = this.currentScore.asObservable();
-
-  // private isLoading = new BehaviorSubject<boolean>(false);
-  // isLoading$ = this.isLoading.asObservable();
 
   constructor(private http: HttpClient) {
     this.http.get('http://127.0.0.1:5000/score').subscribe((score: number) => {
@@ -38,8 +42,8 @@ export class LabelingService {
     feature: string,
     value: number
   ): Observable<LabelAnswer> {
-    // this.isLoading.next(true);
     const message: LabelMessage = {
+      documentId: id,
       questionId: feature,
       answer: value,
       text: text
@@ -48,8 +52,7 @@ export class LabelingService {
     .pipe(
       tap(res => {
         console.log(res);
-        this.currentScore.next(this.formatScore(res.f1));
-        // this.isLoading.next(false);
+        this.currentScore.next(this.formatScore(res.train_result.f1));
       })
     )
   }

@@ -14,6 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn import metrics
 from sklearn.manifold import MDS, TSNE
 from sklearn.decomposition import TruncatedSVD
+import umap
 import pandas as pd
 from gb_writer import GlyphboardWriter
 # from sklearn.model_selection import GridSearchCV
@@ -32,49 +33,69 @@ MNB = MultinomialNB()
 LR = LogisticRegression()
 SVC = LinearSVC()
 
+vec = TfidfVectorizer()
+
 # Load Glyphboard data as test
 # 3 = Event, 4 = Music
 
-
-def getTestData():
-    with open("mlbackend/test_data.json", "r") as read_file:
-        test_data = json.load(read_file)
+def initData():
     test_texts = []
     test_labels = []
+    ids = []
+    with open("mlbackend/test_data.json", "r") as read_file:
+        test_data = json.load(read_file)
+    
+
     for doc in test_data:
-    #     # only use confident labels
-    #     if (doc["features"]["1"]["4"] > 0.8):
-            test_labels.append(1)
-            test_texts.append(doc["values"]["7"])
-        # elif (doc["features"]["1"]["4"] < 0.2):
-        #     test_labels.append(0)
-        #     test_texts.append(doc["values"]["7"])
-    return pd.DataFrame({'text': test_texts, 'label': test_labels})
+        ids.append(doc['id'])
+        test_labels.append(1)
+        test_texts.append(doc["values"]["7"])
+
+    df = pd.DataFrame({'id': ids, 'text': test_texts, 'label': test_labels})
+    df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8")
+    print(df)
+    return df
 
 
-test_data = getTestData()
+
+def loadData():
+    return pd.read_csv('mlbackend/data.csv', sep=";", encoding="utf8")
 
 
-def main():
-    data = getTestData()
-    vec = TfidfVectorizer()
-    tfidf = vec.fit_transform(data.text)
-    print('Applying DR...')
-    DR = applyDR(tfidf, labels)
+# def getTestData():
+#     with open("mlbackend/test_data.json", "r") as read_file:
+#         test_data = json.load(read_file)
+#     test_texts = []
+#     test_labels = []
+#     for doc in test_data:
+#     #     # only use confident labels
+#     #     if (doc["features"]["1"]["4"] > 0.8):
+            
+#             test_labels.append(1)
+#             test_texts.append(doc["values"]["7"])
+#         # elif (doc["features"]["1"]["4"] < 0.2):
+#         #     test_labels.append(0)
+#         #     test_texts.append(doc["values"]["7"])
+#     return pd.DataFrame({'text': test_texts, 'label': test_labels})
 
-    DR *= 500
-    # DR.x *= 500
-    # DR.y *= 500
 
-    print(DR)
+# test_data = initData()
+# vec = TfidfVectorizer()
+# tfidf = vec.fit_transform(test_data.text)
 
-    writer = GlyphboardWriter('test_name')
+# def main():
+    # print('Applying DR...')
+    # DR = applyDR(tfidf, data.label)
 
-    # DR *= 2
-    print('Writing positions...')    
-    writer.write_position(DR, 'mds')
-    del DR
-    print('Done.')
+    # print(DR)
+
+    # writer = GlyphboardWriter('test_name')
+
+    # # DR *= 2
+    # print('Writing positions...')    
+    # writer.write_position(DR, 'mds')
+    # del DR
+    # print('Done.')
 
     # doc = nlp('Hallo, dies ist ein Test, yay!')
     # print(doc[0].text)
@@ -83,9 +104,8 @@ def main():
 
 
 def handleNewAnswer(answer):
-    texts = []
-    labels = []
     text = answer['text']
+    docId = answer['documentId']
     # print(answer)
     # df = pd.DataFrame(
     #     {'text': [answer['text']], 'question': [answer['questionId']], 'label': [answer['answer']]})
@@ -95,13 +115,23 @@ def handleNewAnswer(answer):
             "mlbackend/gb_training.csv", "a+", newline="", encoding="utf8", errors='ignore') as file:
         writer = csv.writer(file, delimiter=';')
         # preprocessText(text)
-        writer.writerow([text, answer["questionId"], answer["answer"]])
+        writer.writerow([docId, text, answer["questionId"], answer["answer"]])
         file.close()
 
     train_data = pd.read_csv(
         'mlbackend/gb_training.csv', delimiter=';', encoding="utf8")
+
+    
+    data = loadData()
+    tfidf = vec.fit_transform(data.text)
+    positions = applyDR(tfidf, data.label)
+
     if len(train_data) > 10:
-        return train(train_data, test_data, MNB)
+        train_result = train(train_data, data, MNB)
+        return json.dumps({
+            'positions': positions,
+            'train_result': train_result
+        })
     else:
         return ''
 
@@ -121,7 +151,7 @@ def handleNewAnswer(answer):
 
 
 def createMetrics(algo):
-    test_data = getTestData()
+    test_data = loadData()
     train_data_df = pd.read_csv("mlbackend/training_data.csv", sep=";")
     train_data_df.label = train_data_df.label.astype(int)
     met = []
@@ -180,17 +210,24 @@ def addHistory(metrics):
 def getCurrentScore() -> int:
     return getHistory().pop()
 
-def applyDR(tfidf, labels):
-    # mds = MDS(n_components=2, random_state=1).fit_transform(tfidf.toarray())
-    lsi = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
-    # mds = MDS(n_components=2, random_state=1).fit_transform(lsi)
-    with_labels = np.concatenate(lsi, labels)
-    mds = TSNE(n_components=2, random_state=1).fit_transform(with_labels)
+def applyDR(tfidf, labels = []):    
+    pre_computed = TruncatedSVD(n_components=10, random_state=1).fit_transform(tfidf.toarray())
+    
+    labels_arr = np.asarray(labels)
+    labels_arr = labels_arr.reshape(len(labels_arr), 1)
+    with_labels = np.hstack((pre_computed,labels_arr))
+        
+    computed_coords = umap.UMAP(random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
-    df['x'] = mds[:, 0]
-    df['y'] = mds[:, 1]
-    print(df)
-    return df
+    df['x'] = computed_coords[:, 0]
+    df['y'] = computed_coords[:, 1]
+
+    writer = GlyphboardWriter('test_name')
+
+    # DR *= 2
+    print('Writing positions...')    
+    positions = writer.write_position(df, 'lsi')
+    return positions
 
 # def preprocessText(text: str) -> str:
 #     # print('Original: ', text)
@@ -223,3 +260,4 @@ def applyDR(tfidf, labels):
 
 
 # main()
+initData()

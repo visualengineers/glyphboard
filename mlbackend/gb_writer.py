@@ -50,14 +50,14 @@ class GlyphboardWriter:
                 "id": int(idx+1),
                 "position": {
                     "x": float(row.x),
-                    "y": float(row.y),
-                    # "x": row[0],
-                    # "y": row[1],
+                    "y": float(row.y)
                 }
             })
 
-        with open("test.position.lsi.json", "w") as f:
+        with open("{}.position.{}.json".format(self._filename_prefix, algorithm), "w") as f:
             json.dump(pos, f)
+
+        return pos
 
     def write_feature(self, meta_data, value_labels):
         feature_sets = []
