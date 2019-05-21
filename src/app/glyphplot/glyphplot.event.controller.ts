@@ -23,6 +23,7 @@ import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
 import { RegionManager } from 'app/region/region.manager';
 import * as THREE from 'three';
+import { VisualizationType, SwitchVisualizationEvent } from 'app/shared/events/switch-visualization.event';
 
 export class GlyphplotEventController {
   private counter: number;
@@ -70,6 +71,10 @@ export class GlyphplotEventController {
     this.formerTranslation.x = this.component.transform.x;
     this.formerTranslation.y = this.component.transform.y;
 
+    if (!this.component.regionManager.IsD3Active()) {
+      return;
+    }
+
     this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
 
     if (payload.GetUpdateStrategy() === UpdateItemsStrategy.DefaultUpdate) {
@@ -100,6 +105,21 @@ export class GlyphplotEventController {
       trans.x = d3.event.transform.x;
       trans.y = d3.event.transform.y;
 
+      if (this.configuration !== null) {
+        const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
+
+        // console.log('trans.k: ' + trans.k + '  lodSwitch: ' + lodSwitch);
+
+        if (((trans.k - 0.51) < lodSwitch && trans.k >= lodSwitch)) {
+            this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.D3);
+          }
+
+         if ((trans.k + 0.51) > lodSwitch && trans.k <= lodSwitch) {
+          this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
+          return;
+         }
+      }
+
       this.selectionEnded = true;
 
       const normMouseX = -0.5;
@@ -109,23 +129,15 @@ export class GlyphplotEventController {
 
       const offsets = this.component.cameraUtil.ComputeZoomOffset(trans.k, new THREE.Vector2(normMouseX, normMouseY));
 
-      // broadcast transformation using eventaggregator
-      // const transformArgs = new ViewportTransformationEventData(
-      //   0,
-      //   0,
-      //   0,
-      //   trans.k, UpdateItemsStrategy.DefaultUpdate, -trans.x,
-      //   -trans.y);
-
       const transformArgs = new ViewportTransformationEventData(
-        -trans.x / trans.k,
-        -trans.y / trans.k,
+        -trans.x / trans.k + offsets.CursorOffset.x,
+        -trans.y / trans.k + offsets.CursorOffset.y,
         0,
         trans.k, UpdateItemsStrategy.DefaultUpdate,
         offsets.ViewportScaleOffset.x,
         offsets.ViewportScaleOffset.y, 0,
-        offsets.CursorOffset.x,
-        offsets.CursorOffset.y, 0);
+        0,
+        0, 0);
       this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
     }
 
@@ -425,6 +437,7 @@ export class GlyphplotEventController {
   private fitToScreen = (payload: boolean) => {
     const args = new ViewportTransformationEventData(0, 0, 0, 1, UpdateItemsStrategy.CompleteRefresh);
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
+    this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
   };
 
   private fitToSelection = (payload: boolean) => {
@@ -481,6 +494,12 @@ export class GlyphplotEventController {
     const transY = ((maxY + minY) / 2) / k;
 
     console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ' + k);
+
+    const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
+
+    if (k < lodSwitch) {
+      this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
+    }
 
     const args = new ViewportTransformationEventData(minX, minY, 0, k, UpdateItemsStrategy.DefaultUpdate);
 

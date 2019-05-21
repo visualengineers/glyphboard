@@ -2,18 +2,23 @@ import { Logger } from '../shared/services/logger.service';
 import * as d3 from 'd3';
 import { Injectable } from '@angular/core';
 import { Region } from './region';
+import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
+import { SwitchVisualizationEvent, VisualizationType } from 'app/shared/events/switch-visualization.event';
 
 @Injectable()
 export class RegionManager {
-  public regions: Array<Region>;
+  public regions: Array<Region>;  
 
   private _isD3Active: boolean;
   private _isWebGlActive: boolean;
   private _isSplitScreen: boolean;
   private _isFeaturePlotActive: boolean;
 
-  constructor(private logger: Logger) {
+  // private _evtAggregator: EventAggregatorService;
+
+  constructor(private logger: Logger, eventAggregator: EventAggregatorService) {
     this.regions = new Array<Region>();
+    // this._evtAggregator = eventAggregator
   }
 
   public addRegion(name: string, widthPercent: number, heightPercent: number, display: boolean): Region {

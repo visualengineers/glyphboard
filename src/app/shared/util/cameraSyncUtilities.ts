@@ -33,7 +33,7 @@ export class CameraSyncUtilities {
         vpSize.y * this._data_Scale.y
       );
 
-      console.log('norm mouse pos: [ ' + normMousePos.x + ' | ' + normMousePos.y + ' ]');
+      // console.log('norm mouse pos: [ ' + normMousePos.x + ' | ' + normMousePos.y + ' ]');
 
       // compute diagonal offset resulting from scale
       const vpScaleOffset = new THREE.Vector2(
@@ -50,7 +50,7 @@ export class CameraSyncUtilities {
         mouseOffsetFromCenter.y * 2 * vpScaleOffset.y,
       );
 
-      console.log('vpScaleOffset: [' + vpScaleOffset.x + ' | ' + vpScaleOffset.y + ' ] - MouseOffset: [' + cursorOffset.x + ' | ' + cursorOffset.y + ' ]');
+      // console.log('vpScaleOffset: [' + vpScaleOffset.x + ' | ' + vpScaleOffset.y + ' ] - MouseOffset: [' + cursorOffset.x + ' | ' + cursorOffset.y + ' ]');
 
       // return offset resulting in zoom (changing viewport size) and from zoom center (simple translation)
       const result = new ZoomOffsetParameter(vpScaleOffset, cursorOffset);

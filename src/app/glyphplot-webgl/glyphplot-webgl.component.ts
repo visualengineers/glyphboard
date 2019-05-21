@@ -29,6 +29,7 @@ import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
 import { Vector2 } from 'three';
 import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 import { shiftInitState } from '@angular/core/src/view';
+import { SwitchVisualizationEvent, VisualizationType } from 'app/shared/events/switch-visualization.event';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -251,28 +252,30 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
  
   @HostListener('mousemove', ['$event'])
   mouseMove(e: MouseEvent) {
-    //set id of hovered glyph and find glyph to highlight
-    let glyphRadius: number = 5;
-    if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
-      this.configurationService.configurations[1].selectedDataSetInfo.name) {
-      this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
-      this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
-    } else {
-      this.configuration.idOfHoveredGlyph = undefined;
-    }
-    for (const element of this.data.positions) {
-      if (
-        Math.abs(element.position.x - e.layerX) <= glyphRadius &&
-        Math.abs(element.position.y - e.layerY) <= glyphRadius
-      ) {
-        if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
-          this.configurationService.configurations[1].selectedDataSetInfo.name) {
-          this.configurationService.configurations[0].idOfHoveredGlyph = element.id;
-          this.configurationService.configurations[1].idOfHoveredGlyph = element.id;
-        } else {
-          this.configuration.idOfHoveredGlyph = element.id;
+    if (this.data !== undefined) {
+      //set id of hovered glyph and find glyph to highlight
+      let glyphRadius: number = 5;
+      if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
+        this.configurationService.configurations[1].selectedDataSetInfo.name) {
+        this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
+        this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
+      } else {
+        this.configuration.idOfHoveredGlyph = undefined;
+      }
+      for (const element of this.data.positions) {
+        if (
+          Math.abs(element.position.x - e.layerX) <= glyphRadius &&
+          Math.abs(element.position.y - e.layerY) <= glyphRadius
+        ) {
+          if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
+            this.configurationService.configurations[1].selectedDataSetInfo.name) {
+            this.configurationService.configurations[0].idOfHoveredGlyph = element.id;
+            this.configurationService.configurations[1].idOfHoveredGlyph = element.id;
+          } else {
+            this.configuration.idOfHoveredGlyph = element.id;
+          }
+          break;
         }
-        break;
       }
     }
 
@@ -344,10 +347,23 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     let zoom = this._transformation.GetScale();
     const change = wheelDelta * 0.1;
 
-    zoom += change;
+    zoom *= 1 + change;
 
     if (zoom < 0.1) {
       zoom = 0.1;
+    }
+
+    if (this.configuration !== null) {
+      const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
+
+      if ((this._transformation.GetScale() < lodSwitch && zoom > lodSwitch)
+         || (this._transformation.GetScale() > lodSwitch && zoom < lodSwitch)) {
+        const type = zoom < lodSwitch ? VisualizationType.ThreeJS : VisualizationType.D3;
+        this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(type);
+        if (zoom > lodSwitch) {
+          return;
+        }
+      }
     }
 
     const camSizeX = this.camera.right - this.camera.left; //  + (this._transformation.GetZoomCursorOffsetX() - this._transformation.GetTranslateX());
@@ -361,13 +377,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     const zfX =  camSizeX / camSizeOriginalX;
     const zfY = camSizeY / camSizeOriginalY;
-
-    console.log('zfx: ' + zfX);
-
-    // const normMouse = new THREE.Vector2(
-    //   ((e.clientX - centerVpX)  / (this.width)),
-    //   ((e.clientY - centerVpY) / (this.height))
-    // );
 
     const normMouse = new THREE.Vector2(0, 0);
 
@@ -549,6 +558,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     }
 
     this._transformation = payload;
+
+    if (!this.regionManager.IsWebGlActive()) {
+      return;
+   }
+
     this.setViewFrustum();
   }
 

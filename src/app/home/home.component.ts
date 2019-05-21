@@ -6,6 +6,7 @@ import { Configuration } from 'app/shared/services/configuration.service';
 import { LenseCursor } from 'app/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
+import { VisualizationType, SwitchVisualizationEvent } from 'app/shared/events/switch-visualization.event';
 
 @Component({
   selector: 'app-home',
@@ -23,10 +24,12 @@ export class HomeComponent implements OnInit {
     private configuration: Configuration,
     private cursor: LenseCursor,
     private eventAggregator: EventAggregatorService) {
-    this.regionManager.addRegion('glyphs', 0, 0.8, true);
+    this.regionManager.addRegion('glyphs', 0, 0.8, false);
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
-    this.regionManager.addRegion('features', 0, 0, false);    
-    this.regionManager.addRegion('webgl', 0, 0, false);
+    this.regionManager.addRegion('features', 0, 0, false);
+    this.regionManager.addRegion('webgl', 0, 0, true);
+
+    this.eventAggregator.getEvent(SwitchVisualizationEvent).subscribe(this.onVisualizationTypeChanged);
   }
 
   @HostListener('document:keyup', ['$event'])
@@ -121,5 +124,12 @@ export class HomeComponent implements OnInit {
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.regionManager.updateRegions(width, height);
+  }
+
+  private onVisualizationTypeChanged = (type: VisualizationType) => {
+    this.regionManager.regions[3].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
+    this.regionManager.regions[0].display = type === VisualizationType.D3 ? 'block' : 'none';
+
+    this.onResize();
   }
 }

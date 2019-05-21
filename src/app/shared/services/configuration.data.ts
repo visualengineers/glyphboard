@@ -9,6 +9,7 @@ import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { SwitchVisualizationEvent, VisualizationType } from '../events/switch-visualization.event';
 
 export class ConfigurationData {
   private configuration: Configuration;
