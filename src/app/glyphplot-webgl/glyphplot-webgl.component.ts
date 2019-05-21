@@ -158,7 +158,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   private createScene() {
     this.scene = new THREE.Scene();
-    this.scene.add(new THREE.AxesHelper(200));
   }
 
   private createLight() {
