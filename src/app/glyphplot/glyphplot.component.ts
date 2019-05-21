@@ -103,7 +103,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private configurationService: Configuration,
     private cursor: LenseCursor,
     private eventAggregator: EventAggregatorService,
-    private regionManager: RegionManager,
+    private _regionManager: RegionManager,
   ) {
     this.configuration = this.configurationService.addConfiguration();
 
@@ -459,7 +459,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * max radius is reached. This creates a 'blossoming' effect for the glyphs.
    */
   private animateGlyphs(): void {
-    if (!this._suppressAnimations) {
+      if (!this._suppressAnimations) {
       const timer = d3.timer(elapsed => {
         const t = Math.min(
           1,
@@ -627,5 +627,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   get layoutController() { return this._layoutController; }
   get dataUpdated() { return this._dataUpdated; }
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
+  get regionManager() { return this._regionManager; }
+  set regionManager(value: RegionManager) { this._regionManager = value; }
   //#endregion
 }

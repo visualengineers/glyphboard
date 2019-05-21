@@ -13,6 +13,8 @@ import { Logger } from 'app/shared/services/logger.service';
 
 import * as THREE from 'three';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
+import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
+import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
 import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
 import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
 import { InteractionEvent} from 'app/shared/events/interaction.event';
@@ -118,7 +120,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
-
+    this.eventAggregator.getEvent(RefreshHoverEvent).subscribe(this.onRefreshHover);
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
     this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
   }
@@ -219,9 +221,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
    }
 
     this.renderer.render( this.scene, this.camera );
+
   }
 
-   //#region HostListeners
+  //#region HostListeners
   @HostListener('document:mousedown', ['$event'])
   onMousedown(e: MouseEvent){
     this._isDraggingActive = false;
@@ -251,6 +254,31 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
  
   @HostListener('mousemove', ['$event'])
   mouseMove(e: MouseEvent) {
+    //set id of hovered glyph and find glyph to highlight
+    let glyphRadius: number = 5;
+    if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
+      this.configurationService.configurations[1].selectedDataSetInfo.name) {
+      this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
+      this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
+    } else {
+      this.configuration.idOfHoveredGlyph = undefined;
+    }
+    for (const element of this.data.positions) {
+      if (
+        Math.abs(element.position.x - e.layerX) <= glyphRadius &&
+        Math.abs(element.position.y - e.layerY) <= glyphRadius
+      ) {
+        if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
+          this.configurationService.configurations[1].selectedDataSetInfo.name) {
+          this.configurationService.configurations[0].idOfHoveredGlyph = element.id;
+          this.configurationService.configurations[1].idOfHoveredGlyph = element.id;
+        } else {
+          this.configuration.idOfHoveredGlyph = element.id;
+        }
+        break;
+      }
+    }
+
     if (e.buttons === 1) {
       if (!this.configuration.useDragSelection) {
         const position = this.camera.position;
@@ -584,11 +612,21 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       }
     }
   }
+
   private viewsShowTheSameDataSet(): boolean {
     return this.configurationService.configurations[0].selectedDataSetInfo.name ===
       this.configurationService.configurations[1].selectedDataSetInfo.name;
   }
-  //#endregions SubscribedEvents
+
+  private onRefreshHover = (payload: RefreshHoverEventData) => {
+    if(this.regionManager.IsD3Active())
+      return;
+      //show pulse effect
+      if (this._configuration.useDragSelection) {
+        this._selectionRect.drawHighlightedGlyph();
+      }
+  }
+  //#endregion SubscribedEvents
 
   private clearIdFilters() {
     function removeIdFilters(filter: FeatureFilter, index: number, featureFilters: FeatureFilter[]) {
@@ -596,12 +634,11 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         featureFilters.splice(index, 1);
       }
     }
-
     // remove old idFilters
-      this.configuration.featureFilters.forEach(removeIdFilters);
+    this.configuration.featureFilters.forEach(removeIdFilters);
   }
 
-  private getFeaturesForItem(d: any, config: ConfigurationData) {
+  public getFeaturesForItem = (d: any, config: ConfigurationData) =>{
     const item = this.data.features.find(f => {
       return f.id === d.id;
     });
