@@ -4,7 +4,7 @@ import { LenseCursor } from './../lense/cursor.service';
 import { Logger } from 'app/shared/services/logger.service';
 import { IdFilter } from 'app/shared/filter/id-filter';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
-import { Configuration } from '../shared/services/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 
 import * as d3 from 'd3';
 import { FlowerGlyph } from 'app/glyph/glyph.flower';
@@ -22,6 +22,7 @@ import { ViewportTransformationEventData } from 'app/shared/events/viewport-tran
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
 import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
 import { RegionManager } from 'app/region/region.manager';
+import * as THREE from 'three';
 
 export class GlyphplotEventController {
   private counter: number;
@@ -62,8 +63,8 @@ export class GlyphplotEventController {
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
 
-    this.component.transform.x = -payload.GetTranslateX() * payload.GetScale();
-    this.component.transform.y = -payload.GetTranslateY() * payload.GetScale();
+    this.component.transform.x = payload.GetScale() * (-payload.GetTranslateX() - payload.GetZoomViewportOffsetX() - payload.GetZoomCursorOffsetX());
+    this.component.transform.y = payload.GetScale() * (-payload.GetTranslateY() - payload.GetZoomViewportOffsetY() - payload.GetZoomCursorOffsetY());
     this.component.transform.k = payload.GetScale();
 
     this.formerTranslation.x = this.component.transform.x;
@@ -96,19 +97,35 @@ export class GlyphplotEventController {
     // apply transformation only, if event was a scroll or if we are not using DragSelection
     if (d3.event && (d3.event.sourceEvent.type === 'wheel' || !this.configuration.useDragSelection)) {
       const trans = d3.event.transform;
-      trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
-      trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
+      trans.x = d3.event.transform.x;
+      trans.y = d3.event.transform.y;
 
       this.selectionEnded = true;
 
+      const normMouseX = -0.5;
+      const normMouseY = -0.5;
+
       this.configuration.currentLayout = GlyphLayout.Cluster;
 
+      const offsets = this.component.cameraUtil.ComputeZoomOffset(trans.k, new THREE.Vector2(normMouseX, normMouseY));
+
       // broadcast transformation using eventaggregator
+      // const transformArgs = new ViewportTransformationEventData(
+      //   0,
+      //   0,
+      //   0,
+      //   trans.k, UpdateItemsStrategy.DefaultUpdate, -trans.x,
+      //   -trans.y);
+
       const transformArgs = new ViewportTransformationEventData(
-        -trans.x / this.component.transform.k,
-        -trans.y / this.component.transform.k,
+        -trans.x / trans.k,
+        -trans.y / trans.k,
         0,
-        trans.k);
+        trans.k, UpdateItemsStrategy.DefaultUpdate,
+        offsets.ViewportScaleOffset.x,
+        offsets.ViewportScaleOffset.y, 0,
+        offsets.CursorOffset.x,
+        offsets.CursorOffset.y, 0);
       this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
     }
 
@@ -414,7 +431,7 @@ export class GlyphplotEventController {
     const that = this;
     const filteredPositions = [];
     this.component.layoutController.getPositions().forEach(d => {
-      const data = this.component.layoutController.getFeaturesForItem(d);
+      const data = that.component.configuration.getFeaturesForItem(d);
 
         if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
           filteredPositions.push(d.position);

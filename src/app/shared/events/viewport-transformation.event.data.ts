@@ -10,22 +10,31 @@ export class ViewportTransformationEventData {
     private _translateY: number;
     private _translateZ: number;
 
-    private _centerX: number;
-    private _centerY: number;
-    private _centerZ: number;
+    private _zoomViewportOffsetX: number;
+    private _zoomViewportOffsetY: number;
+    private _zoomViewportOffsetZ: number;
+
+    private _zoomCursorOffsetX: number;
+    private _zoomCursorOffsetY: number;
+    private _zoomCursorOffsetZ: number;
 
     private _updateItems: UpdateItemsStrategy;
 
     /// constructing new event, if no values are provided --> 
-    constructor(absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, centerX  = 0, centerY  = 0, centerZ = 0) {
+    constructor(absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, 
+        zoomViewportOffsetX = 0, zoomViewportOffsetY = 0, zoomViewportOffsetZ = 0,
+        zoomCursorOffsetX = 0, zoomCursorOffsetY = 0, zoomCursorOffsetZ = 0) {
         this._scale = absScale;
         this._translateX = absTranslateX;
         this._translateY = absTranslateY;
         this._translateZ = absTranslateZ;
         this._updateItems = updateItems;
-        this._centerX = centerX;
-        this._centerY = centerY;
-        this._centerZ = centerZ;
+        this._zoomViewportOffsetX = zoomViewportOffsetX;
+        this._zoomViewportOffsetY = zoomViewportOffsetY;
+        this._zoomViewportOffsetZ = zoomViewportOffsetZ;
+        this._zoomCursorOffsetX = zoomCursorOffsetX;
+        this._zoomCursorOffsetY = zoomCursorOffsetY;
+        this._zoomCursorOffsetZ = zoomCursorOffsetZ;
     }
 
     public GetScale(): number { return this._scale };
@@ -35,9 +44,13 @@ export class ViewportTransformationEventData {
     public GetTranslateY(): number {return this._translateY; }
     public GetTranslateZ(): number {return this._translateZ; }
 
-    public GetCenterX(): number {return this._centerX; }
-    public GetCenterY(): number {return this._centerY; }
-    public GetCenterZ(): number {return this._centerZ; }
+    public GetZoomViewportOffsetX(): number {return this._zoomViewportOffsetX; }
+    public GetZoomViewportOffsetY(): number {return this._zoomViewportOffsetY; }
+    public GetZoomViewportOffsetZ(): number {return this._zoomViewportOffsetZ; }
+
+    public GetZoomCursorOffsetX(): number {return this._zoomCursorOffsetX; }
+    public GetZoomCursorOffsetY(): number {return this._zoomCursorOffsetY; }
+    public GetZoomCursorOffsetZ(): number {return this._zoomCursorOffsetZ; }
 
     public GetUpdateStrategy(): UpdateItemsStrategy { return this._updateItems; }
 }

@@ -24,6 +24,7 @@ import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 
 @Component({
   selector: 'app-glyphplot',
@@ -60,6 +61,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _quadtree: any;
   private _clusterPoints;
   private _dataUpdated: boolean;
+  private _cameraUtil: CameraSyncUtilities;
 
   //#region static methods
   static zoomed(component: GlyphplotComponent): void {
@@ -315,7 +317,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.context.beginPath();
         this.context.moveTo(d.position.x, d.position.y);
 
-        const data = this.layoutController.getFeaturesForItem(d);
+        const data = this.configuration.getFeaturesForItem(d);
 
         if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length == 0) {
           this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
@@ -364,7 +366,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * by draw().
    */
   public updateGlyphLayout(updateAllItems: boolean = false): void {
-    if (this.data === undefined || this.data.length === 0) {
+    if (this.data === undefined || this.data === null || this.data.length === 0) {
       return;
     }
     const that = this;
@@ -494,7 +496,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.context.beginPath();
       this.context.moveTo(d.position.x, d.position.y);
 
-      const features = this._layoutController.getFeaturesForItem(d).features;
+      const features = this.configuration.getFeaturesForItem(d).features;
 
       // draw the circle glyph and the current glyph to improve the blossoming effect
       if (this.configuration.currentLevelOfDetail > 0) {
@@ -629,5 +631,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
   get regionManager() { return this._regionManager; }
   set regionManager(value: RegionManager) { this._regionManager = value; }
+  get cameraUtil() { return this._cameraUtil; }
+  set cameraUtil(value: CameraSyncUtilities) { this._cameraUtil = value; }
+
   //#endregion
 }

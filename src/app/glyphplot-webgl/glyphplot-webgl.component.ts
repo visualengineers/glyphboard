@@ -25,6 +25,10 @@ import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { SelectionRect } from 'app/glyphplot/selection-rect';
 import { Helper } from 'app/glyph/glyph.helper';
 import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
+import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
+import { Vector2 } from 'three';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
+import { shiftInitState } from '@angular/core/src/view';
 
 @Component({
   selector: 'app-glyphplot-webgl',
@@ -55,17 +59,10 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _data: any;
   private _particleSystem: THREE.Points;
 
-  private _data_MinX: number;
-  private _data_MaxX: number;
-  private _data_MinY: number;
-  private _data_MaxY: number;
-
-  private _data_ScaleX = 1;
-  private _data_ScaleY = 1;
-
   private _interactionEvent: Interaction;
   private _interaction: InteractionEventData = new InteractionEventData(null);
   private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
+  private _cameraUtil: CameraSyncUtilities;
 
   private _selectionRect: SelectionRect;
   private _context: any;
@@ -123,6 +120,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.eventAggregator.getEvent(RefreshHoverEvent).subscribe(this.onRefreshHover);
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
     this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
+    this.eventAggregator.getEvent(FitToSelectionEvent).subscribe(this.fitToSelection);
   }
 
   ngOnInit(): void {
@@ -281,12 +279,17 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     if (e.buttons === 1) {
       if (!this.configuration.useDragSelection) {
-        const position = this.camera.position;
         const scale = this._transformation.GetScale();
-        const translateX = position.x + (-e.movementX / scale)
-        const translateY = position.y + (-e.movementY / scale);
+        const translateX = this._transformation.GetTranslateX() + (-e.movementX / scale)
+        const translateY = this._transformation.GetTranslateY() + (-e.movementY / scale);
 
-        const data = new ViewportTransformationEventData(translateX, translateY, 0, scale);
+        const data = new ViewportTransformationEventData(translateX, translateY, 0, scale, UpdateItemsStrategy.DefaultUpdate,
+          this._transformation.GetZoomViewportOffsetX(),
+          this._transformation.GetZoomViewportOffsetY(),
+          this._transformation.GetZoomViewportOffsetZ(),
+          this._transformation.GetZoomCursorOffsetX(),
+          this._transformation.GetZoomCursorOffsetY(),
+          this._transformation.GetZoomCursorOffsetZ());
         this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
 
       } else {
@@ -333,7 +336,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   mousewheel(e: WheelEvent) {
     //if tooltip is active disable zooming
     //TODO: disable zooming only when hovering over tooltip
-    if(this.tooltip.isFixed){
+    if (this.tooltip.isFixed || this._cameraUtil === undefined){
       return;
     }
 
@@ -348,14 +351,38 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
-    const zoomOffset = this.ComputeZoomOffset(new THREE.Vector2(e.clientX, e.clientY), change);
+    const camSizeX = this.camera.right - this.camera.left; //  + (this._transformation.GetZoomCursorOffsetX() - this._transformation.GetTranslateX());
+    const camSizeY = this.camera.bottom - this.camera.top; // + (this._transformation.GetZoomCursorOffsetY() - this._transformation.GetTranslateY());
 
-    const data = new ViewportTransformationEventData(
-      this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom, 
-      UpdateItemsStrategy.DefaultUpdate, zoomOffset.x, zoomOffset.y, 0);
+    const camSizeOriginalX = (this._cameraUtil.DataMax.x - this._cameraUtil.DataMin.x) * this._cameraUtil.DataScale.x;
+    const camSizeOriginalY = (this._cameraUtil.DataMax.y - this._cameraUtil.DataMin.y) * this._cameraUtil.DataScale.y;
 
-    // const data = new ViewportTransformationEventData(
-    //   this._transformation.GetTranslateX(), this._transformation.GetTranslateY(), this._transformation.GetTranslateZ(), zoom);
+    const centerVpX = this.width * 0.5;
+    const centerVpY = this.height * 0.5;
+
+    const zfX =  camSizeX / camSizeOriginalX;
+    const zfY = camSizeY / camSizeOriginalY;
+
+    console.log('zfx: ' + zfX);
+
+    // const normMouse = new THREE.Vector2(
+    //   ((e.clientX - centerVpX)  / (this.width)),
+    //   ((e.clientY - centerVpY) / (this.height))
+    // );
+
+    const normMouse = new THREE.Vector2(0, 0);
+
+   const offsets = this._cameraUtil.ComputeZoomOffset(zoom, normMouse);
+
+   const data = new ViewportTransformationEventData(
+    this._transformation.GetTranslateX(),
+    this._transformation.GetTranslateY(),
+    this._transformation.GetTranslateZ(), zoom,
+    UpdateItemsStrategy.DefaultUpdate,
+    offsets.ViewportScaleOffset.x,
+    offsets.ViewportScaleOffset.y, 0,
+    offsets.CursorOffset.x,
+    offsets.CursorOffset.y, 0);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(data);
   }
@@ -367,42 +394,26 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   //#endregion HostListeners
 
+
   private setViewFrustum(): void {
-    if (this.camera == null) {
+    if (this.camera === null || this._cameraUtil === undefined) {
       return;
     }
 
-    const aspect = this.getAspectRatio();
+    const dataMin = this._cameraUtil.DataMin;
+    const dataMax = this._cameraUtil.DataMax;
+    const dataScale = this._cameraUtil.DataScale;
 
-    this.camera.left = this._data_MinX * this._data_ScaleX / this._transformation.GetScale();
-    this.camera.right = this._data_MaxX * this._data_ScaleX / this._transformation.GetScale();
-    this.camera.top = (this._data_MinY * this._data_ScaleY / this._transformation.GetScale());
-    this.camera.bottom = (this._data_MaxY * this._data_ScaleY / this._transformation.GetScale());
-
-    this.camera.position.setX(this._transformation.GetTranslateX() + this._transformation.GetCenterX());
-    this.camera.position.setY(this._transformation.GetTranslateY() + this._transformation.GetCenterY());
+    this.camera.left = dataMin.x * dataScale.x + this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
+    this.camera.right = dataMax.x * dataScale.x - this._transformation.GetZoomViewportOffsetX() + this._transformation.GetZoomCursorOffsetX() + this._transformation.GetTranslateX();
+    this.camera.top = dataMin.y * dataScale.y + this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
+    this.camera.bottom = dataMax.y * dataScale.y - this._transformation.GetZoomViewportOffsetY() + this._transformation.GetZoomCursorOffsetY() + this._transformation.GetTranslateY();
 
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(this.width, this.height);
 
     this.render();
-  }
-
-  private ComputeZoomOffset(mousePosition: THREE.Vector2, zoomOffset: number): THREE.Vector2 {
-    let maxTrans = new THREE.Vector2(this.width, this.height);
-    maxTrans.multiplyScalar(0.9 * zoomOffset);
-
-
-    // const mX = (mousePosition.x + (this._transformation.GetTranslateX() / this._transformation.GetScale()))  / this.width;
-    // const mY = (mousePosition.y + (this._transformation.GetTranslateY() / this._transformation.GetScale())) / this.height;
-
-    const mX = mousePosition.x / this.width;
-    const mY = mousePosition.y / this.height;
-
-    console.log(mX + ' | ' + mY + ' - ' + maxTrans.x + ' | ' + maxTrans.y);
-
-    return new THREE.Vector2(mX * maxTrans.x, mY * maxTrans.y);
   }
 
   private buildParticles() {
@@ -417,12 +428,14 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     const particleColors = [];
     const particleSizes = [];
 
-    if (this.data != null) {
-      this._data_MinX = this.data.positions[0].position.ox;
-      this._data_MaxX = this.data.positions[0].position.ox;
+    let dataMinX, dataMinY, dataMaxX, dataMaxY = 0;
 
-      this._data_MinY = this.data.positions[0].position.oy;
-      this._data_MaxY = this.data.positions[0].position.oy;
+    if (this.data != null) {
+      dataMinX = this.data.positions[0].position.ox;
+      dataMaxX = this.data.positions[0].position.ox;
+
+      dataMinY = this.data.positions[0].position.oy;
+      dataMaxY = this.data.positions[0].position.oy;
 
       const colorFeature = this.data.schema.color;
       const colorScale = item => {
@@ -439,37 +452,53 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         const pY = item.position.oy;
         const pZ = -10;
 
-        if (pX < this._data_MinX) {
-          this._data_MinX = pX;
+        if (pX < dataMinX) {
+          dataMinX = pX;
         }
 
-        if (pY < this._data_MinY) {
-          this._data_MinY = pY;
+        if (pY < dataMinY) {
+          dataMinY = pY;
         }
 
-        if (pX > this._data_MaxX ) {
-          this._data_MaxX  = pX;
+        if (pX > dataMaxX ) {
+          dataMaxX  = pX;
         }
 
-        if (pY > this._data_MaxY) {
-          this._data_MaxY = pY;
+        if (pY > dataMaxY) {
+          dataMaxY = pY;
         }
       });
 
+      // add 5% border
+      const borderX = (dataMaxX - dataMinX) / 20;
+      const borderY = (dataMaxY - dataMinY) / 20;
+
+      // adjust drawing range
+      dataMinX -= borderX;
+      dataMaxX += borderX;
+
+      dataMinY -= borderY;
+      dataMaxY += borderY;
+
       // step 2: compute scale to fit into screen space (simlar to glyphplot.layout.controller.updatePositions())
-      const dataDomainX = (this._data_MaxX - (this._data_MinX / 20)) - (this._data_MinX + (this._data_MinX / 20));
-      const dataDomainY = (this._data_MaxY - (this._data_MinY / 20)) - (this._data_MinY + (this._data_MinY / 20));
+      const dataDomainX = (dataMaxX) - (dataMinX);
+      const dataDomainY = (dataMaxY) - (dataMinY);
 
       const renderRangeX = this.width;
       const renderRangeY = this.height;
 
-      this._data_ScaleX = renderRangeX / dataDomainX;
-      this._data_ScaleY = renderRangeY / dataDomainY;
+      const dataScaleX = renderRangeX / dataDomainX;
+      const dataScaleY = renderRangeY / dataDomainY;
+
+      this._cameraUtil = new CameraSyncUtilities(
+        new THREE.Vector2(dataMinX, dataMinY),
+        new THREE.Vector2(dataMaxX, dataMaxY),
+        new THREE.Vector2(dataScaleX, dataScaleY));
 
       // step 3: push window-scaled positions
       this.data.positions.forEach(item => {
-        const renderPosX = (item.position.ox * this._data_ScaleX);
-        const renderPosY = (((this._data_MaxY - item.position.oy) + this._data_MinY) * this._data_ScaleY);
+        const renderPosX = (item.position.ox * dataScaleX);
+        const renderPosY = (((dataMaxY - item.position.oy) + dataMinY) * dataScaleY);
         const renderPosZ = -10;
 
         particlePositions.push(renderPosX);
@@ -480,7 +509,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
           (this._configuration.featureFilters.length === 0));
 
-        const feature = this.getFeaturesForItem(item, this._configuration).features;
+        const feature = this.configuration.getFeaturesForItem(item).features;
         const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
         particleColors.push( color.r, color.g, color.b);
 
@@ -496,6 +525,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       this._particleSystem = new THREE.Points(
         this._particleGeometry,
         this._shaderDiskMaterial);
+
+       this._particleSystem.frustumCulled = false;
 
       // add it to the scene
       this.scene.add(this._particleSystem);
@@ -521,6 +552,50 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this._transformation = payload;
     this.setViewFrustum();
   }
+
+  private fitToSelection = (payload: boolean) => {
+    const filteredPositions = [];
+    this.data.getPositions().forEach(d => {
+      const data = this.configuration.getFeaturesForItem(d);
+
+        if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
+          filteredPositions.push(d.position);
+        }
+      });
+    if (filteredPositions.length === this._data.getPositions().length || filteredPositions.length === 0) {
+      return;
+    }
+    let minX, maxX, minY, maxY: number;
+    minX = filteredPositions[0].x;
+    maxX = filteredPositions[0].x;
+    minY = filteredPositions[0].y;
+    maxY = filteredPositions[0].y;
+    filteredPositions.forEach( d => {
+        if (d.x < minX) {
+          minX = d.x;
+        }
+        if (d.x > maxX) {
+          maxX = d.x;
+        }
+        if (d.y < minY) {
+          minY = d.y;
+        }
+        if (d.y > maxY) {
+          maxY = d.y;
+        }
+    });
+
+
+    const transX = ((maxX + minX) / 2);
+    const transY = ((maxY + minY) / 2);
+
+    console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ');
+
+    const args = new ViewportTransformationEventData(minX, minY, 0, 100, UpdateItemsStrategy.DefaultUpdate);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
+
+  };
 
   private onInteractionUpdated = (payload: InteractionEventData) => {
     // TODO
@@ -638,25 +713,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.configuration.featureFilters.forEach(removeIdFilters);
   }
 
-  public getFeaturesForItem = (d: any, config: ConfigurationData) =>{
-    const item = this.data.features.find(f => {
-      return f.id === d.id;
-    });
-    let itemContext = config.individualFeatureContexts[d.id];
-    if (itemContext === undefined) {
-      if (config.globalFeatureContext >= 0) {
-        itemContext = config.globalFeatureContext;
-      } else {
-        itemContext = item['default-context'];
-      }
-    }
-    const ret = {
-      features: Object.assign(item.features[itemContext], item.features['global']),
-      values: item.values
-    }
-    return ret;
-  }
-
   private updateParticles() {
     const colorFeature = this.data.schema.color;
     const configuration = this.configurationService.configurations[0];
@@ -672,7 +728,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       const isPassive =
             !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
             (this._configuration.featureFilters.length === 0));
-          const feature = this.getFeaturesForItem(item, this._configuration).features;
+          const feature = this.configuration.getFeaturesForItem(item).features;
           const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
           particleColors.push( color.r, color.g, color.b);
     });
