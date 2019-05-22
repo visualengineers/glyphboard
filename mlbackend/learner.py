@@ -2,6 +2,7 @@ import json
 import csv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2
+from sklearn.cross_validation import train_test_split
 import numpy as np
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -14,16 +15,18 @@ from sklearn.pipeline import Pipeline
 from sklearn import metrics
 from sklearn.manifold import MDS, TSNE
 from sklearn.decomposition import TruncatedSVD
+from MulticoreTSNE import MulticoreTSNE
 import umap
 import pandas as pd
+import random
 from gb_writer import GlyphboardWriter
 # from sklearn.model_selection import GridSearchCV
 from typing import Any
-# import spacy
-# from spacy.lang.de.stop_words import STOP_WORDS
+import spacy
+from spacy.lang.de.stop_words import STOP_WORDS
 
 
-# nlp = spacy.load('de')
+nlp = spacy.load('de')
 
 
 # Classifiers
@@ -34,14 +37,17 @@ LR = LogisticRegression()
 SVC = LinearSVC()
 
 vec = TfidfVectorizer()
+SPLICE_POINT = 800
 
 # Load Glyphboard data as test
 # 3 = Event, 4 = Music
 
 def initData():
-    test_texts = []
-    test_labels = []
+    texts = []
+    labels = []
     ids = []
+    selection_score = []
+    peer_labels = []
     with open("mlbackend/test_data.json", "r") as read_file:
         test_data = json.load(read_file)
 
@@ -49,92 +55,54 @@ def initData():
 
     for doc in test_data:
         ids.append(doc['id'])
+        texts.append(doc["values"]["7"])
+        selection_score.append(1-doc["features"]["1"]["4"])
+        peer_labels.append(doc["features"]["1"]["4"])
+        # labels.append(doc["features"]["1"]["4"])
         if (doc["features"]["1"]["4"] > 0.5):
-            test_labels.append(1)
-            test_texts.append(doc["values"]["7"])
+            labels.append(1)
         else:
-             test_labels.append(0)
-             test_texts.append(doc["values"]["7"])
+            labels.append(0)
 
-    df = pd.DataFrame({'id': ids, 'text': test_texts, 'label': test_labels})
+    df = pd.DataFrame({
+        'id': ids,
+        'text': texts,
+        'label': labels,
+        'score': selection_score,
+        'peer_label': peer_labels
+    })
+
+    # unlabeled = df[:200]    
+    test_data = df[SPLICE_POINT+1:]
+    test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
+    
+    df.loc[:, 'label'] = 0.5
     df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
-    return df
 
 
 
 def loadData():
     return pd.read_csv('mlbackend/data.csv', sep=";", encoding="utf8")
 
+def handleNewAnswer(answer):    
+    newAnswer = {
+        'text': answer['text'],
+        'docId': answer['documentId'],
+        'label': int(answer['answer']),
+        'question': answer['questionId']
+    }
+    train_data = getTrainData()
 
-# def getTestData():
-#     with open("mlbackend/test_data.json", "r") as read_file:
-#         test_data = json.load(read_file)
-#     test_texts = []
-#     test_labels = []
-#     for doc in test_data:
-#     #     # only use confident labels
-#     #     if (doc["features"]["1"]["4"] > 0.8):
-            
-#             test_labels.append(1)
-#             test_texts.append(doc["values"]["7"])
-#         # elif (doc["features"]["1"]["4"] < 0.2):
-#         #     test_labels.append(0)
-#         #     test_texts.append(doc["values"]["7"])
-#     return pd.DataFrame({'text': test_texts, 'label': test_labels})
-
-
-# test_data = initData()
-# vec = TfidfVectorizer()
-# tfidf = vec.fit_transform(test_data.text)
-
-# def main():
-    # print('Applying DR...')
-    # DR = applyDR(tfidf, data.label)
-
-    # print(DR)
-
-    # writer = GlyphboardWriter('test_name')
-
-    # # DR *= 2
-    # print('Writing positions...')    
-    # writer.write_position(DR, 'mds')
-    # del DR
-    # print('Done.')
-
-    # doc = nlp('Hallo, dies ist ein Test, yay!')
-    # print(doc[0].text)
-    # metricsLR = createMetrics(MNB)
-    # pd.DataFrame({'LR': metricsLR.f1}).plot(figsize=(15, 5))
-
-
-def handleNewAnswer(answer):
-    text = answer['text']
-    docId = answer['documentId']
-    label = answer['answer']
-    # print(answer)
-    # df = pd.DataFrame(
-    #     {'text': [answer['text']], 'question': [answer['questionId']], 'label': [answer['answer']]})
-    # with open('rena_training.csv', 'a+', encoding="utf8", newline="", errors='ignore') as f:
-    #     df.to_csv(f, sep=';', header=False, index=None)
-    with open(
-            "mlbackend/gb_training.csv", "a+", newline="", encoding="utf8", errors='ignore') as file:
-        writer = csv.writer(file, delimiter=';')
-        # preprocessText(text)
-        writer.writerow([docId, text, answer["questionId"], answer["answer"]])
-        file.close()
-
-    train_data = pd.read_csv(
-        'mlbackend/gb_training.csv', delimiter=';', encoding="utf8")
+    test_data = pd.read_csv(
+        'mlbackend/test_data.csv', delimiter=';', encoding="utf8")
 
     
-    data = updateDataWithLabel(docId, label)
-    # print(data)
-    # data = loadData()
-    tfidf = vec.fit_transform(data.text)
-    positions = applyDR(tfidf, data.label)
+    data = updateDataWithLabel(newAnswer['docId'], newAnswer['label'])
 
-    if len(train_data) > 10:
-        train_result = train(train_data, data, MNB)
+    if len(train_data) > 3:
+        tfidf = vec.fit_transform(data.text)
+        positions = applyDR(tfidf, data.label)
+        train_result = train(train_data, test_data, MNB)
         return json.dumps({
             'positions': positions,
             'train_result': train_result
@@ -145,33 +113,11 @@ def handleNewAnswer(answer):
 def updateDataWithLabel(docId, label):
     data = loadData()
     print('before', data.loc[data['id'] == docId])
-    # new_row = pd.DataFrame({
-    #     'id': docId,
-    #     'label': label
-    # })
-    data.loc[data['id'] == docId, 'label'] = label
-    # data.at[docId, 'label'] = label
-    # data.loc[data['id'] == docId]['label'] = label
-    # data.update(new_row)
+    data.loc[data['id'] == docId, 'label'] = int(label)
     print('after', data.loc[data['id'] == docId])
-    # row.label = label
     data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
 
     return data
-
-    # with open(
-    #         "training_data.csv", "r", encoding="utf8") as file:
-    #     reader = csv.reader(file, delimiter=';')
-    #     counter = sum(1 for row in reader)
-    #     next(reader, None)  # Skip header
-    #     for line in reader:
-    #         texts.append(line[0])
-    #         labels.append(int(line[2]))
-    #     # Require 10 labels before training
-    #     if counter > 10:
-    #         return train(texts, labels, algo=MNB)
-    #     else:
-    #         return ''
 
 
 def createMetrics(algo):
@@ -187,13 +133,9 @@ def createMetrics(algo):
 
 
 def train(train_data, test_data, algo: Any) -> dict:
-    # clean_data = [preprocessText(text) for text in data]
     text_clf = Pipeline([
         ('vect', CountVectorizer()),
         ('tfidf', TfidfTransformer()),
-        # ('nlp', preprocessText())
-        # ('clf', LogisticRegression()),
-        # ('clf', MultinomialNB()),
         ('clf', algo),
     ])
     text_clf.fit(train_data.text, train_data.label)
@@ -203,8 +145,6 @@ def train(train_data, test_data, algo: Any) -> dict:
     # print(metrics.classification_report(test_labels, predicted))
     addHistory(metrics.f1_score(test_data.label, predicted))
     result = {
-        # 'prediction': predicted.toList(),
-        # 'accuracy': metrics.accuracy_score(test_labels, predicted),
         'precision': metrics.precision_score(test_data.label, predicted),
         'recall': metrics.recall_score(test_data.label, predicted),
         'f1': metrics.f1_score(test_data.label, predicted),
@@ -212,6 +152,18 @@ def train(train_data, test_data, algo: Any) -> dict:
     }
     return result
 
+def getTrainData():
+    data = loadData()
+    return data.loc[data['label'] != 0.5]
+
+def resetTrainData():
+    data = loadData()
+    data.loc[:, 'label'] = 0.5
+    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+
+def cleanupTexts():
+    data = loadData()
+    clean_data = [preprocessText(text) for text in data.text]
 
 def getHistory():
     history = []
@@ -235,13 +187,14 @@ def getCurrentScore() -> int:
     return getHistory().pop()
 
 def applyDR(tfidf, labels = []):    
-    pre_computed = TruncatedSVD(n_components=10, random_state=1).fit_transform(tfidf.toarray())
-    
-    labels_arr = np.asarray(labels)
+    # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
+    LABEL_IMPACT = 0.6
+    labels_arr = np.asarray(labels) * LABEL_IMPACT
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
-    with_labels = np.hstack((pre_computed,labels_arr))
+    with_labels = np.hstack((tfidf.toarray(),labels_arr))
         
-    computed_coords = umap.UMAP(random_state=1).fit_transform(with_labels)
+    computed_coords = umap.UMAP(min_dist=0.8, random_state=1).fit_transform(with_labels)
+    # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
     df['x'] = computed_coords[:, 0]
     df['y'] = computed_coords[:, 1]
@@ -253,15 +206,15 @@ def applyDR(tfidf, labels = []):
     positions = writer.write_position(df, 'lsi')
     return positions
 
-# def preprocessText(text: str) -> str:
-#     # print('Original: ', text)
-#     doc = nlp(text)
-#     # Remove Stop Words and get Lemmas
-#     return ' '.join([token.text for token in doc if not token.is_stop])
-#     # for word in doc:
-#     #     if word.is_stop == True:
-#     #         print('Stop %s', word)
-#     # print(word.lemma_)
+def preprocessText(text: str) -> str:
+    # print('Original: ', text)
+    doc = nlp(text)
+    # Remove Stop Words and get Lemmas
+    return ' '.join([token.text for token in doc if not token.is_stop])
+    # for word in doc:
+    #     if word.is_stop == True:
+    #         print('Stop %s', word)
+    # print(word.lemma_)
 
 #             # Get NER
 #     for ent in doc.ents:
@@ -274,14 +227,4 @@ def applyDR(tfidf, labels = []):
 #             return doc
 #     return ''
 
-
-# def gridSearch(classifier, data, labels):
-#     gs_clf = GridSearchCV(classifier, parameters, cv=5, iid=False, n_jobs=-1)
-#     gs_clf = gs_clf.fit(data, labels)
-
-#     print(gs_clf.best_score_)
-#     print(gs_clf.best_params_)
-
-
-# main()
-initData()
+# initData()

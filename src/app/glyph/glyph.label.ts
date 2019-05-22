@@ -81,20 +81,20 @@ export class LabelGlyph extends Glyph {
     this.context.lineWidth = isHighlighted ? 5 : 1;
 
     // Handle unlabeled data
-    // if (!features.isLabeled) {
-    //   this.context.beginPath();
-    //   this.context.fillStyle = '#9e9e9e';
-    //   this.context.strokeStyle = 'black';
-    //   this.context.arc(
-    //     position.x,
-    //     position.y,
-    //     radius * this.normalize(features.score, 0.8, 1.75),
-    //     0,
-    //     2 * Math.PI
-    //   );
-    //   this.context.stroke();
-    //   this.context.fill();
-    // } else {
+    if (!features.isLabeled) {
+      this.context.beginPath();
+      // this.context.fillStyle = '#9e9e9e';
+      // this.context.strokeStyle = 'black';
+      this.context.arc(
+        position.x,
+        position.y,
+        radius * this.normalize(features.score, 0.5, 1.5, 0, 0.5),
+        0,
+        2 * Math.PI
+      );
+      this.context.stroke();
+      this.context.fill();
+    } else {
       this.context.beginPath();
       this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
       if (
@@ -106,7 +106,7 @@ export class LabelGlyph extends Glyph {
       } else {
         this.context.stroke();
       }
-    // }
+    }
 
     // this.context.beginPath();
     // this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI);

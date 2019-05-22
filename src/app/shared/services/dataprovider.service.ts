@@ -124,17 +124,22 @@ export class DataproviderService {
     };
     this.dataSet.features = this.mockDataset(this.dataSet.features);
     this.setDataSet(this.dataSet);
-    console.log('Start positions...', this, this.dataSet);
   }
 
   private mockDataset(data: JsonFeature[]): JsonFeature[] {
     const features = data;
     // Add labels property to each data point
     for (let i = 0; i < features.length; i++) {
+      // if (i < 800) {
+      //   features[i]['isLabeled'] = false;
+      // } else {
+      //   features[i]['isLabeled'] = true;
+      // }
       features[i]['isLabeled'] = false;
       features[i]['labels'] = [];
-      features[i]['selectionScore'] = Math.random() * 0.5 + 0.5;
+      features[i]['selectionScore'] = Math.abs(0.5 - parseFloat(features[i]['values']['4']));
     }
+    console.log(features)
     // Mark parts of the data set as labeled
     // for (let i = 0; i < features.length / 2; i++) {
     //   features[i]['isLabeled'] = true;

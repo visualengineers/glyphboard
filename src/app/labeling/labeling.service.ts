@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { DataproviderService } from 'app/shared/services/dataprovider.service';
 
@@ -58,19 +58,19 @@ export class LabelingService {
     .pipe(
       map((res: string) => JSON.parse(res)),
       tap((res: LabelAnswer) => {
-        this.currentScore.next(this.formatScore(res.train_result.f1));
-        this.data.updatePositions(res.positions);
-        console.log(this.data)
-        // this.data.getDataSet().subscribe(res => console.log(res))
+        if (res) {
+          this.currentScore.next(this.formatScore(res.train_result.f1));
+          this.data.updatePositions(res.positions);
+          console.log(this.data)
+          // this.data.getDataSet().subscribe(res => console.log(res))
+        } else {
+          console.log('not enough data yet')
+        }
       })
     )
   }
 
   formatScore(score: number): string {
     return (score * 100).toFixed(2);
-  }
-
-  updatePositions(): void {
-
   }
 }
