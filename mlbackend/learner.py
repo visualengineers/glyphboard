@@ -58,7 +58,6 @@ def initData():
         texts.append(doc["values"]["7"])
         selection_score.append(1-doc["features"]["1"]["4"])
         peer_labels.append(doc["features"]["1"]["4"])
-        # labels.append(doc["features"]["1"]["4"])
         if (doc["features"]["1"]["4"] > 0.5):
             labels.append(1)
         else:
@@ -163,7 +162,19 @@ def resetTrainData():
 
 def cleanupTexts():
     data = loadData()
-    clean_data = [preprocessText(text) for text in data.text]
+    for idx, text in enumerate(data.text):
+        data.loc[idx, 'text'] = preprocessText(text)
+        
+    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+
+def mockTraining(amount):
+    data = loadData()
+    for i in range(amount):
+        if data.loc[i].peer_label > 0.5:
+            data.loc[i, 'label'] = 1
+        else:
+            data.loc[i, 'label'] = 0
+    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
 
 def getHistory():
     history = []
@@ -188,7 +199,7 @@ def getCurrentScore() -> int:
 
 def applyDR(tfidf, labels = []):    
     # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
-    LABEL_IMPACT = 0.6
+    LABEL_IMPACT = 0.1
     labels_arr = np.asarray(labels) * LABEL_IMPACT
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     with_labels = np.hstack((tfidf.toarray(),labels_arr))
