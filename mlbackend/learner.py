@@ -38,6 +38,7 @@ SVC = LinearSVC()
 
 vec = TfidfVectorizer()
 SPLICE_POINT = 800
+UNLABELED_VALUE = -1
 
 # Load Glyphboard data as test
 # 3 = Event, 4 = Music
@@ -58,7 +59,7 @@ def initData():
         texts.append(doc["values"]["7"])
         selection_score.append(1-doc["features"]["1"]["4"])
         peer_labels.append(doc["features"]["1"]["4"])
-        if (doc["features"]["1"]["4"] > 0.5):
+        if (doc["features"]["1"]["4"] > UNLABELED_VALUE):
             labels.append(1)
         else:
             labels.append(0)
@@ -75,7 +76,7 @@ def initData():
     test_data = df[SPLICE_POINT+1:]
     test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
     
-    df.loc[:, 'label'] = 0.5
+    df.loc[:, 'label'] = UNLABELED_VALUE
     df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
 
 
@@ -101,7 +102,7 @@ def handleNewAnswer(answer):
     if len(train_data) > 3:
         tfidf = vec.fit_transform(data.text)
         positions = applyDR(tfidf, data.label)
-        train_result = train(train_data, test_data, MNB)
+        train_result = train(train_data, test_data, SGD)
         return json.dumps({
             'positions': positions,
             'train_result': train_result
@@ -153,11 +154,11 @@ def train(train_data, test_data, algo: Any) -> dict:
 
 def getTrainData():
     data = loadData()
-    return data.loc[data['label'] != 0.5]
+    return data.loc[data['label'] != UNLABELED_VALUE]
 
 def resetTrainData():
     data = loadData()
-    data.loc[:, 'label'] = 0.5
+    data.loc[:, 'label'] = UNLABELED_VALUE
     data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
 
 def cleanupTexts():
@@ -199,12 +200,12 @@ def getCurrentScore() -> int:
 
 def applyDR(tfidf, labels = []):    
     # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
-    LABEL_IMPACT = 0.1
-    labels_arr = np.asarray(labels) * LABEL_IMPACT
+    # LABEL_IMPACT = 0
+    labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
-    with_labels = np.hstack((tfidf.toarray(),labels_arr))
-        
-    computed_coords = umap.UMAP(min_dist=0.8, random_state=1).fit_transform(with_labels)
+    # with_labels = np.hstack((tfidf.toarray(), labels_arr))
+    computed_coords = umap.UMAP(min_dist=0.8, random_state=1).fit(tfidf.toarray(), y=labels_arr)
+    computed_coords = computed_coords.embedding_
     # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
     df['x'] = computed_coords[:, 0]
