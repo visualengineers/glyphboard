@@ -81,6 +81,9 @@ def initData():
 def loadData():
     return pd.read_csv('mlbackend/data.csv', sep=";", encoding="utf8")
 
+def saveData(data):
+    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+
 def handleNewAnswer(answer):    
     newAnswer = {
         'text': answer['text'],
@@ -111,7 +114,7 @@ def updateDataWithLabel(docId, label):
     data.loc[data['id'] == docId, 'label'] = int(label)
     data.loc[data['id'] == docId, 'isLabeled'] = True
     print('after', data.loc[data['id'] == docId])
-    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    saveData(data)
 
     return data
 
@@ -155,14 +158,14 @@ def getTestData():
 def resetTrainData():
     data = loadData()
     data.loc[:, 'label'] = UNLABELED_VALUE
-    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    saveData(data)
 
 def cleanupTexts():
     data = loadData()
     for idx, text in enumerate(data.text):
         data.loc[idx, 'text'] = preprocessText(text)
         
-    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    saveData(data)
 
 def mockTraining(amount):
     data = loadData()
@@ -172,7 +175,7 @@ def mockTraining(amount):
             data.loc[i, 'label'] = 1
         else:
             data.loc[i, 'label'] = 0        
-    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    saveData(data)
 
 def simulateTraining(iterations):
     test_data = getTestData()
@@ -235,7 +238,8 @@ def preprocessText(text: str) -> str:
 #     for ent in doc.ents:
 #         print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
-def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestData()): 
+def getSelectionScores(clf = MNB, train_data = getTestData()): 
+    rest_data = loadData()
     text_clf = Pipeline([
         # ('vect', CountVectorizer()),
         ('tfidf', vec),

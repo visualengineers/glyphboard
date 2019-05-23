@@ -162,7 +162,7 @@ export class DataproviderService {
   updatePositions(positions: Position[]): void {
     this.dataSet.positions = positions;
     console.log('Updating positions...', this.dataSet);
-    this.updateDataSet();
+    // this.updateDataSet();
     this.setDataSet(this.dataSet);
   }
 
