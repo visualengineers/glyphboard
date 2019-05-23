@@ -58,7 +58,7 @@ export class LabelingService {
     .pipe(
       tap((res: LabelAnswer) => {
           this.currentScore.next(this.formatScore(res.train_result.f1));
-          this.data.updatePositions(res.positions);
+          // this.data.updatePositions(res.positions);
           this.data.updateDataSet();
           // console.log(this.data)
           // this.data.getDataSet().subscribe(res => console.log(res))

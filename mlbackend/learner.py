@@ -98,11 +98,11 @@ def handleNewAnswer(answer):
     data = updateDataWithLabel(newAnswer['docId'], newAnswer['label'])
     data = loadData()
     if len(train_data) > 3:
-        tfidf = vec.fit_transform(data.text)
-        positions = applyDR(tfidf, data.label)
+        # tfidf = vec.fit_transform(data.text)
+        # positions = applyDR(tfidf, data.label)
         train_result = train(train_data, test_data, SGD)
         return {
-            'positions': positions,
+            # 'positions': positions,
             'train_result': train_result
         }
     else:
