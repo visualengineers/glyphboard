@@ -54,7 +54,7 @@ class GlyphboardWriter:
                 }
             })
 
-        with open("{}.position.{}.json".format(self._filename_prefix, algorithm), "w") as f:
+        with open("mlbackend/test.position.test.json", "w") as f:
             json.dump(pos, f)
 
         return pos

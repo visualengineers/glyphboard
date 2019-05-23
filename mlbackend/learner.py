@@ -207,7 +207,7 @@ def applyDR(tfidf, labels = []):
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     # with_labels = np.hstack((tfidf.toarray(), labels_arr))
-    computed_coords = umap.UMAP(min_dist=0.8, random_state=1).fit(tfidf.toarray(), y=labels_arr)
+    computed_coords = umap.UMAP(min_dist=0.8, random_state=1).fit(tfidf.toarray())
     computed_coords = computed_coords.embedding_
     # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
@@ -218,7 +218,7 @@ def applyDR(tfidf, labels = []):
 
     # DR *= 2
     print('Writing positions...')    
-    positions = writer.write_position(df, 'lsi')
+    positions = writer.write_position(positions=df, algorithm='umap')
     return positions
 
 def preprocessText(text: str) -> str:
