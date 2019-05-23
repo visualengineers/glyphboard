@@ -11,6 +11,7 @@ from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
 from sklearn.manifold import MDS, TSNE
@@ -36,7 +37,7 @@ MNB = MultinomialNB()
 LR = LogisticRegression()
 SVC = LinearSVC()
 
-vec = TfidfVectorizer()
+vec = TfidfVectorizer(strip_accents='ascii', max_df=0.5, sublinear_tf=True)
 SPLICE_POINT = 800
 UNLABELED_VALUE = -1
 
@@ -69,7 +70,8 @@ def initData():
         'text': texts,
         'label': labels,
         'score': selection_score,
-        'peer_label': peer_labels
+        'peer_label': peer_labels,
+        'isLabeled': false
     })
 
     # unlabeled = df[:200]    
@@ -78,8 +80,6 @@ def initData():
     
     df.loc[:, 'label'] = UNLABELED_VALUE
     df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
-
-
 
 def loadData():
     return pd.read_csv('mlbackend/data.csv', sep=";", encoding="utf8")
@@ -121,8 +121,8 @@ def updateDataWithLabel(docId, label):
 
 
 def createMetrics(algo):
-    test_data = loadData()
-    train_data_df = pd.read_csv("mlbackend/training_data.csv", sep=";")
+    test_data = getTestData()
+    train_data_df = getTrainData()
     train_data_df.label = train_data_df.label.astype(int)
     met = []
     # Create stepwise metrics algo, simulating a history
@@ -134,15 +134,12 @@ def createMetrics(algo):
 
 def train(train_data, test_data, algo: Any) -> dict:
     text_clf = Pipeline([
-        ('vect', CountVectorizer()),
-        ('tfidf', TfidfTransformer()),
+        # ('vect', CountVectorizer()),
+        ('tfidf', vec),
         ('clf', algo),
     ])
     text_clf.fit(train_data.text, train_data.label)
-    # text_clf.fit(clean_data, labels)
     predicted = text_clf.predict(test_data.text)
-    # print(dataframe.prediction.value_counts())
-    # print(metrics.classification_report(test_labels, predicted))
     addHistory(metrics.f1_score(test_data.label, predicted))
     result = {
         'precision': metrics.precision_score(test_data.label, predicted),
@@ -155,6 +152,10 @@ def train(train_data, test_data, algo: Any) -> dict:
 def getTrainData():
     data = loadData()
     return data.loc[data['label'] != UNLABELED_VALUE]
+
+def getTestData():
+    return pd.read_csv(
+            'test_data.csv', delimiter=';', encoding="utf8")
 
 def resetTrainData():
     data = loadData()
@@ -176,6 +177,13 @@ def mockTraining(amount):
         else:
             data.loc[i, 'label'] = 0
     data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+
+def simulateTraining(iterations):
+    test_data = pd.read_csv(
+            'test_data.csv', delimiter=';', encoding="utf8")    
+    mockTraining(iterations)
+    train_data = getTrainData()
+    train(train_data, test_data, SGD)
 
 def getHistory():
     history = []
@@ -232,11 +240,19 @@ def preprocessText(text: str) -> str:
 #     for ent in doc.ents:
 #         print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
+def getSelectionScores(clf = MNB, restdata = loadData(), train_data = getTrainData()): 
+    text_clf = Pipeline([
+        # ('vect', CountVectorizer()),
+        ('tfidf', vec),
+        ('clf', clf),
+    ])
+    text_clf.fit(train_data.text, train_data.label)
+    prs = text_clf.predict_proba(restdata.text) 
+    result_pos = [1-2*abs(x[1]-0.5)  for x in prs]
+    restdata['score'] = result_pos
+    return restdata
 
-# def getDocById(id):
-#     for doc in test_data:
-#         if id == doc["values"]["2"]:
-#             return doc
-#     return ''
+def getAdditionalFeatures():
+
 
 # initData()
