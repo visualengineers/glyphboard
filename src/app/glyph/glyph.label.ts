@@ -81,14 +81,14 @@ export class LabelGlyph extends Glyph {
     this.context.lineWidth = isHighlighted ? 5 : 1;
 
     // Handle unlabeled data
-    if (!features.isLabeled) {
+    if (!features['isLabeled']) {
       this.context.beginPath();
-      // this.context.fillStyle = '#9e9e9e';
-      // this.context.strokeStyle = 'black';
+      this.context.fillStyle = '#9e9e9e';
+      this.context.strokeStyle = 'black';
       this.context.arc(
         position.x,
         position.y,
-        radius * this.normalize(features.score, 0.5, 1.5, 0, 0.5),
+        radius * this.normalize(features.score, 0.5, 1.5, 0, 1),
         0,
         2 * Math.PI
       );

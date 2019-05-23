@@ -54,19 +54,16 @@ export class LabelingService {
       answer: value,
       text: text
     };
-    return this.http.post<string>('http://127.0.0.1:5000/label', message)
+    return this.http.post<LabelAnswer>('http://127.0.0.1:5000/label', message)
     .pipe(
-      map((res: string) => JSON.parse(res)),
       tap((res: LabelAnswer) => {
-        if (res) {
           this.currentScore.next(this.formatScore(res.train_result.f1));
           this.data.updatePositions(res.positions);
-          console.log(this.data)
+          // this.data.updateDataSet();
+          // console.log(this.data)
           // this.data.getDataSet().subscribe(res => console.log(res))
-        } else {
-          console.log('not enough data yet')
         }
-      })
+      )
     )
   }
 

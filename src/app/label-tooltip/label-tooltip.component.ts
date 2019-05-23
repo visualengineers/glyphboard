@@ -50,21 +50,22 @@ export class TooltipNewComponent implements OnInit {
     const id = this.closestPoint.id;
     const text = this.values[6][1];
     this.isMusic = event.value;
-    console.log('Labeling:', id, event);
-    console.log('Data:', this.data);
+    // console.log('Labeling:', id, event);
+    // console.log('Data:', this.data);
     this.label.labelData(id, text, event.source.name, event.value).subscribe(res => {
       // this._isVisible = false;
       this.isLoading = false;
-      console.log(res);
+      // console.log(res);
     })
   }
 
   private updateTooltip(): void {
-    if (this.closestPoint.labels.length > 0) {
-      this.isMusic = String(this.closestPoint.labels[0].answer);
-    } else {
-      this.isMusic = null;
-    }
+    this.isMusic = this.closestPoint.label;
+    // if (this.closestPoint.labels.length > 0) {
+    //   this.isMusic = String(this.closestPoint.labels[0].answer);
+    // } else {
+    //   this.isMusic = null;
+    // }
   }
 
   public updateClosestPoint(event: any, transform: any): void {

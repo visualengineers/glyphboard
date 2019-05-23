@@ -48,19 +48,16 @@ def initData():
     texts = []
     labels = []
     ids = []
-    selection_score = []
     peer_labels = []
     with open("mlbackend/test_data.json", "r") as read_file:
-        test_data = json.load(read_file)
+        LC_data = json.load(read_file)
 
-    
-
-    for doc in test_data:
+    for doc in LC_data:
         ids.append(doc['id'])
         texts.append(doc["values"]["7"])
-        selection_score.append(1-doc["features"]["1"]["4"])
         peer_labels.append(doc["features"]["1"]["4"])
-        if (doc["features"]["1"]["4"] > UNLABELED_VALUE):
+        # simulate all as labeled (for test_data)
+        if (doc["features"]["1"]["4"] > 0.5):
             labels.append(1)
         else:
             labels.append(0)
@@ -69,17 +66,17 @@ def initData():
         'id': ids,
         'text': texts,
         'label': labels,
-        'score': selection_score,
         'peer_label': peer_labels,
-        'isLabeled': false
+        'score': [0] * len(LC_data),
+        'isLabeled': [False]  * len(LC_data)
     })
-
-    # unlabeled = df[:200]    
+   
     test_data = df[SPLICE_POINT+1:]
     test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
     
-    df.loc[:, 'label'] = UNLABELED_VALUE
-    df.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    data_with_scores = getSelectionScores()
+    data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    # resetTrainData()
 
 def loadData():
     return pd.read_csv('mlbackend/data.csv', sep=";", encoding="utf8")
@@ -93,20 +90,18 @@ def handleNewAnswer(answer):
     }
     train_data = getTrainData()
 
-    test_data = pd.read_csv(
-        'mlbackend/test_data.csv', delimiter=';', encoding="utf8")
-
+    test_data = getTestData()
     
     data = updateDataWithLabel(newAnswer['docId'], newAnswer['label'])
-
+    data = loadData()
     if len(train_data) > 3:
         tfidf = vec.fit_transform(data.text)
         positions = applyDR(tfidf, data.label)
         train_result = train(train_data, test_data, SGD)
-        return json.dumps({
+        return {
             'positions': positions,
             'train_result': train_result
-        })
+        }
     else:
         return ''
 
@@ -114,6 +109,7 @@ def updateDataWithLabel(docId, label):
     data = loadData()
     print('before', data.loc[data['id'] == docId])
     data.loc[data['id'] == docId, 'label'] = int(label)
+    data.loc[data['id'] == docId, 'isLabeled'] = True
     print('after', data.loc[data['id'] == docId])
     data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
 
@@ -151,11 +147,10 @@ def train(train_data, test_data, algo: Any) -> dict:
 
 def getTrainData():
     data = loadData()
-    return data.loc[data['label'] != UNLABELED_VALUE]
+    return data.loc[data['isLabeled'] == True]
 
 def getTestData():
-    return pd.read_csv(
-            'test_data.csv', delimiter=';', encoding="utf8")
+    return pd.read_csv('mlbackend/test_data.csv', delimiter=';', encoding="utf8")
 
 def resetTrainData():
     data = loadData()
@@ -172,15 +167,15 @@ def cleanupTexts():
 def mockTraining(amount):
     data = loadData()
     for i in range(amount):
+        data.loc[i, 'isLabeled'] = True
         if data.loc[i].peer_label > 0.5:
             data.loc[i, 'label'] = 1
         else:
-            data.loc[i, 'label'] = 0
+            data.loc[i, 'label'] = 0        
     data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
 
 def simulateTraining(iterations):
-    test_data = pd.read_csv(
-            'test_data.csv', delimiter=';', encoding="utf8")    
+    test_data = getTestData()
     mockTraining(iterations)
     train_data = getTrainData()
     train(train_data, test_data, SGD)
@@ -240,19 +235,19 @@ def preprocessText(text: str) -> str:
 #     for ent in doc.ents:
 #         print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
-def getSelectionScores(clf = MNB, restdata = loadData(), train_data = getTrainData()): 
+def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestData()): 
     text_clf = Pipeline([
         # ('vect', CountVectorizer()),
         ('tfidf', vec),
         ('clf', clf),
     ])
     text_clf.fit(train_data.text, train_data.label)
-    prs = text_clf.predict_proba(restdata.text) 
+    prs = text_clf.predict_proba(rest_data.text) 
     result_pos = [1-2*abs(x[1]-0.5)  for x in prs]
-    restdata['score'] = result_pos
-    return restdata
+    rest_data['score'] = result_pos
+    return rest_data
 
-def getAdditionalFeatures():
-
+# def getCurrentDataset():
+#     return load
 
 # initData()

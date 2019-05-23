@@ -5,6 +5,7 @@ import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeWhile';
 import { environment } from 'environments/environment';
 import { Position } from 'app/labeling/labeling.service';
+import { HttpClient } from '@angular/common/http';
 
 export interface JsonFeature {
   id: number;
@@ -13,11 +14,24 @@ export interface JsonFeature {
   values: { [key: string]: string };
 }
 
+interface Dataset {
+  schema;
+  features;
+  positions: Position[],
+  meta;
+}
+
+interface UpdateResponse {
+  isLabeled: boolean;
+  label: number;
+  score: number;
+}
+
 @Injectable()
 export class DataproviderService {
   private backendAddress: string;
   public dataSets: any;
-  public dataSet: any;
+  public dataSet: Dataset;
   private alive: boolean; // used to unsubscribe from the IntervalObservable when OnDestroy is called.
 
   private timer: Observable<number>;
@@ -30,7 +44,7 @@ export class DataproviderService {
   private deliverPosition: any;
   private deliverMeta: any;
 
-  constructor(private http: Http) {
+  constructor(private http: Http, private httpClient: HttpClient) {
     this.alive = true;
     this.interval = 10000;
     this.timer = Observable.timer(0, this.interval);
@@ -122,44 +136,34 @@ export class DataproviderService {
       positions: this.deliverPosition,
       meta: this.deliverMeta
     };
-    this.dataSet.features = this.mockDataset(this.dataSet.features);
+    this.updateDataSet();
     this.setDataSet(this.dataSet);
   }
 
-  private mockDataset(data: JsonFeature[]): JsonFeature[] {
-    const features = data;
-    // Add labels property to each data point
-    for (let i = 0; i < features.length; i++) {
-      // if (i < 800) {
-      //   features[i]['isLabeled'] = false;
-      // } else {
-      //   features[i]['isLabeled'] = true;
-      // }
-      features[i]['isLabeled'] = false;
-      features[i]['labels'] = [];
-      features[i]['selectionScore'] = Math.abs(0.5 - parseFloat(features[i]['values']['4']));
-    }
-    console.log(features)
-    // Mark parts of the data set as labeled
-    // for (let i = 0; i < features.length / 2; i++) {
-    //   features[i]['isLabeled'] = true;
-    //   features[i]['labels'].push({
-    //     questionId: 'isMusic',
-    //     answer: Math.random() > 0.5 ? 1 : 0
-    //   });
-    // }
-    return features;
+  updateDataSet() {
+    this.httpClient.get<UpdateResponse>('http://localhost:5000/update').subscribe(res => {
+      const data = res;
+      console.log(data);
+      for (let i = 0; i < 1118; i++) {
+        this.dataSet.features[i].features['1']['31'] = data.isLabeled[i]
+        this.dataSet.features[i].features['1']['32'] = data.score[i]
+        this.dataSet.features[i].features['1']['33'] = data.label[i]
+
+        // redundant, but convenient
+        this.dataSet.features[i]['isLabeled'] = data.isLabeled[i]
+        this.dataSet.features[i]['selectionScore'] = data.score[i]
+        this.dataSet.features[i]['label'] = data.label[i]
+      }
+      this.setDataSet(this.dataSet)
+    })
+    console.log('Updated dataset', this.dataSet)
   }
 
   updatePositions(positions: Position[]): void {
-    const dataSet = {
-      schema: this.deliverSchema,
-      features: this.deliverFeature,
-      positions: positions,
-      meta: this.deliverMeta
-    };
-    console.log('Updating positions...', dataSet);
-    this.setDataSet(dataSet);
+    this.dataSet.positions = positions;
+    console.log('Updating positions...', this.dataSet);
+    this.updateDataSet();
+    this.setDataSet(this.dataSet);
   }
 
   private setDataSets(value: string) {
