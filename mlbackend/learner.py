@@ -45,7 +45,14 @@ UNLABELED_VALUE = -1
 # Load Glyphboard data as test
 # 3 = Event, 4 = Music
 
-def initData():
+def init():
+    print('Updating JSON...')
+    updateDatasetJson()
+    # print('Cleaning Texts...')
+    # cleanupTexts()
+    print('Done')
+
+def mockInit():
     texts = []
     labels = []
     ids = []
@@ -75,9 +82,9 @@ def initData():
     test_data = df[SPLICE_POINT+1:]
     saveData(test_data, 'test_data')
     # test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
-    
     data_with_scores = getSelectionScores(rest_data=df)
     saveData(data_with_scores)
+    
     # data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
     # resetTrainData()
 
@@ -98,14 +105,15 @@ def handleNewAnswer(answer):
 
     test_data = getTestData()
     
-    data = updateDataWithLabel(newAnswer['docId'], newAnswer['label'])
-    data = loadData()
+    data = updateDataWithLabel(loadData(), newAnswer['docId'], newAnswer['label'])
     if len(train_data) > 3:
-        tfidf = vec.fit_transform(data.text)
-        positions = applyDR(tfidf, data.label)
+        tfidf = vec.fit_transform(data.text)        
+        positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
+        writer = GlyphboardWriter('test_name')
+        position_response = writer.write_position(positions=positions, algorithm='umap')
         train_result = train(train_data, test_data, SGD)
         return {
-            'positions': positions,
+            'positions': position_response,
             'train_result': train_result
         }
     else:
@@ -125,7 +133,7 @@ def updateDatasetJson():
         doc['features']['1']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
         doc['values']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
 
-    with open("../backend/data/mainTfIdf/mainTfIdf.05112018.feature.json", "w") as f:
+    with open("backend/data/mainTfIdf/mainTfIdf.05112018.feature.json", "w") as f:
             json.dump(LC_data, f)
     
     return 'Done'
@@ -134,8 +142,7 @@ def updateDatasetJson():
 #     data = loadData()
 #     json = 
 
-def updateDataWithLabel(docId, label):
-    data = loadData()
+def updateDataWithLabel(data, docId, label):
     print('before', data.loc[data['id'] == docId])
     data.loc[data['id'] == docId, 'label'] = int(label)
     data.loc[data['id'] == docId, 'isLabeled'] = 1
@@ -231,30 +238,29 @@ def addHistory(metrics):
 def getCurrentScore() -> int:
     return getHistory().pop()
 
-def applyDR(tfidf, labels = [], withPreviousPos = True):    
+def applyDR(tfidf, labels = [], withPreviousPos = True, factor = 1):    
     # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
     # LABEL_IMPACT = 0
     if withPreviousPos:        
         previousPositions = loadData('previousPositions').values
     else:
-        previousPositions = 'scalar'
+        previousPositions = 'spectral'
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     # with_labels = np.hstack((tfidf.toarray(), labels_arr))
-    computed_coords = umap.UMAP(init=previousPositions,min_dist=0.8, random_state=1).fit(tfidf.toarray(), y=labels_arr)
+    computed_coords = umap.UMAP(init=previousPositions,min_dist=0.8, random_state=1, learning_rate=0.5).fit(tfidf.toarray())
     computed_coords = computed_coords.embedding_
     saveData(pd.DataFrame(computed_coords), 'previousPositions')
+    computed_coords *= factor    
     # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
     df['x'] = computed_coords[:, 0]
     df['y'] = computed_coords[:, 1]
+    
+    return df
 
-    writer = GlyphboardWriter('test_name')
+# def resetPositions():
 
-    # # DR *= 2
-    print('Writing positions...')    
-    positions = writer.write_position(positions=df, algorithm='umap')
-    return positions
 
 def preprocessText(text: str) -> str:
     # print('Original: ', text)
@@ -286,3 +292,4 @@ def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestDa
 #     return load
 
 # initData()
+init()

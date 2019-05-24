@@ -16,9 +16,15 @@ export interface JsonFeature {
 
 interface Dataset {
   schema;
-  features;
+  features: Feature[];
   positions: Position[],
   meta;
+}
+
+interface Feature {
+  'features': {
+    '1': {string: number}
+  }
 }
 
 interface UpdateResponse {
@@ -151,9 +157,9 @@ export class DataproviderService {
         this.dataSet.features[i].features['1']['33'] = data.label[i]
 
         // redundant, but convenient
-        this.dataSet.features[i]['isLabeled'] = data.isLabeled[i]
-        this.dataSet.features[i]['selectionScore'] = data.score[i]
-        this.dataSet.features[i]['label'] = data.label[i]
+        // this.dataSet.features[i]['isLabeled'] = data.isLabeled[i]
+        // this.dataSet.features[i]['selectionScore'] = data.score[i]
+        // this.dataSet.features[i]['label'] = data.label[i]
       }
       this.setDataSet(this.dataSet)
     })
@@ -161,6 +167,7 @@ export class DataproviderService {
   }
 
   updateDataPoint(id, label) {
+    this.dataSet.features.find(feature => feature['features'])
     this.dataSet.features[id + 1].features['1']['31'] = true;
     this.dataSet.features[id + 1].features['1']['33'] = label;
     console.log('Update point:', id, label)

@@ -52,14 +52,17 @@ export class TooltipNewComponent implements OnInit {
     this.isMusic = event.value;
     // console.log('Labeling:', id, event);
     // console.log('Data:', this.data);
-    this.label.labelData(id, text, event.source.name, event.value).subscribe(res => {
-      // this._isVisible = false;
-      this.isLoading = false;
-      // console.log(res);
-    })
+    this.label
+      .labelData(id, text, event.source.name, event.value)
+      .subscribe(res => {
+        // this._isVisible = false;
+        this.isLoading = false;
+        // console.log(res);
+      });
   }
 
   private updateTooltip(): void {
+    console.log(this.closestPoint);
     if (this.closestPoint.features[1][31] === 0) {
       this.isMusic = null;
     } else {
@@ -140,8 +143,14 @@ export class TooltipNewComponent implements OnInit {
           label = this._data.schema.tooltip[property];
           if (this.closestPoint.values !== undefined) {
             const value = this.closestPoint.values[label];
-            const num_value = parseFloat(this.closestPoint.features[context][label]).toFixed(4);
-            this._values.push([this._data.schema.label[label], value, num_value]);
+            const num_value = parseFloat(
+              this.closestPoint.features[context][label]
+            ).toFixed(4);
+            this._values.push([
+              this._data.schema.label[label],
+              value,
+              num_value
+            ]);
           }
         }
       }
