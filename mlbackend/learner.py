@@ -84,6 +84,7 @@ def mockInit():
     # test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
     data_with_scores = getSelectionScores(rest_data=df)
     saveData(data_with_scores)
+    resetTrainData()
     
     # data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
     # resetTrainData()
@@ -121,9 +122,9 @@ def handleNewAnswer(answer):
 
 def handleCompleteUpdate():
     data = loadData()
-    # updateDatasetJson()
+    updateDatasetJson()
     tfidf = vec.fit_transform(data.text)
-    positions = applyDR(tfidf, withPreviousPos=True, labels=data.label)
+    positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
     writer = GlyphboardWriter('test_name')
     position_response = writer.write_position(positions=positions, algorithm='umap')
     return position_response
