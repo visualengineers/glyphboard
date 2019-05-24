@@ -136,7 +136,8 @@ export class DataproviderService {
       positions: this.deliverPosition,
       meta: this.deliverMeta
     };
-    this.updateDataSet();
+    // this.updateDataSet();
+    console.log(this.dataSet)
     this.setDataSet(this.dataSet);
   }
 

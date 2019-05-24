@@ -1,5 +1,6 @@
 import json
 import csv
+import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2
 from sklearn.cross_validation import train_test_split
@@ -68,14 +69,16 @@ def initData():
         'label': labels,
         'peer_label': peer_labels,
         'score': [0] * len(LC_data),
-        'isLabeled': [False]  * len(LC_data)
+        'isLabeled': [0]  * len(LC_data)
     })
    
     test_data = df[SPLICE_POINT+1:]
-    test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
+    saveData(test_data, 'test_data')
+    # test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
     
-    data_with_scores = getSelectionScores()
-    data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+    data_with_scores = getSelectionScores(rest_data=df)
+    saveData(data_with_scores)
+    # data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
     # resetTrainData()
 
 def loadData(name = 'data'):
@@ -108,11 +111,34 @@ def handleNewAnswer(answer):
     else:
         return ''
 
+def updateDatasetJson():
+    with open("mlbackend/test_data.json", "r") as read_file:
+        LC_data = json.load(read_file)
+        
+    data = loadData()
+
+    for doc in LC_data:
+        doc['features']['1']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
+        doc['values']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
+        doc['features']['1']['32'] = data.loc[data['id'] == doc['id']].score.values[0]
+        doc['values']['32'] = data.loc[data['id'] == doc['id']].score.values[0]
+        doc['features']['1']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
+        doc['values']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
+
+    with open("../backend/data/mainTfIdf/mainTfIdf.05112018.feature.json", "w") as f:
+            json.dump(LC_data, f)
+    
+    return 'Done'
+
+# def updateSingleData(id: number, label, isLabeled):
+#     data = loadData()
+#     json = 
+
 def updateDataWithLabel(docId, label):
     data = loadData()
     print('before', data.loc[data['id'] == docId])
     data.loc[data['id'] == docId, 'label'] = int(label)
-    data.loc[data['id'] == docId, 'isLabeled'] = True
+    data.loc[data['id'] == docId, 'isLabeled'] = 1
     print('after', data.loc[data['id'] == docId])
     saveData(data)
 
@@ -150,7 +176,7 @@ def train(train_data, test_data, algo: Any) -> dict:
 
 def getTrainData():
     data = loadData()
-    return data.loc[data['isLabeled'] == True]
+    return data.loc[data['isLabeled'] == 1]
 
 def getTestData():
     return pd.read_csv('mlbackend/test_data.csv', delimiter=';', encoding="utf8")
@@ -158,7 +184,7 @@ def getTestData():
 def resetTrainData():
     data = loadData()
     data.loc[:, 'label'] = UNLABELED_VALUE
-    data.loc[:, 'isLabeled'] = False
+    data.loc[:, 'isLabeled'] = 0
     saveData(data)
 
 def cleanupTexts():
@@ -171,7 +197,7 @@ def cleanupTexts():
 def mockTraining(amount):
     data = loadData()
     for i in range(amount):
-        data.loc[i, 'isLabeled'] = True
+        data.loc[i, 'isLabeled'] = 1
         if data.loc[i].peer_label > 0.5:
             data.loc[i, 'label'] = 1
         else:
@@ -205,10 +231,13 @@ def addHistory(metrics):
 def getCurrentScore() -> int:
     return getHistory().pop()
 
-def applyDR(tfidf, labels = []):    
+def applyDR(tfidf, labels = [], withPreviousPos = True):    
     # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
     # LABEL_IMPACT = 0
-    previousPositions = loadData('previousPositions').values
+    if withPreviousPos:        
+        previousPositions = loadData('previousPositions').values
+    else:
+        previousPositions = 'scalar'
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     # with_labels = np.hstack((tfidf.toarray(), labels_arr))
@@ -241,8 +270,7 @@ def preprocessText(text: str) -> str:
 #     for ent in doc.ents:
 #         print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
-def getSelectionScores(clf = MNB, train_data = getTestData()): 
-    rest_data = loadData()
+def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestData()): 
     text_clf = Pipeline([
         # ('vect', CountVectorizer()),
         ('tfidf', vec),

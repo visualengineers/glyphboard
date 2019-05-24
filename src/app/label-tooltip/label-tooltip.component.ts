@@ -15,7 +15,7 @@ export class TooltipNewComponent implements OnInit {
 
   @ViewChild('tooltip') private tooltipContainer: ElementRef;
 
-  isMusic: number | string | null;
+  isMusic: number;
 
   public tooltipElement: any;
   private _data: any;
@@ -60,12 +60,11 @@ export class TooltipNewComponent implements OnInit {
   }
 
   private updateTooltip(): void {
-    this.isMusic = this.closestPoint.label;
-    // if (this.closestPoint.labels.length > 0) {
-    //   this.isMusic = String(this.closestPoint.labels[0].answer);
-    // } else {
-    //   this.isMusic = null;
-    // }
+    if (this.closestPoint.features[1][31] === 0) {
+      this.isMusic = null;
+    } else {
+      this.isMusic = this.closestPoint.features[1][33].toString();
+    }
   }
 
   public updateClosestPoint(event: any, transform: any): void {
@@ -149,10 +148,6 @@ export class TooltipNewComponent implements OnInit {
       this._isVisible = true;
       this.updateTooltip();
     }
-  }
-
-  public saveChanges(e: any): void {
-    this.isEdit = !this.isEdit;
   }
 
   getAnswer(): number | string {
