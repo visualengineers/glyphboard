@@ -22,9 +22,10 @@ interface Dataset {
 }
 
 interface Feature {
-  'features': {
-    '1': {string: number}
-  }
+  'default-context': string;
+  id: number;
+  values: { [key: number]: string };
+  features: { 1: { [key: number]: string } };
 }
 
 interface UpdateResponse {
@@ -167,10 +168,10 @@ export class DataproviderService {
   }
 
   updateDataPoint(id, label) {
-    this.dataSet.features.find(feature => feature['features'])
-    this.dataSet.features[id + 1].features['1']['31'] = true;
-    this.dataSet.features[id + 1].features['1']['33'] = label;
-    console.log('Update point:', id, label)
+    const point = this.dataSet.features.find(feature => feature.id === id);
+    point.features[1]['31'] = 1;
+    point.features[1]['33'] = label;
+    console.log('Update point:', point)
     this.setDataSet(this.dataSet);
   }
 

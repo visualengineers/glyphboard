@@ -1,0 +1,10 @@
+<ng-container *ngIf="!loading">
+  <button mat-fab (click)="triggerUpdate()">
+    <mat-icon>update</mat-icon>
+  </button>
+</ng-container>
+
+<ng-container *ngIf="loading">
+  <mat-spinner></mat-spinner>
+</ng-container>
+

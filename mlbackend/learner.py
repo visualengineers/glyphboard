@@ -107,17 +107,26 @@ def handleNewAnswer(answer):
     
     data = updateDataWithLabel(loadData(), newAnswer['docId'], newAnswer['label'])
     if len(train_data) > 3:
-        tfidf = vec.fit_transform(data.text)        
-        positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
-        writer = GlyphboardWriter('test_name')
-        position_response = writer.write_position(positions=positions, algorithm='umap')
+        # tfidf = vec.fit_transform(data.text)        
+        # positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
+        # writer = GlyphboardWriter('test_name')
+        # position_response = writer.write_position(positions=positions, algorithm='umap')
         train_result = train(train_data, test_data, SGD)
         return {
-            'positions': position_response,
+            # 'positions': position_response,
             'train_result': train_result
         }
     else:
         return ''
+
+def handleCompleteUpdate():
+    data = loadData()
+    # updateDatasetJson()
+    tfidf = vec.fit_transform(data.text)
+    positions = applyDR(tfidf, withPreviousPos=True, labels=data.label)
+    writer = GlyphboardWriter('test_name')
+    position_response = writer.write_position(positions=positions, algorithm='umap')
+    return position_response
 
 def updateDatasetJson():
     with open("mlbackend/test_data.json", "r") as read_file:
@@ -248,7 +257,7 @@ def applyDR(tfidf, labels = [], withPreviousPos = True, factor = 1):
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     # with_labels = np.hstack((tfidf.toarray(), labels_arr))
-    computed_coords = umap.UMAP(init=previousPositions,min_dist=0.8, random_state=1, learning_rate=0.5).fit(tfidf.toarray())
+    computed_coords = umap.UMAP(init=previousPositions,min_dist=0.8, random_state=1, learning_rate=0.5).fit(tfidf.toarray(), y=labels_arr)
     computed_coords = computed_coords.embedding_
     saveData(pd.DataFrame(computed_coords), 'previousPositions')
     computed_coords *= factor    
