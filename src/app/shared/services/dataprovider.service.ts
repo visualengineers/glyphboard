@@ -159,6 +159,13 @@ export class DataproviderService {
     console.log('Updated dataset', this.dataSet)
   }
 
+  updateDataPoint(id, label) {
+    this.dataSet.features[id + 1].features['1']['31'] = true;
+    this.dataSet.features[id + 1].features['1']['33'] = label;
+    console.log('Update point:', id, label)
+    this.setDataSet(this.dataSet);
+  }
+
   updatePositions(positions: Position[]): void {
     this.dataSet.positions = positions;
     console.log('Updating positions...', this.dataSet);

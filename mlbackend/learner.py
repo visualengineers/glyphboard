@@ -78,13 +78,13 @@ def initData():
     data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
     # resetTrainData()
 
-def loadData():
-    return pd.read_csv('mlbackend/data.csv', sep=";", encoding="utf8")
+def loadData(name = 'data'):
+    return pd.read_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf8")
 
-def saveData(data):
-    data.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
+def saveData(data, name = 'data'):
+    data.to_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf8", index=False)
 
-def handleNewAnswer(answer):    
+def handleNewAnswer(answer):
     newAnswer = {
         'text': answer['text'],
         'docId': answer['documentId'],
@@ -98,11 +98,11 @@ def handleNewAnswer(answer):
     data = updateDataWithLabel(newAnswer['docId'], newAnswer['label'])
     data = loadData()
     if len(train_data) > 3:
-        # tfidf = vec.fit_transform(data.text)
-        # positions = applyDR(tfidf, data.label)
+        tfidf = vec.fit_transform(data.text)
+        positions = applyDR(tfidf, data.label)
         train_result = train(train_data, test_data, SGD)
         return {
-            # 'positions': positions,
+            'positions': positions,
             'train_result': train_result
         }
     else:
@@ -158,6 +158,7 @@ def getTestData():
 def resetTrainData():
     data = loadData()
     data.loc[:, 'label'] = UNLABELED_VALUE
+    data.loc[:, 'isLabeled'] = False
     saveData(data)
 
 def cleanupTexts():
@@ -207,11 +208,13 @@ def getCurrentScore() -> int:
 def applyDR(tfidf, labels = []):    
     # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
     # LABEL_IMPACT = 0
+    previousPositions = loadData('previousPositions').values
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     # with_labels = np.hstack((tfidf.toarray(), labels_arr))
-    computed_coords = umap.UMAP(min_dist=0.8, random_state=1).fit(tfidf.toarray())
+    computed_coords = umap.UMAP(init=previousPositions,min_dist=0.8, random_state=1).fit(tfidf.toarray(), y=labels_arr)
     computed_coords = computed_coords.embedding_
+    saveData(pd.DataFrame(computed_coords), 'previousPositions')
     # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
     df['x'] = computed_coords[:, 0]
@@ -219,7 +222,7 @@ def applyDR(tfidf, labels = []):
 
     writer = GlyphboardWriter('test_name')
 
-    # DR *= 2
+    # # DR *= 2
     print('Writing positions...')    
     positions = writer.write_position(positions=df, algorithm='umap')
     return positions

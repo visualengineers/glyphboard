@@ -1,6 +1,7 @@
 from datetime import datetime
 from os import path, makedirs
 import json
+import os
 
 from config import config_manager
 
@@ -53,8 +54,7 @@ class GlyphboardWriter:
                     "y": float(row.y)
                 }
             })
-
-        with open("mlbackend/test.position.test.json", "w") as f:
+        with open('backend/data/mainTfIdf/mainTfIdf.05112018.position.umap.json', "w") as f:
             json.dump(pos, f)
 
         return pos
