@@ -83,10 +83,12 @@ def mockInit():
     resetTrainData()
 
 def loadData(name = 'data'):
-    return pd.read_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf8")
+    return pd.read_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf-8")
 
 def saveData(data, name = 'data'):
-    data.to_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf8", index=False)
+    with open('mlbackend/{}.csv'.format(name), mode='w', newline='\n', encoding='utf-8') as f:
+        data.to_csv(f, sep=";", line_terminator='\n', encoding='utf-8', index=False)
+    # data.to_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf-8", index=False)
 
 def handleNewAnswer(answer):
     newAnswer = {
@@ -131,8 +133,8 @@ def updateDatasetJson():
     for doc in LC_data:
         doc['features']['1']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
         doc['values']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
-        doc['features']['1']['32'] = data.loc[data['id'] == doc['id']].score.values[0]
-        doc['values']['32'] = data.loc[data['id'] == doc['id']].score.values[0]
+        doc['features']['1']['32'] = float(data.loc[data['id'] == doc['id']].score.values[0])
+        doc['values']['32'] = float(data.loc[data['id'] == doc['id']].score.values[0])
         doc['features']['1']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
         doc['values']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
 
@@ -189,7 +191,7 @@ def getTrainData():
     return data.loc[data['isLabeled'] == 1]
 
 def getTestData():
-    return pd.read_csv('mlbackend/test_data.csv', delimiter=';', encoding="utf8")
+    return pd.read_csv('mlbackend/test_data.csv', delimiter=';', encoding="utf-8")
 
 def resetTrainData():
     data = loadData()
@@ -223,7 +225,7 @@ def simulateTraining(iterations):
 def getHistory():
     history = []
     with open(
-            "mlbackend/metrics.csv", "r", encoding="utf8") as file:
+            "mlbackend/metrics.csv", "r", encoding="utf-8") as file:
         reader = csv.reader(file, delimiter=';')
         for line in reader:
             history.append(line[0])
@@ -233,7 +235,7 @@ def getHistory():
 
 def addHistory(metrics):
     with open(
-            "mlbackend/metrics.csv", "a",  newline="", encoding="utf8") as file:
+            "mlbackend/metrics.csv", "a",  newline="", encoding="utf-8") as file:
         writer = csv.writer(file, delimiter=';')
         writer.writerow([str(metrics)])
         file.close()
