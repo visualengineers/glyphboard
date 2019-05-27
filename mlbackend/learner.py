@@ -78,7 +78,7 @@ def mockInit():
    
     test_data = df[SPLICE_POINT+1:]
     saveData(test_data, 'test_data')
-    data_with_scores = getSelectionScores(rest_data=df)
+    data_with_scores = getSelectionScores(rest_data=df, train_data=test_data)
     saveData(data_with_scores)
     resetTrainData()
 
@@ -129,6 +129,7 @@ def updateDatasetJson():
         LC_data = json.load(read_file)
         
     data = loadData()
+    data = getSelectionScores(rest_data=data, train_data=getTestData())
 
     for doc in LC_data:
         doc['features']['1']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
@@ -281,7 +282,8 @@ def preprocessText(text: str) -> str:
 #     for ent in doc.ents:
 #         print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
-def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestData()): 
+# Score by uncertainty selection
+def getSelectionScores(rest_data, train_data, clf = MNB): 
     text_clf = Pipeline([
         # ('vect', CountVectorizer()),
         ('tfidf', vec),
@@ -292,5 +294,16 @@ def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestDa
     result_pos = [1-2*abs(x[1]-0.5)  for x in prs]
     rest_data['score'] = result_pos
     return rest_data
+
+def analyseImportantFeatures(clf=SGD):
+    train_data = getTrainData()
+    tfidf = vec.fit_transform(train_data.text)
+    clf.fit(tfidf, train_data.label)
+    feature_names = vec.get_feature_names()
+    coefs_with_fns = sorted(zip(clf.coef_[0], feature_names))
+    top = zip(coefs_with_fns[:20], coefs_with_fns[:-(20 + 1):-1])
+    for (coef_1, fn_1), (coef_2, fn_2) in top:
+        print ('\t%.4f\t%-15s\t\t%.4f\t%-15s' % (coef_1, fn_1, coef_2, fn_2))
+
 
 init()

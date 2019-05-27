@@ -12,12 +12,7 @@ def label():
     # print(request.data)
     answer = json.loads(request.data)
     result = json.dumps(handleNewAnswer(answer))
-    # return result
-    # print(result)
-    # print(result)
     return result
-    # return result
-    # return json.dumps('thanks')
 
 @app.route("/score", methods=["GET"])
 def getScore():
@@ -29,10 +24,10 @@ def triggerUpdate():
     return json.dumps(position)
     
 
-def getUpdatedDataset():
-    updated_scores = getSelectionScores()
-    response = updated_scores[['isLabeled', 'label', 'score']]
-    return response.to_json()
+# def getUpdatedDataset():
+#     updated_scores = getSelectionScores()
+#     response = updated_scores[['isLabeled', 'label', 'score']]
+#     return response.to_json()
 
 
 
