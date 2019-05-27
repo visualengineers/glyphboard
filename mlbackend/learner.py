@@ -42,9 +42,6 @@ vec = TfidfVectorizer(strip_accents='ascii', max_df=0.5, sublinear_tf=True)
 SPLICE_POINT = 800
 UNLABELED_VALUE = -1
 
-# Load Glyphboard data as test
-# 3 = Event, 4 = Music
-
 def init():
     print('Updating JSON...')
     updateDatasetJson()
@@ -81,13 +78,9 @@ def mockInit():
    
     test_data = df[SPLICE_POINT+1:]
     saveData(test_data, 'test_data')
-    # test_data.to_csv('mlbackend/test_data.csv', sep=";", encoding="utf8", index=False)
     data_with_scores = getSelectionScores(rest_data=df)
     saveData(data_with_scores)
     resetTrainData()
-    
-    # data_with_scores.to_csv('mlbackend/data.csv', sep=";", encoding="utf8", index=False)
-    # resetTrainData()
 
 def loadData(name = 'data'):
     return pd.read_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf8")
@@ -298,8 +291,4 @@ def getSelectionScores(clf = MNB, rest_data = loadData(), train_data = getTestDa
     rest_data['score'] = result_pos
     return rest_data
 
-# def getCurrentDataset():
-#     return load
-
-# initData()
 init()
