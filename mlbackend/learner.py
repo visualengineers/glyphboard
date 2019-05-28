@@ -74,7 +74,7 @@ def mockInit():
         'peer_label': peer_labels,
         'score': [0] * len(LC_data),
         'isLabeled': [0]  * len(LC_data),
-        'entities': ''
+        'entities': [' ']  * len(LC_data)
     })
    
     test_data = df[SPLICE_POINT+1:]
@@ -118,7 +118,7 @@ def handleNewAnswer(answer):
 
 def handleCompleteUpdate():
     data = loadData()
-    updateDatasetJson()
+    # updateDatasetJson()
     tfidf = vec.fit_transform(data.text)
     positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
     writer = GlyphboardWriter('test_name')
@@ -161,14 +161,13 @@ def updateDataWithLabel(data, docId, label):
     return data
 
 
-def createMetrics(algo):
+def createMetrics(algo, train_data):
     test_data = getTestData()
-    train_data_df = getTrainData()
-    train_data_df.label = train_data_df.label.astype(int)
     met = []
     # Create stepwise metrics algo, simulating a history
-    for number in range(30, len(train_data_df)):
-        train_data_iteration = train_data_df.head(number)
+    for number in range(30, len(train_data)):
+        train_data_iteration = train_data.head(number)
+        print(train_data_iteration)
         met.append(train(train_data_iteration, test_data, algo=algo))
     return pd.DataFrame(met)
 
@@ -201,14 +200,6 @@ def resetTrainData():
     data = loadData()
     data.loc[:, 'label'] = UNLABELED_VALUE
     data.loc[:, 'isLabeled'] = 0
-    saveData(data)
-
-def cleanupTexts():
-    data = loadData()
-    for idx, text in enumerate(data.text):
-        data.loc[idx, 'text'] = preprocessText(text)
-        data.loc[idx, 'entities'] = extractNER(text)
-        
     saveData(data)
 
 def mockTraining(amount):
@@ -271,16 +262,18 @@ def applyDR(tfidf, labels = [], withPreviousPos = True, factor = 1):
 
 # def resetPositions():
 
+def cleanupTexts():
+    data = loadData()
+    for idx, text in enumerate(data.text):
+        data.loc[idx, 'text'] = preprocessText(text)
+        data.loc[idx, 'entities'] = extractNER(text)
+        
+    saveData(data)
 
 def preprocessText(text: str) -> str:
-    # print('Original: ', text)
     doc = nlp(text)
     # Remove Stop Words and get Lemmas
     return ' '.join([token.text for token in doc if not token.is_stop])
-    # for word in doc:
-    #     if word.is_stop == True:
-    #         print('Stop %s', word)
-    # print(word.lemma_)
     
 def extractNER(text):
     doc = nlp(text)
@@ -313,6 +306,3 @@ def analyseImportantFeatures(clf=SGD):
     top = zip(coefs_with_fns[:20], coefs_with_fns[:-(20 + 1):-1])
     for (coef_1, fn_1), (coef_2, fn_2) in top:
         print ('\t%.4f\t%-15s\t\t%.4f\t%-15s' % (coef_1, fn_1, coef_2, fn_2))
-
-
-init()
