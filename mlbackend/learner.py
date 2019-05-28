@@ -73,7 +73,8 @@ def mockInit():
         'label': labels,
         'peer_label': peer_labels,
         'score': [0] * len(LC_data),
-        'isLabeled': [0]  * len(LC_data)
+        'isLabeled': [0]  * len(LC_data),
+        'entities': ''
     })
    
     test_data = df[SPLICE_POINT+1:]
@@ -138,6 +139,8 @@ def updateDatasetJson():
         doc['values']['32'] = float(data.loc[data['id'] == doc['id']].score.values[0])
         doc['features']['1']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
         doc['values']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
+        doc['features']['1']['34'] = str(data.loc[data['id'] == doc['id']].entities.values[0])
+        doc['values']['34'] = str(data.loc[data['id'] == doc['id']].entities.values[0])
 
     with open("backend/data/mainTfIdf/mainTfIdf.05112018.feature.json", "w") as f:
             json.dump(LC_data, f)
@@ -204,6 +207,7 @@ def cleanupTexts():
     data = loadData()
     for idx, text in enumerate(data.text):
         data.loc[idx, 'text'] = preprocessText(text)
+        data.loc[idx, 'entities'] = extractNER(text)
         
     saveData(data)
 
@@ -277,15 +281,20 @@ def preprocessText(text: str) -> str:
     #     if word.is_stop == True:
     #         print('Stop %s', word)
     # print(word.lemma_)
-
-#             # Get NER
-#     for ent in doc.ents:
-#         print(ent.text, ent.start_char, ent.end_char, ent.label_)
+    
+def extractNER(text):
+    doc = nlp(text)
+    entities = []
+    for ent in doc.ents:
+        entities.append(ent.text)
+    if (len(entities) > 0):
+        return ', '.join(entities)
+    else:
+        return ''
 
 # Score by uncertainty selection
 def getSelectionScores(rest_data, train_data, clf = MNB): 
     text_clf = Pipeline([
-        # ('vect', CountVectorizer()),
         ('tfidf', vec),
         ('clf', clf),
     ])
