@@ -24,6 +24,20 @@
   }
 }
 
+.yes {
+  background: #bf3330;
+  &.mat-button-toggle-checked {
+    background: darken(#bf3330, 10%)
+  }
+}
+
+.no {
+  background: #4f366d;
+  &.mat-button-toggle-checked {
+    background: darken(#4f366d, 10%)
+  }
+}
+
 .label-button-row {
   align-items: center;
   mat-button-toggle-group {
