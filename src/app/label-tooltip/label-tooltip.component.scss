@@ -25,16 +25,16 @@
 }
 
 .yes {
-  background: #bf3330;
+  // background: darken(#bf3330, 5%);
   &.mat-button-toggle-checked {
-    background: darken(#bf3330, 10%)
+    background: darken(#bf3330, 5%)
   }
 }
 
 .no {
-  background: #4f366d;
+  // background: darken(#4f366d, 5%);
   &.mat-button-toggle-checked {
-    background: darken(#4f366d, 10%)
+    background: darken(#4f366d, 5%)
   }
 }
 
