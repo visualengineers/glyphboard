@@ -130,7 +130,7 @@ def updateDatasetJson():
         LC_data = json.load(read_file)
         
     data = loadData()
-    data = getSelectionScores(rest_data=data, train_data=getTestData())
+    data = getSelectionScores(rest_data=data, train_data=getTrainData())
 
     for doc in LC_data:
         doc['features']['1']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
