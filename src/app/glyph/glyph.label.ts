@@ -83,12 +83,14 @@ export class LabelGlyph extends Glyph {
     // Handle unlabeled data
     if (features['31'] === 0) {
       this.context.beginPath();
-      this.context.fillStyle = '#9e9e9e';
+      const color = this.lightenDarkenColor('#9e9e9e', this.normalize(features['32'], 100, 0));
+      // console.log(color);
+      this.context.fillStyle = color;
       this.context.strokeStyle = 'black';
       this.context.arc(
         position.x,
         position.y,
-        radius * this.normalize(features['32'], 0.5, 1.5, 0, 1),
+        radius * this.normalize(features['32'], 0.5, 1.75),
         0,
         2 * Math.PI
       );
@@ -141,9 +143,35 @@ export class LabelGlyph extends Glyph {
     val: number,
     target_min: number,
     target_max: number,
-    min: number = 0.5,
+    min: number = 0,
     max: number = 1
   ): number {
     return ((target_max - target_min) / (max - min)) * (val - max) + target_max;
+  }
+
+  /* tslint:disable */
+  private lightenDarkenColor(col, amt) {
+    let usePound = false;
+
+    if (col[0] === '#') {
+      col = col.slice(1);
+      usePound = true;
+    }
+
+    const num = parseInt(col, 16);
+
+    let r = (num >> 16) + amt;
+
+    if (r > 255) { r = 255; } else if (r < 0) { r = 0; }
+
+    let b = ((num >> 8) & 0x00ff) + amt;
+
+    if (b > 255) { b = 255; } else if (b < 0) { b = 0; }
+
+    let g = (num & 0x0000ff) + amt;
+
+    if (g > 255) { g = 255; } else if (g < 0) { g = 0; }
+
+    return (usePound ? '#' : '') + (g | (b << 8) | (r << 16)).toString(16);
   }
 }
