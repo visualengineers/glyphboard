@@ -27,14 +27,14 @@
 .yes {
   // background: darken(#bf3330, 5%);
   &.mat-button-toggle-checked {
-    background: darken(#bf3330, 5%)
+    background: darken(#bf3330, 5%);
   }
 }
 
 .no {
   // background: darken(#4f366d, 5%);
   &.mat-button-toggle-checked {
-    background: darken(#4f366d, 5%)
+    background: darken(#4f366d, 5%);
   }
 }
 
@@ -78,12 +78,22 @@
 }
 
 .score-row {
-  align-items: center;
+  // align-items: center;
   span.score {
-    font-size: 1.2em;
+    font-size: 1.1em;
   }
 }
 
-mat-progress-bar {
+.loading-bar {
   position: absolute;
+}
+
+.score-bar {
+  height: 25px;
+}
+
+.score {
+  position: relative;
+  top: -23px;
+  left: 5px;
 }

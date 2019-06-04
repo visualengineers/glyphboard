@@ -5,7 +5,7 @@
   [style.top]="y + 'px'"
   [ngClass]="{ hidden: !isVisible, fixed: isFixed }"
 >
-  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+  <mat-progress-bar class="loading-bar" *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
   <div class="row label-button-row">
     <div class="row-icon">
       <mat-icon>music_note</mat-icon>
@@ -51,6 +51,7 @@
       <mat-icon>fitness_center</mat-icon>
     </div>
     <div class="row-content">
+      <mat-progress-bar class="score-bar" color="primary" mode="determinate" [value]="closestPoint?.features[1][32] * 100"></mat-progress-bar>
       <span class="score"
         >{{ (closestPoint?.features[1][32] * 100).toFixed(2) }}%</span
       >
