@@ -82,11 +82,15 @@ export class LabelGlyph extends Glyph {
 
     // Handle unlabeled data
     if (features['31'] === 0) {
+      let strokeColor = 'black';
       this.context.beginPath();
-      const color = this.lightenDarkenColor('#9e9e9e', this.normalize(features['32'], 100, 0));
-      // console.log(color);
+      let color = this.lightenDarkenColor('#9e9e9e', this.normalize(features['32'], 100, 0));
+      if (isPassive) {
+        color = '#ccc';
+        strokeColor = color;
+      }
       this.context.fillStyle = color;
-      this.context.strokeStyle = 'black';
+      this.context.strokeStyle = strokeColor;
       this.context.arc(
         position.x,
         position.y,
