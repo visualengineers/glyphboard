@@ -129,16 +129,17 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
     this.configuration.configurations[0].activeFeatures.forEach(feat => {
       if (feat.active) { labels.push(feat.label); }
     });
-
-    this.context.beginPath();
-    this.glyph.drawWithLabels(
-      dummyPosition,
-      this.dummyFeatures,
-      1.0,
-      false,
-      labels
-    );
-    this.context.restore();
+    if (labels.length != 0) {
+      this.context.beginPath();
+      this.glyph.drawWithLabels(
+        dummyPosition,
+        this.dummyFeatures,
+        1.0,
+        false,
+        labels
+      );
+      this.context.restore();
+      }
   }
 
   private updateAccessors(): void {

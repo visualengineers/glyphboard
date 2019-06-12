@@ -137,8 +137,17 @@ export class ConfigurationData {
       }
       count++;
     });
-
-    this.currentLevelOfDetail = newLevel;
+    var hasActiveFeatures = false;
+    if(this.activeFeatures != undefined){
+      this.activeFeatures.forEach(d => {
+        if(d.active) {
+          hasActiveFeatures = true;
+        }
+      });
+    }
+    if(hasActiveFeatures || this.activeFeatures == undefined){
+      this.currentLevelOfDetail = newLevel;
+    }
   }
 
   /**
