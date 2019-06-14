@@ -91,6 +91,8 @@ export class SelectionService {
   // Refresh ID list
   public filterRefresh() {
     var filteredIds = [];
+    var metaData: any = {};
+    var histogram: Array<number>;
 
     this._data.positions.forEach(d => {
       let itemConfirmsFilter = true;
@@ -108,9 +110,20 @@ export class SelectionService {
       // calculate histograms
       // add this._data.features[d.id].features to histogram bins with the count of this._data-meta.features[0].histogram.length of the feature
       // write it into this._dataSelected.meta.features[feature].histogram
+      // count of features is: Object.keys(this._data.meta.features).length
+      // count of histogram bins: Object.keys(this._data.meta.features['2'].histogram).length
+        console.log(Object.keys(this._data.meta.features));
+        console.log(Object.values(featureItem.features).map(Number));
+        if (Array.isArray(histogram) && histogram.length) {
+          // instead of averaging, we need to put them into the right bin, create bins beforehand 
+          histogram = Object.values(featureItem.features).map(Number).map((v, i) => v + histogram[i]) 
+        } else {
+          histogram = Object.values(featureItem.features).map(Number);
+        }
       }
- 
     });
+    histogram = histogram.map((v, i) => v / filteredIds.length);
+    console.log(histogram);
     this._filteredItemsIds = filteredIds;
     if (this._featureFilters.length == 0) {
       this._filteredItemsCount = this._data.positions.length;

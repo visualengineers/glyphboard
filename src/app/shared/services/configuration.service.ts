@@ -51,7 +51,7 @@ export class Configuration {
     }
 
     public addConfiguration() {
-        const config = new ConfigurationData(this.eventAggregator, this.selectionService);
+        const config = new ConfigurationData(this.eventAggregator);
         this._configurations.push(config);
         return config;
     }
