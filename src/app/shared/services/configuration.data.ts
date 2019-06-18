@@ -147,6 +147,8 @@ export class ConfigurationData {
     }
     if(hasActiveFeatures || this.activeFeatures == undefined){
       this.currentLevelOfDetail = newLevel;
+    } else {
+      this.currentLevelOfDetail = 0;
     }
   }
 

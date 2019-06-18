@@ -366,6 +366,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       this.active = payload[1];
       this.updateColoring();
       this.eventAggregator.getEvent(RefreshConfigEvent).publish(true);
+      this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
     }
   } 
 
