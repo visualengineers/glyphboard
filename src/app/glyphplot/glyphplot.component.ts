@@ -55,7 +55,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _simulation: any;
   private _currentLayout: any;
   private _drawLock: boolean;
-  private _suppressAnimations = false;
+  private _suppressAnimations = true;
   private _uniqueID: string;
   private _zoom: any;
   private _quadtree: any;

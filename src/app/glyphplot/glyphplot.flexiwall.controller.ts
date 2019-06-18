@@ -44,11 +44,11 @@ export class FlexiWallController {
       };
 
       websocket.onerror = function (e) {
-        component.suppressAnimations = false;
+        component.suppressAnimations = true;
       };
 
       websocket.onclose = function (e) {
-        component.suppressAnimations = false;
+        component.suppressAnimations = true;
       };
     } catch (err) {
       this.logger.log('No Flexiwall Connection found.');
