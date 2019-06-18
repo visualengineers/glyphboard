@@ -18,6 +18,7 @@ import { ManualZoom } from 'app/shared/events/manual-zoom.event';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { RefreshSelectionEvent } from 'app/shared/events/refresh-selection.event';
 
 export class GlyphplotEventController {
   private counter: number;
@@ -175,7 +176,11 @@ export class GlyphplotEventController {
         this.selectionService.featureFilters.push(idFilter);
         this.selectionService.filterRefresh();
       }
+    } else {
+      this.selectionService.featureFilters = [];
+      this.selectionService.filterRefresh();
     }
+
     // draws the selection rectangle if the user is currently in the specific mode
     if (
       this.configuration.useDragSelection &&
@@ -311,6 +316,8 @@ export class GlyphplotEventController {
     }
     if (this.configuration.useDragSelection && !this.configuration.extendSelection) {
       this.clearIdFilters();
+      this.selectionService.featureFilters = [];
+      this.selectionService.filterRefresh();
       this.component.draw();
     }
   }

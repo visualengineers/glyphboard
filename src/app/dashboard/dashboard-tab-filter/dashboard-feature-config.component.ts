@@ -7,6 +7,7 @@ import { EventAggregatorService } from 'app/shared/events/event-aggregator.servi
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { Observable } from 'rxjs';
 import { SelectionService } from 'app/shared/services/selection.service';
+import { RefreshSelectionEvent } from 'app/shared/events/refresh-selection.event';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -46,8 +47,8 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     .on('end', () => {this.brushed(); 
       DashboardFeatureConfigComponent.filtering(this);});
 
-  dat: any;
-  data: any;
+  private _dat: any;
+  private _data: any;
 
   @Output() onConfigChange = new EventEmitter<any>();
   @Output() onColorChange = new EventEmitter<any>();
@@ -91,7 +92,18 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     if (dat === undefined || dat['features'][property] === undefined) {
       return null;
     }
-    const active = dat['features'][property]['histogram'];
+    let active = {};
+    if (this.selectionService.selectedHistogram === undefined) {
+      active = dat['features'][property]['histogram'];
+      //console.log(active);
+    } else {
+      if (this.selectionService.selectedHistogram[property]) {
+        this.selectionService.selectedHistogram[property].forEach((currentElement, index) => {
+          active[index] = currentElement;
+        });
+        //console.log(active);
+      }
+    }
 
     const values = [];
     let i = 0;
@@ -110,9 +122,11 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
     this.dataProvider.getDataSet().subscribe(message => {
       if (message == null) { return; }
-      this.dat = message.meta;
-      this.data = this.loadValues(this.property, this.dat);
-      this.dataSteps = this.data.length;
+      this._dat = message.meta;
+      this._data = this.loadValues(this.property, this._dat);
+      if (this._data) {
+        this.dataSteps = this._data.length;
+      }
     });
 
     this.width = 80;
@@ -131,7 +145,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       '#BF3330'
     ];
 
-    if (this.data) {
+    if (this._data) {
       this.createChart(true);
       this.updateChart(true);
     }
@@ -151,14 +165,25 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
   ngOnChanges() { }
 
-  constructor(private dataProvider: DataproviderService, private eventAggregator: EventAggregatorService, private selectionService: SelectionService) { }
+  constructor(private dataProvider: DataproviderService, private eventAggregator: EventAggregatorService, private selectionService: SelectionService) {
+    this.eventAggregator
+    .getEvent(RefreshSelectionEvent)
+    .subscribe(this.onRefreshSelection);
+   }
 
   public changed(): void {
     this.active = !this.active;
     this.updateColoring();
     this.onConfigChange.emit(this.object);
+  }
 
-
+  onRefreshSelection = (payload: boolean) =>  {
+    this._data = this.loadValues(this.property, this._dat);
+    d3.select(this.chartContainer.nativeElement).selectAll('*').remove();
+    this.createChart();
+      if (this._data) {
+        this.updateChart();
+      }
   }
 
   public selectColor(): void {
@@ -181,12 +206,15 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.small = !this.small;
 
     this.createChart();
-      if (this.data) {
+      if (this._data) {
         this.updateChart();
       }
   }
 
   private createChart(init: boolean = false) {
+    if (!this._data) {
+      return;
+    }
     const element = this.chartContainer.nativeElement;
     if (init) {
       this.selectionService.featureFilters.forEach( d => {
@@ -207,8 +235,8 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
 
     // define X & Y domains
-    const xDomain = this.data.map(d => d[0]);
-    const yDomain = this.data.map(d => d[1]);
+    const xDomain = this._data.map(d => d[0]);
+    const yDomain = this._data.map(d => d[1]);
 
     // create scales
     this.xScale = d3.scaleBand().padding(0).domain(xDomain).range([0, this.width]);
@@ -217,11 +245,11 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
   private updateChart(init: boolean = false) {
     // update scales
-    this.xScale.domain(this.data.map(d => d[0]));
-    this.yScale.domain([0, d3.max(this.data, d => d[1])]);
+    this.xScale.domain(this._data.map(d => d[0]));
+    this.yScale.domain([0, d3.max(this._data, d => d[1])]);
 
     const that = this;
-    const update = this.chart.selectAll('.bar').data(this.data);
+    const update = this.chart.selectAll('.bar').data(this._data);
 
     // remove existing bars
     update.exit().remove();
@@ -350,7 +378,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     }
 
     const x = d3.scaleLinear()
-      .domain(this.data.map(d => d[0]))
+      .domain(this._data.map(d => d[0]))
       .range([0, this.width])
     const selection = d3.event.selection.map(x.invert, x);
     this.brushMin = +d3.min(selection) * this.dataSteps;

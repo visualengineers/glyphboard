@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
+import { EventAggregatorService } from '../events/event-aggregator.service';
+import { RefreshSelectionEvent } from '../events/refresh-selection.event';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +13,7 @@ export class SelectionService {
   private _filteredItemsIds = [];
   private _filteredItemsCount = 0;
   private _featureFilters: FeatureFilter[] = []; // list of filters applied to glyphs  
+  private _selectedHistogram: Array<Array<number>>;
 
   
   public set data(data: any) {
@@ -31,6 +34,7 @@ export class SelectionService {
   get filteredItemsCount() { return this._filteredItemsCount }
   set filteredItemsCount(value: number) { this._filteredItemsCount = value; }
 
+  get selectedHistogram() { return this._selectedHistogram }
 
   get filteredItemsIds() { return this._filteredItemsIds }
   set filteredItemsIds(value: number[]) { this._filteredItemsIds = value; }  
@@ -90,9 +94,10 @@ export class SelectionService {
 
   // Refresh ID list
   public filterRefresh() {
-    var filteredIds = [];
-    var metaData: any = {};
-    var histogram: Array<number>;
+    let filteredIds = [];
+    const binCount: number = Object.keys(Object.values(this._data.meta.features).shift()['histogram']).length;
+    let histogram: Array<Array<number>> = new Array(Object.keys(this._data.meta.features).length).fill(0).map( x => (Array(binCount).fill(0)));
+    const histoStep: number = 1;
 
     this._data.positions.forEach(d => {
       let itemConfirmsFilter = true;
@@ -107,30 +112,25 @@ export class SelectionService {
 
       if (itemConfirmsFilter) {
         filteredIds.push(d.id);
-      // calculate histograms
-      // add this._data.features[d.id].features to histogram bins with the count of this._data-meta.features[0].histogram.length of the feature
-      // write it into this._dataSelected.meta.features[feature].histogram
-      // count of features is: Object.keys(this._data.meta.features).length
-      // count of histogram bins: Object.keys(this._data.meta.features['2'].histogram).length
-        console.log(Object.keys(this._data.meta.features));
-        console.log(Object.values(featureItem.features).map(Number));
-        if (Array.isArray(histogram) && histogram.length) {
-          // instead of averaging, we need to put them into the right bin, create bins beforehand 
-          histogram = Object.values(featureItem.features).map(Number).map((v, i) => v + histogram[i]) 
-        } else {
-          histogram = Object.values(featureItem.features).map(Number);
-        }
+        // calculate histograms
+        Object.values<number>(featureItem.features).forEach((feature, featureIndex) => {
+          let bin: number = Math.floor(feature*binCount);
+          if (bin >= binCount) {
+            bin = binCount-1;
+          }
+          histogram[featureIndex][bin] += histoStep;
+        });
       }
     });
-    histogram = histogram.map((v, i) => v / filteredIds.length);
-    console.log(histogram);
     this._filteredItemsIds = filteredIds;
     if (this._featureFilters.length == 0) {
       this._filteredItemsCount = this._data.positions.length;
+      this._selectedHistogram = undefined;
     } else {
       this._filteredItemsCount = this._filteredItemsIds.length;
-      console.log(this._data);
+      this._selectedHistogram = histogram;
     }
+    this.eventAggregator.getEvent(RefreshSelectionEvent).publish(true);
   }
 
   private getFeaturesForItem(d: any) {
@@ -146,5 +146,5 @@ export class SelectionService {
     return ret;
   }  
 
-  constructor() { }
+  constructor(private eventAggregator: EventAggregatorService) { }
 }
