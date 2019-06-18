@@ -8,6 +8,8 @@ import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { Observable } from 'rxjs';
 import { SelectionService } from 'app/shared/services/selection.service';
 import { RefreshSelectionEvent } from 'app/shared/events/refresh-selection.event';
+import { ToggleGroupEvent } from 'app/shared/events/toggle-group.event';
+import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -169,7 +171,10 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.eventAggregator
     .getEvent(RefreshSelectionEvent)
     .subscribe(this.onRefreshSelection);
-   }
+    this.eventAggregator
+    .getEvent(ToggleGroupEvent)
+    .subscribe(this.toggleGroupState);
+  }
 
   public changed(): void {
     this.active = !this.active;
@@ -402,4 +407,15 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.chart.selectAll('.bar')
     .style('fill', d => this.colorDecision(d));
   }
+
+  private toggleGroupState = (payload: [string, boolean]) => {
+    if (this.configuration.configurations[0].featureGroups[payload[0]].member.indexOf(this.property) > -1) {
+      this.configuration.configurations[0].activeFeatures[this.configuration.configurations[0].activeFeatures.indexOf(this.object)].active = payload[1];
+      this.active = payload[1];
+      this.updateColoring();
+      this.eventAggregator.getEvent(RefreshConfigEvent).publish(true);
+      this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+    }
+  } 
+
 }
