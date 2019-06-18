@@ -8,3 +8,5 @@ MulticoreTSNE==0.1
 scikit_learn==0.21.2
 typing==3.6.6
 umap==0.1.1
+jupyter==1.0.0
+matplotlib==3.0.2

@@ -42,12 +42,14 @@ vec = TfidfVectorizer(strip_accents='ascii', max_df=0.5, sublinear_tf=True)
 SPLICE_POINT = 800
 UNLABELED_VALUE = -1
 
+
 def init():
     print('Updating JSON...')
     updateDatasetJson()
     # print('Cleaning Texts...')
     # cleanupTexts()
     print('Done')
+
 
 def mockInit():
     texts = []
@@ -73,23 +75,27 @@ def mockInit():
         'label': labels,
         'peer_label': peer_labels,
         'score': [0] * len(LC_data),
-        'isLabeled': [0]  * len(LC_data),
-        'entities': [' ']  * len(LC_data)
+        'isLabeled': [0] * len(LC_data),
+        'entities': [' '] * len(LC_data)
     })
-   
+
     test_data = df[SPLICE_POINT+1:]
     saveData(test_data, 'test_data')
     data_with_scores = getSelectionScores(rest_data=df, train_data=test_data)
     saveData(data_with_scores)
     resetTrainData()
 
-def loadData(name = 'data'):
+
+def loadData(name='data'):
     return pd.read_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf-8")
 
-def saveData(data, name = 'data'):
+
+def saveData(data, name='data'):
     with open('mlbackend/{}.csv'.format(name), mode='w', newline='\n', encoding='utf-8') as f:
-        data.to_csv(f, sep=";", line_terminator='\n', encoding='utf-8', index=False)
+        data.to_csv(f, sep=";", line_terminator='\n',
+                    encoding='utf-8', index=False)
     # data.to_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf-8", index=False)
+
 
 def handleNewAnswer(answer):
     newAnswer = {
@@ -101,10 +107,11 @@ def handleNewAnswer(answer):
     train_data = getTrainData()
 
     test_data = getTestData()
-    
-    data = updateDataWithLabel(loadData(), newAnswer['docId'], newAnswer['label'])
+
+    data = updateDataWithLabel(
+        loadData(), newAnswer['docId'], newAnswer['label'])
     if len(train_data) > 3:
-        # tfidf = vec.fit_transform(data.text)        
+        # tfidf = vec.fit_transform(data.text)
         # positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
         # writer = GlyphboardWriter('test_name')
         # position_response = writer.write_position(positions=positions, algorithm='umap')
@@ -116,40 +123,52 @@ def handleNewAnswer(answer):
     else:
         return ''
 
+
 def handleCompleteUpdate():
     data = loadData()
     # updateDatasetJson()
     tfidf = vec.fit_transform(data.text)
     positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
     writer = GlyphboardWriter('test_name')
-    position_response = writer.write_position(positions=positions, algorithm='umap')
+    position_response = writer.write_position(
+        positions=positions, algorithm='umap')
     return position_response
+
 
 def updateDatasetJson():
     with open("mlbackend/test_data.json", "r") as read_file:
         LC_data = json.load(read_file)
-        
+
     data = loadData()
     data = getSelectionScores(rest_data=data, train_data=getTrainData())
 
     for doc in LC_data:
-        doc['features']['1']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
-        doc['values']['31'] = int(data.loc[data['id'] == doc['id']].isLabeled.values[0])
-        doc['features']['1']['32'] = float(data.loc[data['id'] == doc['id']].score.values[0])
-        doc['values']['32'] = float(data.loc[data['id'] == doc['id']].score.values[0])
-        doc['features']['1']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
-        doc['values']['33'] = int(data.loc[data['id'] == doc['id']].label.values[0])
-        doc['features']['1']['34'] = str(data.loc[data['id'] == doc['id']].entities.values[0])
-        doc['values']['34'] = str(data.loc[data['id'] == doc['id']].entities.values[0])
+        doc['features']['1']['31'] = int(
+            data.loc[data['id'] == doc['id']].isLabeled.values[0])
+        doc['values']['31'] = int(
+            data.loc[data['id'] == doc['id']].isLabeled.values[0])
+        doc['features']['1']['32'] = float(
+            data.loc[data['id'] == doc['id']].score.values[0])
+        doc['values']['32'] = float(
+            data.loc[data['id'] == doc['id']].score.values[0])
+        doc['features']['1']['33'] = int(
+            data.loc[data['id'] == doc['id']].label.values[0])
+        doc['values']['33'] = int(
+            data.loc[data['id'] == doc['id']].label.values[0])
+        doc['features']['1']['34'] = str(
+            data.loc[data['id'] == doc['id']].entities.values[0])
+        doc['values']['34'] = str(
+            data.loc[data['id'] == doc['id']].entities.values[0])
 
     with open("backend/data/mainTfIdf/mainTfIdf.05112018.feature.json", "w") as f:
-            json.dump(LC_data, f)
-    
+        json.dump(LC_data, f)
+
     return 'Done'
 
 # def updateSingleData(id: number, label, isLabeled):
 #     data = loadData()
-#     json = 
+#     json =
+
 
 def updateDataWithLabel(data, docId, label):
     print('before', data.loc[data['id'] == docId])
@@ -189,18 +208,22 @@ def train(train_data, test_data, algo: Any) -> dict:
     }
     return result
 
+
 def getTrainData():
     data = loadData()
     return data.loc[data['isLabeled'] == 1]
 
+
 def getTestData():
     return pd.read_csv('mlbackend/test_data.csv', delimiter=';', encoding="utf-8")
+
 
 def resetTrainData():
     data = loadData()
     data.loc[:, 'label'] = UNLABELED_VALUE
     data.loc[:, 'isLabeled'] = 0
     saveData(data)
+
 
 def mockTraining(amount):
     data = loadData()
@@ -209,14 +232,16 @@ def mockTraining(amount):
         if data.loc[i].peer_label > 0.5:
             data.loc[i, 'label'] = 1
         else:
-            data.loc[i, 'label'] = 0        
+            data.loc[i, 'label'] = 0
     saveData(data)
+
 
 def simulateTraining(iterations):
     test_data = getTestData()
     mockTraining(iterations)
     train_data = getTrainData()
     train(train_data, test_data, SGD)
+
 
 def getHistory():
     history = []
@@ -236,45 +261,51 @@ def addHistory(metrics):
         writer.writerow([str(metrics)])
         file.close()
 
+
 def getCurrentScore() -> int:
     return getHistory().pop()
 
-def applyDR(tfidf, labels = [], withPreviousPos = True, factor = 1):    
+
+def applyDR(tfidf, labels=[], withPreviousPos=True, factor=1):
     # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
     # LABEL_IMPACT = 0
-    if withPreviousPos:        
+    if withPreviousPos:
         previousPositions = loadData('previousPositions').values
     else:
         previousPositions = 'spectral'
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
     # with_labels = np.hstack((tfidf.toarray(), labels_arr))
-    computed_coords = umap.UMAP(init=previousPositions,min_dist=0.8, random_state=1, learning_rate=0.5).fit(tfidf.toarray(), y=labels_arr)
+    computed_coords = umap.UMAP(init=previousPositions, min_dist=0.8,
+                                random_state=1, learning_rate=0.5).fit(tfidf.toarray(), y=labels_arr)
     computed_coords = computed_coords.embedding_
     saveData(pd.DataFrame(computed_coords), 'previousPositions')
-    computed_coords *= factor    
+    computed_coords *= factor
     # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
     df['x'] = computed_coords[:, 0]
     df['y'] = computed_coords[:, 1]
-    
+
     return df
 
 # def resetPositions():
+
 
 def cleanupTexts():
     data = loadData()
     for idx, text in enumerate(data.text):
         data.loc[idx, 'text'] = preprocessText(text)
         data.loc[idx, 'entities'] = extractNER(text)
-        
+
     saveData(data)
+
 
 def preprocessText(text: str) -> str:
     doc = nlp(text)
     # Remove Stop Words and get Lemmas
     return ' '.join([token.text for token in doc if not token.is_stop])
-    
+
+
 def extractNER(text):
     doc = nlp(text)
     entities = []
@@ -286,16 +317,19 @@ def extractNER(text):
         return ''
 
 # Score by uncertainty selection
-def getSelectionScores(rest_data, train_data, clf = MNB): 
+
+
+def getSelectionScores(rest_data, train_data, clf=MNB):
     text_clf = Pipeline([
         ('tfidf', vec),
         ('clf', clf),
     ])
     text_clf.fit(train_data.text, train_data.label)
-    prs = text_clf.predict_proba(rest_data.text) 
-    result_pos = [1-2*abs(x[1]-0.5)  for x in prs]
+    prs = text_clf.predict_proba(rest_data.text)
+    result_pos = [1-2*abs(x[1]-0.5) for x in prs]
     rest_data['score'] = result_pos
     return rest_data
+
 
 def analyseImportantFeatures(clf=SGD):
     train_data = getTrainData()
@@ -305,4 +339,4 @@ def analyseImportantFeatures(clf=SGD):
     coefs_with_fns = sorted(zip(clf.coef_[0], feature_names))
     top = zip(coefs_with_fns[:20], coefs_with_fns[:-(20 + 1):-1])
     for (coef_1, fn_1), (coef_2, fn_2) in top:
-        print ('\t%.4f\t%-15s\t\t%.4f\t%-15s' % (coef_1, fn_1, coef_2, fn_2))
+        print('\t%.4f\t%-15s\t\t%.4f\t%-15s' % (coef_1, fn_1, coef_2, fn_2))
