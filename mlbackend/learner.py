@@ -126,7 +126,7 @@ def handleNewAnswer(answer):
 
 def handleCompleteUpdate():
     data = loadData()
-    # updateDatasetJson()
+    # data = updateDatasetJson()
     tfidf = vec.fit_transform(data.text)
     positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
     writer = GlyphboardWriter('test_name')
@@ -163,7 +163,7 @@ def updateDatasetJson():
     with open("backend/data/mainTfIdf/mainTfIdf.05112018.feature.json", "w") as f:
         json.dump(LC_data, f)
 
-    return 'Done'
+    return data
 
 # def updateSingleData(id: number, label, isLabeled):
 #     data = loadData()
