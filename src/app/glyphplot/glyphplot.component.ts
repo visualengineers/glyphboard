@@ -138,6 +138,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     this.configuration.getData().subscribe(message => {
       this.data = message;
       if (this.data) {
+        this.selectionService.data = this.data;
         if (this.configuration.leftSide) {
           this.dataUpdated = true;
         }
