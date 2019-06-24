@@ -20,6 +20,7 @@ import { ViewportTransformationEventData } from 'app/shared/events/viewport-tran
 import { InteractionEvent} from 'app/shared/events/interaction.event';
 import { InteractionEventData} from 'app/shared/events/interaction.event.data';
 import { Interaction} from 'app/shared/util/interaction';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { SelectionRect } from 'app/glyphplot/selection-rect';
@@ -100,6 +101,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     private configurationService: Configuration,
     private eventAggregator: EventAggregatorService,
     private cursor: LenseCursor,
+    private selectionService: SelectionService
   ) {
     const fl = new THREE.FileLoader();
     fl.load('/assets/shader/glyphplot_vertex.vert', vertexShader => {
@@ -112,6 +114,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.configurationService.configurations[0].getData().subscribe(message => {
       if (message != null) {
         this._data = message;
+        if (this.data) {
+          this.selectionService.data = this.data;
+        }
         this.buildParticles();
       }
     });
@@ -144,7 +149,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this._context = this.selectionRectangle.nativeElement.getContext('2d');
 
     this._selectionRect = new SelectionRect(this, this._context, this.helper);
-    this._selectionRect.data = this._data;
+    // this._selectionRect.data = this._data;
     this._selectionRect.offset = {
       x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
       y: 0
@@ -514,8 +519,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         particlePositions.push(renderPosZ);
 
         const isPassive =
-          !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
-          (this._configuration.featureFilters.length === 0));
+          !((this.selectionService.filteredItemsIds.indexOf(item.id) > -1) ||
+          (this.selectionService.featureFilters.length === 0));
 
         const feature = this.configuration.getFeaturesForItem(item).features;
         const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
@@ -571,7 +576,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.data.getPositions().forEach(d => {
       const data = this.configuration.getFeaturesForItem(d);
 
-        if (this.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
+        if (this.selectionService.filteredItemsIds.indexOf(d.id) > -1 || this.selectionService.featureFilters.length === 0) {
           filteredPositions.push(d.position);
         }
       });
@@ -643,24 +648,24 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         this.saveEndTransform = {x: payload.GetPositionX(), y: payload.GetPositionY()};
 
         this._selectionRect.clear();
-        this._selectionRect.data = this.data;
+        this.selectionService.data = this.data;
     
-        const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
+        const existingIdFilters: FeatureFilter[] = this.selectionService.featureFilters.filter((filter: FeatureFilter) => {
           if (filter instanceof IdFilter) {
             return true;
           }
         });
     
-        const selection = this._selectionRect.selectedGlyphs;
-        const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
-          arrayOfIds.push(item.id);
-          return arrayOfIds;
-        }, []);
+        const selection = this.selectionService.filteredItemsIds;
+        // const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
+        //   arrayOfIds.push(item.id);
+        //   return arrayOfIds;
+        // }, []);
     
         this.clearIdFilters();
     
         // filter only if at least one glyph was selected
-        if (selectedIds.length > 0) {
+        if (selection.length > 0) {
           let idFilter: IdFilter;
     
           if (this.configuration.extendSelection && existingIdFilters.length > 0) {
@@ -668,18 +673,18 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
             if (existingFilter instanceof IdFilter) {
               idFilter = existingFilter;
             }
-            idFilter.extendAccaptableIds(selectedIds);
+            idFilter.extendAccaptableIds(selection);
           } else {
-            idFilter = new IdFilter('id', selectedIds);
+            idFilter = new IdFilter('id', selection);
           }
           if (this.viewsShowTheSameDataSet()) {
-            this.configurationService.configurations[0].featureFilters.push(idFilter);
-            this.configurationService.configurations[1].featureFilters.push(idFilter);
-            this.configurationService.configurations[0].filterRefresh();
-            this.configurationService.configurations[1].filterRefresh();
+            this.selectionService[0].featureFilters.push(idFilter);
+            this.selectionService[1].featureFilters.push(idFilter);
+            this.selectionService[0].filterRefresh();
+            this.selectionService[1].filterRefresh();
           } else {
-            this.configuration.featureFilters.push(idFilter);
-            this.configuration.filterRefresh();
+            this.selectionService.featureFilters.push(idFilter);
+            this.selectionService.filterRefresh();
           }
         }
         // draws the selection rectangle if the user is currently in the specific mode
@@ -723,7 +728,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       }
     }
     // remove old idFilters
-    this.configuration.featureFilters.forEach(removeIdFilters);
+    this.selectionService.featureFilters.forEach(removeIdFilters);
   }
 
   private updateParticles() {
@@ -739,8 +744,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     this.data.positions.forEach(item => {
       const isPassive =
-            !((this._configuration.filteredItemsIds.indexOf(item.id) > -1) ||
-            (this._configuration.featureFilters.length === 0));
+            !((this.selectionService.filteredItemsIds.indexOf(item.id) > -1) ||
+            (this.selectionService.featureFilters.length === 0));
           const feature = this.configuration.getFeaturesForItem(item).features;
           const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
           particleColors.push( color.r, color.g, color.b);

@@ -6,6 +6,10 @@ import { Configuration } from '../../shared/services/configuration.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 import { Observable } from 'rxjs';
+import { SelectionService } from 'app/shared/services/selection.service';
+import { RefreshSelectionEvent } from 'app/shared/events/refresh-selection.event';
+import { ToggleGroupEvent } from 'app/shared/events/toggle-group.event';
+import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -36,6 +40,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
   private brushMax = -1;
   public colorSteps: any;
   private dataSteps: number;
+  private block = false;
 
   private activeFilterInConfiguration: FeatureFilter;
   private propertyInConfiguration: string;
@@ -44,8 +49,8 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     .on('end', () => {this.brushed(); 
       DashboardFeatureConfigComponent.filtering(this);});
 
-  dat: any;
-  data: any;
+  private _dat: any;
+  private _data: any;
 
   @Output() onConfigChange = new EventEmitter<any>();
   @Output() onColorChange = new EventEmitter<any>();
@@ -55,7 +60,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       component.removeFilterFromConfiguration();
       return;
     }
-
+    
     let filter: FeatureFilter = component.activeFilterInConfiguration;
 
     if (filter == null) {
@@ -63,11 +68,9 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
       filter.featureName = component.propertyInConfiguration;
       component.activeFilterInConfiguration = filter;
-      component.configuration.configurations[0].featureFilters.push(filter);
-      component.configuration.configurations[1].featureFilters.push(filter);
-
+      component.selectionService.featureFilters.push(filter);
+      
     }
-
     const absoluteMinValue: number = +d3.min(d3.event.selection);
     const absoluteMaxValue: number = +d3.max(d3.event.selection);
 
@@ -83,9 +86,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     filter.minValue = minValue;
     filter.maxValue = Math.min(maxValue, 1.0);
 
-    component.configuration.configurations[0].filterRefresh();
-    component.configuration.configurations[1].filterRefresh();
-
+    component.selectionService.filterRefresh();
     component.onLayoutChange();
   };
 
@@ -93,7 +94,18 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     if (dat === undefined || dat['features'][property] === undefined) {
       return null;
     }
-    const active = dat['features'][property]['histogram'];
+    let active = {};
+    if (this.selectionService.selectedHistogram === undefined) {
+      active = dat['features'][property]['histogram'];
+      //console.log(active);
+    } else {
+      if (this.selectionService.selectedHistogram[property]) {
+        this.selectionService.selectedHistogram[property].forEach((currentElement, index) => {
+          active[index] = currentElement;
+        });
+        //console.log(active);
+      }
+    }
 
     const values = [];
     let i = 0;
@@ -112,9 +124,11 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
     this.dataProvider.getDataSet().subscribe(message => {
       if (message == null) { return; }
-      this.dat = message.meta;
-      this.data = this.loadValues(this.property, this.dat);
-      this.dataSteps = this.data.length;
+      this._dat = message.meta;
+      this._data = this.loadValues(this.property, this._dat);
+      if (this._data) {
+        this.dataSteps = this._data.length;
+      }
     });
 
     this.width = 80;
@@ -133,9 +147,9 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       '#BF3330'
     ];
 
-    if (this.data) {
-      this.createChart();
-      this.updateChart();
+    if (this._data) {
+      this.createChart(true);
+      this.updateChart(true);
     }
 
     // since the label is a string and the items only have indexed properties, find the property
@@ -153,14 +167,28 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
 
   ngOnChanges() { }
 
-  constructor(private dataProvider: DataproviderService, private eventAggregator: EventAggregatorService) { }
+  constructor(private dataProvider: DataproviderService, private eventAggregator: EventAggregatorService, private selectionService: SelectionService) {
+    this.eventAggregator
+    .getEvent(RefreshSelectionEvent)
+    .subscribe(this.onRefreshSelection);
+    this.eventAggregator
+    .getEvent(ToggleGroupEvent)
+    .subscribe(this.toggleGroupState);
+  }
 
   public changed(): void {
     this.active = !this.active;
     this.updateColoring();
     this.onConfigChange.emit(this.object);
+  }
 
-
+  onRefreshSelection = (payload: boolean) =>  {
+    this._data = this.loadValues(this.property, this._dat);
+    d3.select(this.chartContainer.nativeElement).selectAll('*').remove();
+    this.createChart();
+      if (this._data) {
+        this.updateChart();
+      }
   }
 
   public selectColor(): void {
@@ -183,13 +211,24 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.small = !this.small;
 
     this.createChart();
-      if (this.data) {
+      if (this._data) {
         this.updateChart();
       }
   }
 
-  private createChart() {
+  private createChart(init: boolean = false) {
+    if (!this._data) {
+      return;
+    }
     const element = this.chartContainer.nativeElement;
+    if (init) {
+      this.selectionService.featureFilters.forEach( d => {
+        if (d.featureName == this.property) {
+          this.small = false;
+          this.width = 340;
+        }
+      });
+    }
     this.svg = d3.select(element).append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
@@ -201,21 +240,21 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
 
     // define X & Y domains
-    const xDomain = this.data.map(d => d[0]);
-    const yDomain = this.data.map(d => d[1]);
+    const xDomain = this._data.map(d => d[0]);
+    const yDomain = this._data.map(d => d[1]);
 
     // create scales
     this.xScale = d3.scaleBand().padding(0).domain(xDomain).range([0, this.width]);
     this.yScale = d3.scaleLinear().domain(yDomain).range([this.height, 0]);
 }
 
-  private updateChart() {
+  private updateChart(init: boolean = false) {
     // update scales
-    this.xScale.domain(this.data.map(d => d[0]));
-    this.yScale.domain([0, d3.max(this.data, d => d[1])]);
+    this.xScale.domain(this._data.map(d => d[0]));
+    this.yScale.domain([0, d3.max(this._data, d => d[1])]);
 
     const that = this;
-    const update = this.chart.selectAll('.bar').data(this.data);
+    const update = this.chart.selectAll('.bar').data(this._data);
 
     // remove existing bars
     update.exit().remove();
@@ -292,18 +331,32 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
               + '-'
               + Math.round(((Math.floor(d3.mouse(this)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       });
+
+      if (init && this.selectionService.featureFilters.length != 0) {
+        var min, max;
+        this.selectionService.featureFilters.forEach( d => {
+          if (d.featureName == this.property) {
+            min = Math.floor(d.minValue*this.width+1);
+            max = Math.floor(d.maxValue*this.width-1);
+            this.activeFilterInConfiguration = d;
+          }
+        });
+        this.propertyInConfiguration = this.property;
+        this.brush.move(this.chart.select('#overlay-wrap'), [min, max]);
+        this.selectionService.filterRefresh();
+        this.onLayoutChange();
+        this.updateChart();
+      }
     }
     };
 
   private removeFilterFromConfiguration(): void {
     if (this.activeFilterInConfiguration == null) { return; }
 
-    const featureFilters = this.configuration.configurations[0].featureFilters;
-    const featureFiltersSecond = this.configuration.configurations[1].featureFilters;
+    const featureFilters = this.selectionService.featureFilters;
     const activeIndex = featureFilters.indexOf(this.activeFilterInConfiguration);
     this.activeFilterInConfiguration = null;
     featureFilters.splice(activeIndex, 1);
-    featureFiltersSecond.splice(activeIndex, 1);
     this.onLayoutChange();
   };
 
@@ -315,8 +368,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.chart.selectAll('.bar').style('fill',  d => this.colorDecision(d));
     this.removeFilterFromConfiguration();
     this.chart.select('#overlay-wrap').call(this.brush.move, null);
-    this.configuration.configurations[0].filterRefresh();
-    this.configuration.configurations[1].filterRefresh();
+    this.selectionService.filterRefresh();
     this.updateChart();
   }
 
@@ -331,7 +383,7 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     }
 
     const x = d3.scaleLinear()
-      .domain(this.data.map(d => d[0]))
+      .domain(this._data.map(d => d[0]))
       .range([0, this.width])
     const selection = d3.event.selection.map(x.invert, x);
     this.brushMin = +d3.min(selection) * this.dataSteps;
@@ -355,4 +407,15 @@ export class DashboardFeatureConfigComponent implements OnInit, OnChanges {
     this.chart.selectAll('.bar')
     .style('fill', d => this.colorDecision(d));
   }
+
+  private toggleGroupState = (payload: [string, boolean]) => {
+    if (this.configuration.configurations[0].featureGroups[payload[0]].member.indexOf(this.property) > -1) {
+      this.configuration.configurations[0].activeFeatures[this.configuration.configurations[0].activeFeatures.indexOf(this.object)].active = payload[1];
+      this.active = payload[1];
+      this.updateColoring();
+      this.eventAggregator.getEvent(RefreshConfigEvent).publish(true);
+      this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
+    }
+  } 
+
 }

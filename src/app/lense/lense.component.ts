@@ -15,6 +15,7 @@ import * as d3 from 'd3';
 import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
 import { StarGlyphConfiguration } from 'app/glyph/glyph.star.configuration';
 import { GlyphType } from 'app/glyph/glyph.type';
+import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
   selector: 'app-lense',
@@ -99,10 +100,8 @@ export class MagicLenseComponent implements OnInit {
 
   constructor(
     public cursor: LenseCursor,
-    private dataProvider: DataproviderService,
-    private logger: Logger,
     private configuration: Configuration,
-    private helper: Helper) {}
+    private selectionService: SelectionService) {}
 
   ngOnInit() {
     const that = this;
@@ -296,7 +295,7 @@ export class MagicLenseComponent implements OnInit {
         }
 
         const feature = currentFeatures.features[itemContext];
-        const passive = !((this.configuration.configurations[0].filteredItemsIds.indexOf(d.id) > -1) || (this.configuration.configurations[0].featureFilters.length == 0));
+        const passive = !((this.selectionService.filteredItemsIds.indexOf(d.id) > -1) || (this.selectionService.featureFilters.length == 0));
 
         this.activeGlyph.draw(d.position, feature, undefined, passive);
       }

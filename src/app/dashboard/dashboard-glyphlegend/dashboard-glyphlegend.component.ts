@@ -121,20 +121,25 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
       y: 125
     };
 
+    if(this.configuration.configurations[0].featureGroups) {
+      this.drawGroupArcs();
+    }
+
     const labels = [];
     this.configuration.configurations[0].activeFeatures.forEach(feat => {
       if (feat.active) { labels.push(feat.label); }
     });
-
-    this.context.beginPath();
-    this.glyph.drawWithLabels(
-      dummyPosition,
-      this.dummyFeatures,
-      1.0,
-      false,
-      labels
-    );
-    this.context.restore();
+    if (labels.length != 0) {
+      this.context.beginPath();
+      this.glyph.drawWithLabels(
+        dummyPosition,
+        this.dummyFeatures,
+        1.0,
+        false,
+        labels
+      );
+      this.context.restore();
+      }
   }
 
   private updateAccessors(): void {
@@ -158,6 +163,90 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
         }
       }
     }
+  }
+
+  private drawGroupArcs() {
+    var activeFeatureCount = Array<number>(Object.keys(this.configuration.configurations[0].activeFeatures).length).fill(0);
+
+    this.configuration.configurations[0].activeFeatures.forEach(d => { 
+      if (d.active) {
+          Object.keys(this.configuration.configurations[0].featureGroups).forEach(key => {
+            if(this.configuration.configurations[0].featureGroups[key].member.indexOf(d.property) > -1 ) {
+              activeFeatureCount[key]++;
+            }
+          });
+      }  
+    });
+    
+    var activeFeautureSum = activeFeatureCount.reduce((a, b) => a + b, 0);
+
+    
+    var radPerStep = Math.PI/180*360/activeFeautureSum;
+    var startAngle = 0;
+
+    activeFeatureCount.forEach( d => {
+      if (d!=0) {
+        //actual arc
+        var endAngle = (startAngle+(d-1)*radPerStep);
+        this.context.beginPath();
+		    this.context.arc(175, 125, 67, startAngle-0.25*radPerStep, endAngle+0.25*radPerStep, false);
+		    this.context.strokeStyle= "#ebebeb";
+		    this.context.stroke();
+        this.context.closePath();
+
+        //circle at arc beginning
+        this.context.translate(175, 125);
+        this.context.rotate(startAngle-0.25*radPerStep);
+        this.context.translate(67, 0);
+        this.context.beginPath();
+        this.context.arc(0, 0, 3, 0, 2*Math.PI, false);
+		    this.context.strokeStyle= "#ebebeb";
+		    this.context.fillStyle= "#373737";
+	    	this.context.stroke();
+        this.context.fill();
+        this.context.closePath();
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+
+        //circle at arc ending
+        this.context.translate(175, 125);
+        this.context.rotate(endAngle+0.25*radPerStep);
+        this.context.translate(67, 0);
+        this.context.beginPath();
+        this.context.arc(0, 0, 3, 0, 2*Math.PI, false);
+		    this.context.strokeStyle= "#ebebeb";
+		    this.context.fillStyle= "#373737";
+	    	this.context.stroke();
+        this.context.fill();
+        this.context.closePath();
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+
+        //circle at arc ending
+        this.context.translate(175, 125);
+        this.context.rotate((startAngle+endAngle)/2);
+        this.context.translate(70, 0);
+        this.context.beginPath();
+        this.context.arc(0, 0, 10, 0, 2*Math.PI, false);
+		    this.context.fillStyle= "#373737";
+        this.context.fill();
+        this.context.closePath();
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+
+        //group label
+        this.context.translate(175, 130);
+        this.context.rotate((startAngle+endAngle)/2);
+        this.context.translate(70, 0);
+        this.context.rotate(-(startAngle+endAngle)/2);
+        this.context.beginPath();
+        this.context.textAlign = 'center';
+        this.context.font = '14px Glyphboard-Condensed';
+        this.context.fillStyle = '#ebebeb';
+        this.context.fillText(activeFeatureCount.indexOf(d), 0, 0);
+        this.context.closePath();
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+
+        startAngle = endAngle+radPerStep;
+      }
+    });
   }
 
   public onColorScaleChange(e: any): void {

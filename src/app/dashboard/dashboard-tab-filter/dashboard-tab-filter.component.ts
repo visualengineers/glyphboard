@@ -4,6 +4,8 @@ import * as d3 from 'd3';
 import { TextFilter } from 'app/shared/filter/text-filter';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
+import { SelectionService } from 'app/shared/services/selection.service';
+import { ToggleGroupEvent } from '../../shared/events/toggle-group.event';
 
 @Component({
   selector: 'app-dashboard-tab-filter',
@@ -15,12 +17,52 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
 
   public eventsSubject: Subject<void> = new Subject<void>();
   private _freeSearchFilter: TextFilter;
+  private groups = [];
+  private groupCollapsed: {[key: string]: boolean} = {};
+  private helper = 0;
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector, private selectionService: SelectionService) {
     super(injector);
   }
 
   ngOnInit() {
+    var that = this;
+    this.dataProvider.getDataSet().subscribe(message => {
+      if (message == null) { return; }
+      Object.keys(message.schema.groups).forEach(function (groupId) {
+        if (!that.groups.includes(message.schema.groups[groupId])){
+          that.groups.push(message.schema.groups[groupId]);
+        }
+      this.groupCollapsed[groupId] = true;
+      });
+    });
+  }
+
+  onChanges() {
+  }
+
+  private featuresInGroup(group: any): any {
+    var featureGroup = [];
+    this.configuration.configurations[0].activeFeatures.forEach( d => {
+      if (group.member.indexOf(d.property) > -1) {
+        featureGroup.push(d);
+      }
+    });
+    return featureGroup;
+  }
+
+  private toggleGroupActive(group: string) {
+    this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, true]);
+    return;
+  }
+
+  private toggleGroupInactive(group: string) {
+    this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, false]);
+    return;
+  }
+
+  private resizeGroup(key: string): void{
+    this.groupCollapsed[key] = !this.groupCollapsed[key];
   }
 
   private onColorChange(e: any): void {
@@ -84,10 +126,10 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
 
   public search(searchtext: string) {
     const myFilter = this._freeSearchFilter;
-    _.remove(this.configuration.configurations[0].featureFilters, function(currentObject) {
+    _.remove(this.selectionService.featureFilters, function(currentObject) {
       return currentObject === myFilter;
     });
-    _.remove(this.configuration.configurations[1].featureFilters, function(currentObject) {
+    _.remove(this.selectionService.featureFilters, function(currentObject) {
       return currentObject === myFilter;
     });
     if (searchtext === '' || searchtext === undefined) {
@@ -98,19 +140,15 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
     const searchStrings = [];
     searchStrings.push(searchtext);
     this._freeSearchFilter = new TextFilter(searchStrings);
-    this.configuration.configurations[0].featureFilters.push(this._freeSearchFilter);
-    this.configuration.configurations[1].featureFilters.push(this._freeSearchFilter);
-    this.configuration.configurations[0].filterRefresh();
-    this.configuration.configurations[1].filterRefresh();
+    this.selectionService.featureFilters.push(this._freeSearchFilter);
+    this.selectionService.filterRefresh();
     this.onLayoutChange();
   }
 
   public resetFilters() {
     this.searchfield.nativeElement.value = '';
-    this.configuration.configurations[0].featureFilters.splice(0, this.configuration.configurations[0].featureFilters.length);
-    this.configuration.configurations[1].featureFilters.splice(0, this.configuration.configurations[1].featureFilters.length);
-    this.configuration.configurations[0].filterRefresh();
-    this.configuration.configurations[1].filterRefresh();
+    this.selectionService.featureFilters.splice(0, this.selectionService.featureFilters.length);
+    this.selectionService.filterRefresh();
     this.eventsSubject.next();
     this.onLayoutChange();
   }

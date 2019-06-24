@@ -2,17 +2,16 @@ import { InteractionEventData } from 'app/shared/events/interaction.event.data';
 import { DotGlyph } from 'app/glyph/glyph.dot';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
 import { Glyph } from 'app/glyph/glyph';
+import { Point } from 'app/shared/types/point';
 
 export class SelectionRect {
   private component: any; // GlyphplotWebglComponent or GlyplotComponent
   private context: any;
-  private helper;
   private _animationIntervalId: number;
   private _animationProgress = 0;
-  private _data: any;
 
-  private _start: any = { x: -1, y: -1 };
-  private _end: any = { x: -1, y: -1 };
+  private _start: Point = { x: -1, y: -1 };
+  private _end: Point = { x: -1, y: -1 };
   private _offset: any = { x: 0, y: 0 };
 
   //webgl pulse effect
@@ -37,7 +36,6 @@ export class SelectionRect {
 
   constructor(component: any, context: any, helper: any) {
     this.context = context;
-    this.helper = helper;
     this.component = component;
   }
 
@@ -93,42 +91,42 @@ export class SelectionRect {
     this.context.restore();
   }
 
-  public get selectedGlyphs(): any {
-    const selectedArea = { start: this._start, end: this._end };
+  // public get selectedGlyphs(): any {
+  //   const selectedArea = { start: this._start, end: this._end };
 
-    // create independence from direction of selection-movement
-    const top: number = (selectedArea.end.y < selectedArea.start.y)
-      ? selectedArea.end.y
-      : selectedArea.start.y;
-    const bottom: number = (top === selectedArea.end.y)
-      ? selectedArea.start.y
-      : selectedArea.end.y;
-    const left: number = (selectedArea.end.x < selectedArea.start.x)
-      ? selectedArea.end.x
-      : selectedArea.start.x;
-    const right: number = (left === selectedArea.end.x)
-      ? selectedArea.start.x
-      : selectedArea.end.x;
+  //   // create independence from direction of selection-movement
+  //   const top: number = (selectedArea.end.y < selectedArea.start.y)
+  //     ? selectedArea.end.y
+  //     : selectedArea.start.y;
+  //   const bottom: number = (top === selectedArea.end.y)
+  //     ? selectedArea.start.y
+  //     : selectedArea.end.y;
+  //   const left: number = (selectedArea.end.x < selectedArea.start.x)
+  //     ? selectedArea.end.x
+  //     : selectedArea.start.x;
+  //   const right: number = (left === selectedArea.end.x)
+  //     ? selectedArea.start.x
+  //     : selectedArea.end.x;
 
-    const filteredData = Object.create(this._data);
+  //   const filteredData = Object.create(this._data);
 
-    const selectedIds = [];
-    filteredData.positions = filteredData.positions.filter((elem) => {
-      const position = elem.position;
-      if (!this.helper.checkClipping(position)
-        && position.x > left && position.x < right
-        && position.y > top && position.y < bottom) {
-        selectedIds.push(elem.id);
-        return true;
-      };
-    });
+  //   const selectedIds = [];
+  //   filteredData.positions = filteredData.positions.filter((elem) => {
+  //     const position = elem.position;
+  //     if (!this.helper.checkClipping(position)
+  //       && position.x > left && position.x < right
+  //       && position.y > top && position.y < bottom) {
+  //       selectedIds.push(elem.id);
+  //       return true;
+  //     };
+  //   });
 
-    filteredData.features = filteredData.features.filter((elem) => {
-      return selectedIds.indexOf(elem.id) !== -1;
-    });
+  //   filteredData.features = filteredData.features.filter((elem) => {
+  //     return selectedIds.indexOf(elem.id) !== -1;
+  //   });
 
-    return filteredData;
-  }
+  //   return filteredData;
+  // }
 
   public increaseAnimationProgress() {
     this._animationProgress += 0.01;
@@ -260,8 +258,5 @@ export class SelectionRect {
     this.context.canvas.width = window.innerWidth;
   }
 
-  public set data(_data: any) {
-    this._data = _data;
-  }
-  //#endregion
+ //#endregion
 }
