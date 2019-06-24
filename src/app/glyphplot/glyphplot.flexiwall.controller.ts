@@ -5,6 +5,11 @@ import { Logger } from 'app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
 import { FlexiWallTouchPoint } from 'app/shared/types/flexiWallTouchPoint';
 import { FlexiWallPosition } from 'app/shared/types/flexiWallPosition';
+import { Point } from 'app/shared/types/point';
+import { RegionManager } from 'app/region/region.manager';
+import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
+import { SwitchVisualizationEvent, VisualizationType } from 'app/shared/events/switch-visualization.event';
+import { delay } from 'q';
 
 export class FlexiWallController {
 
@@ -16,10 +21,19 @@ export class FlexiWallController {
 
   private eventCount = 0;
 
+  // defauilt offset which is used to pan the suface once (multiplied by depth)
+  private static panningOffset = 300;
+
+  // defines the width of the border used for panning
+  private static panningBorder = new Point (0.2, 0.2);
+
+  private flexiOffset = new Point(0, 0);
+
   constructor(private component: GlyphplotComponent,
     private logger: Logger,
     private cursor: LenseCursor,
-    private configuration: ConfigurationData) {
+    private configuration: ConfigurationData,
+    private eventAggregator: EventAggregatorService) {
   }
 
   /**
@@ -45,13 +59,19 @@ export class FlexiWallController {
         }
       };
 
-      websocket.onerror = function (e) {
+      websocket.onerror = (e: Event) => {
         component.suppressAnimations = true;
+        this.logger.log('Websocket Error.');
       };
 
-      websocket.onclose = function (e) {
+      websocket.onclose = (e: Event) => {
         component.suppressAnimations = true;
+        this.logger.log('Websocket Closed: retrying in 2 Seconds...');
+        this.waitAndRetryConnection();
       };
+
+      this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.D3);
+
     } catch (err) {
       this.logger.log('No Flexiwall Connection found.');
     }
@@ -129,7 +149,33 @@ export class FlexiWallController {
       return; // no zoom when lense is active
     }
 
-    const zoomFactor = Math.abs(data.Position.Z) > 0.1
+    let isPanning = false;
+
+    if (data.Position.Z > 0.1) {
+
+      if (data.Position.X < FlexiWallController.panningBorder.x) {
+        this.flexiOffset.x += FlexiWallController.panningOffset * data.Position.Z;
+        isPanning = true;
+      }
+
+      if (data.Position.X > 1.0 - FlexiWallController.panningBorder.x) {
+        this.flexiOffset.x -= FlexiWallController.panningOffset * data.Position.Z;
+        isPanning = true;
+      }
+
+      if (data.Position.Y < FlexiWallController.panningBorder.y) {
+        this.flexiOffset.y += FlexiWallController.panningOffset * data.Position.Z;
+        isPanning = true;
+      }
+
+      if (data.Position.Y > 1.0 - FlexiWallController.panningBorder.y) {
+        this.flexiOffset.y -= FlexiWallController.panningOffset * data.Position.Z;
+        isPanning = true;
+      }
+    }
+
+
+    const zoomFactor = Math.abs(data.Position.Z) > 0.1 && !isPanning
       ? 1.0 + 0.2 * data.Position.Z
       : 1.0;
     // const zoomFactor = data.Position.Z < -0.5 ? 1.05 : data.Position.Z > 0.5 ? 0.95 : 1;
@@ -138,17 +184,29 @@ export class FlexiWallController {
     // trans.x = (this.component.width / 2 - 10) - ((this.component.width / 2 - 10) * trans.k);
     // trans.y = (this.component.height / 2 - 130) - ((this.component.height / 2 - 130) * trans.k);
 
-    trans.x = (this.component.width / 2 - 50) - ((this.component.width / 2 - 50) * trans.k);
-    trans.y = (this.component.height / 2 + 80) - ((this.component.height / 2 + 80) * trans.k);
+    trans.x = (this.component.width / 2 - 50) - ((this.component.width / 2 - 50) * trans.k) + this.flexiOffset.x;
+    trans.y = (this.component.height / 2 + 80) - ((this.component.height / 2 + 80) * trans.k) + this.flexiOffset.y;
 
-    if (trans.k < 1 || trans.k > 40) {
+    if (trans.k <= 1) {
+      this.flexiOffset = new Point(0, 0);
+      trans.k = 1;
+    }
+
+    if (trans.k > 40) {
       return;
     }
+
 
     this.component.transform = trans;
     // this.logger.log('FlexTransform: ' + this.component.transform);
     this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
     this.configuration.currentLayout = GlyphLayout.Cluster;
     this.component.animate();
+  }
+
+  public async waitAndRetryConnection() {
+    await delay(2000);
+
+    this.doWebSocket();
   }
 }

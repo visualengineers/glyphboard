@@ -124,7 +124,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this,
       this.logger,
       this.cursor,
-      this.configuration
+      this.configuration,
+      this.eventAggregator
     );
     this._layoutController = new GlyphplotLayoutController(
       this,
