@@ -2,13 +2,23 @@ import { Logger } from '../shared/services/logger.service';
 import * as d3 from 'd3';
 import { Injectable } from '@angular/core';
 import { Region } from './region';
+import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
+import { SwitchVisualizationEvent, VisualizationType } from 'app/shared/events/switch-visualization.event';
 
 @Injectable()
 export class RegionManager {
-  public regions: Array<Region>;
+  public regions: Array<Region>;  
 
-  constructor(private logger: Logger) {
+  private _isD3Active: boolean;
+  private _isWebGlActive: boolean;
+  private _isSplitScreen: boolean;
+  private _isFeaturePlotActive: boolean;
+
+  // private _evtAggregator: EventAggregatorService;
+
+  constructor(private logger: Logger, eventAggregator: EventAggregatorService) {
     this.regions = new Array<Region>();
+    // this._evtAggregator = eventAggregator
   }
 
   public addRegion(name: string, widthPercent: number, heightPercent: number, display: boolean): Region {
@@ -83,5 +93,26 @@ export class RegionManager {
           ? width
           : element.widthPercentCalc * width;
     });
+
+    this._isD3Active = this.regions.find(reg => reg.name === 'glyphs').display !== 'none';
+    this._isSplitScreen = this.regions.find(reg => reg.name === 'glyphs2').display !== 'none';
+    this._isFeaturePlotActive = this.regions.find(reg => reg.name === 'features').display !== 'none';
+    this._isWebGlActive = this.regions.find(reg => reg.name === 'webgl').display !== 'none';
+  }
+
+  public IsD3Active(): boolean {
+      return this._isD3Active;
+  }
+
+  public IsSplitScreen(): boolean {
+    return this._isSplitScreen;
+  }
+
+  public IsFeaturePlotActive(): boolean {
+    return this._isFeaturePlotActive;
+  }
+
+  public IsWebGlActive(): boolean {
+    return this._isWebGlActive;
   }
 }

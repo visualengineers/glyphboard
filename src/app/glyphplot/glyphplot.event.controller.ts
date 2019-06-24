@@ -4,7 +4,7 @@ import { LenseCursor } from './../lense/cursor.service';
 import { Logger } from 'app/shared/services/logger.service';
 import { IdFilter } from 'app/shared/filter/id-filter';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
-import { Configuration } from '../shared/services/configuration.service';
+import { Configuration } from 'app/shared/services/configuration.service';
 
 import * as d3 from 'd3';
 import { FlowerGlyph } from 'app/glyph/glyph.flower';
@@ -20,6 +20,13 @@ import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
 import { RefreshSelectionEvent } from 'app/shared/events/refresh-selection.event';
 
+import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
+import { UpdateItemsStrategy } from 'app/shared/util/UpdateItemsStrategy';
+import { ViewportTransformationEvent } from 'app/shared/events/viewport-transformation.event';
+import { RegionManager } from 'app/region/region.manager';
+import * as THREE from 'three';
+import { VisualizationType, SwitchVisualizationEvent } from 'app/shared/events/switch-visualization.event';
+
 export class GlyphplotEventController {
   private counter: number;
   private saveEndTransform = { x: 0, y: 0 };
@@ -27,6 +34,7 @@ export class GlyphplotEventController {
   private formerTranslation = { x: 0, y: 0 };
   private selectionEnded: boolean;
   private currentEventType: string;
+  private _component: GlyphplotComponent;
 
   constructor(private component: GlyphplotComponent,
     private configuration: ConfigurationData,
@@ -51,9 +59,37 @@ export class GlyphplotEventController {
     this.eventAggregator
       .getEvent(RefreshHoverEvent)
       .subscribe(this.onRefreshHover);
+    this.eventAggregator
+      .getEvent(ViewportTransformationEvent)
+      .subscribe(this.onViewportTransformationUpdated);
   }
 
-  /**
+
+  private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
+
+    this.component.transform.x = payload.GetScale() * (-payload.GetTranslateX() - payload.GetZoomViewportOffsetX() - payload.GetZoomCursorOffsetX());
+    this.component.transform.y = payload.GetScale() * (-payload.GetTranslateY() - payload.GetZoomViewportOffsetY() - payload.GetZoomCursorOffsetY());
+    this.component.transform.k = payload.GetScale();
+
+    this.formerTranslation.x = this.component.transform.x;
+    this.formerTranslation.y = this.component.transform.y;
+
+    if (!this.component.regionManager.IsD3Active()) {
+      return;
+    }
+
+    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+
+    if (payload.GetUpdateStrategy() === UpdateItemsStrategy.DefaultUpdate) {
+      this.component.updateGlyphLayout();
+    } else if (payload.GetUpdateStrategy() === UpdateItemsStrategy.CompleteRefresh) {
+      this.component.updateGlyphLayout(true);
+    }
+
+    this.component.animate();
+  }
+
+   /**
    * When the mousewheel is rotated on the canvas, update the transform of the viewport by updating
    * glyph posititions according to the new transform.
    */
@@ -69,14 +105,43 @@ export class GlyphplotEventController {
     // apply transformation only, if event was a scroll or if we are not using DragSelection
     if (d3.event && (d3.event.sourceEvent.type === 'wheel' || !this.configuration.useDragSelection)) {
       const trans = d3.event.transform;
-      trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
-      trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
-      this.component.transform = trans;
-      this.formerTranslation.x = this.component.transform.x / this.component.transform.k;
-      this.formerTranslation.y = this.component.transform.y / this.component.transform.k;
+      trans.x = d3.event.transform.x;
+      trans.y = d3.event.transform.y;
+
+      if (this.configuration !== null) {
+        const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
+
+        // console.log('trans.k: ' + trans.k + '  lodSwitch: ' + lodSwitch);
+
+        if (((trans.k - 0.51) < lodSwitch && trans.k >= lodSwitch)) {
+            this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.D3);
+          }
+
+         if ((trans.k + 0.51) > lodSwitch && trans.k <= lodSwitch) {
+          this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
+          return;
+         }
+      }
+
       this.selectionEnded = true;
-      this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+
+      const normMouseX = -0.5;
+      const normMouseY = -0.5;
+
       this.configuration.currentLayout = GlyphLayout.Cluster;
+
+      const offsets = this.component.cameraUtil.ComputeZoomOffset(trans.k, new THREE.Vector2(normMouseX, normMouseY));
+
+      const transformArgs = new ViewportTransformationEventData(
+        -trans.x / trans.k + offsets.CursorOffset.x,
+        -trans.y / trans.k + offsets.CursorOffset.y,
+        0,
+        trans.k, UpdateItemsStrategy.DefaultUpdate,
+        offsets.ViewportScaleOffset.x,
+        offsets.ViewportScaleOffset.y, 0,
+        0,
+        0, 0);
+      this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
     }
 
     if (!d3.event.sourceEvent) { return; }
@@ -262,6 +327,7 @@ export class GlyphplotEventController {
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
+
     if (!this.cursor.isVisible || this.cursor.isFixed ) {
       // find glyph to highlight
       let glyphRadius: number;
@@ -273,6 +339,7 @@ export class GlyphplotEventController {
           glyphRadius = glyphConfiguration.configuration.radius;
         }
       }
+
       if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
         this.configurationService.configurations[1].selectedDataSetInfo.name) {
         this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
@@ -280,6 +347,7 @@ export class GlyphplotEventController {
       } else {
         this.configuration.idOfHoveredGlyph = undefined;
       }
+
       for (const element of this.component.data.positions) {
         if (
           Math.abs(element.position.x - e.layerX) <= glyphRadius &&
@@ -295,6 +363,7 @@ export class GlyphplotEventController {
           break;
         }
       }
+
       if (this.configuration.useDragSelection) {
         this.component.draw();
       }
@@ -371,19 +440,16 @@ export class GlyphplotEventController {
   };
 
   private fitToScreen = (payload: boolean) => {
-    this.component.transform.x = 0;
-    this.component.transform.y = 0;
-    this.component.transform.k = 1;
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.updateGlyphLayout(true);
-    this.component.animate();
-    this.formerTranslation = {x: 0, y: 0};
+    const args = new ViewportTransformationEventData(0, 0, 0, 1, UpdateItemsStrategy.CompleteRefresh);
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
+    this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
   };
 
   private fitToSelection = (payload: boolean) => {
     const that = this;
     const filteredPositions = [];
     this.component.layoutController.getPositions().forEach(d => {
+      const data = that.component.configuration.getFeaturesForItem(d);
 
         if (that.selectionService.filteredItemsIds.indexOf(d.id) > -1 || this.selectionService.featureFilters.length === 0) {
           filteredPositions.push(d.position);
@@ -424,31 +490,44 @@ export class GlyphplotEventController {
         k = 8;
       }
     }
-    this.component.transform.k = k;
-    this.component.transform.x = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
-    this.component.transform.y =
-      (this.component.height - this.component.height * k) / 2 +
-      (this.component.height / 2 - (maxY + minY) / 2) * k;
-    this.formerTranslation.x = this.component.transform.x;
-    this.formerTranslation.y = this.component.transform.y;
 
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.animate();
+    if (Math.abs(k) < 0.01) {
+      return;
+    }
+
+    const transX = ((maxX + minX) / 2) / k;
+    const transY = ((maxY + minY) / 2) / k;
+
+    console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ' + k);
+
+    const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
+
+    if (k < lodSwitch) {
+      this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
+    }
+
+    const args = new ViewportTransformationEventData(minX, minY, 0, k, UpdateItemsStrategy.DefaultUpdate);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
 
   };
 
-  private manualZoom = (payload: number) => {
+  private manualZoom = (zoomFactor: number) => {
 
-    this.component.transform.x = (this.component.width - this.component.width * payload) / 2 + this.formerTranslation.x * payload;
-    this.component.transform.y = (this.component.height - this.component.height * payload) / 2 + this.formerTranslation.y * payload;
-    this.component.transform.k = payload;
-    this.component.updateGlyphLayout();
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.animate();
+    const transX = (this.component.width - this.component.width) / 2 + this.formerTranslation.x;
+    const transY = (this.component.height - this.component.height) / 2 + this.formerTranslation.y;
+
+    const args = new ViewportTransformationEventData(transX, transY, 0, zoomFactor, UpdateItemsStrategy.DefaultUpdate);
+
+    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
   };
 
-  private onRefreshHover = (payload: RefreshHoverEventData) => {
+  private onRefreshHover = (payload: RefreshHoverEventData) => {   
     this.component.draw();
+    if (this.configuration === undefined) {
+      return;
+    }
+
     if (this.configuration.useDragSelection) {
       this.component.selectionRect.drawHighlightedGlyph();
     }

@@ -3,6 +3,8 @@ import { Logger } from 'app/shared/services/logger.service';
 import * as d3 from 'd3';
 import { Configuration } from '../shared/services/configuration.service';
 import { DotGlyphConfiguration } from '../glyph/glyph.dot.configuration';
+import * as THREE from 'three';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 
 export class GlyphplotLayoutController {
   constructor(
@@ -65,15 +67,25 @@ export class GlyphplotLayoutController {
       }
     });
 
+    const borderX = (maxX - minX) / 20;
+    const borderY = (maxY - minY) / 20;
+
+    const min = new THREE.Vector2(minX - borderX, minY - borderY);
+    const max = new THREE.Vector2(maxX + borderX, maxY + borderY);
+
+    const scale = new THREE.Vector2(this.component.width / (max.x - min.x), this.component.height / (max.y - min.y));
+
+    this.component.cameraUtil = new CameraSyncUtilities(min, max, scale);
+
     this.component.xAxis = d3
       .scaleLinear()
-      .domain([minX + minX / 20, maxX - minX / 20])
-      .range([5, this.component.width - 5]);
+      .domain([minX - borderX, maxX + borderX])
+      .range([0, this.component.width]);
 
     this.component.yAxis = d3
       .scaleLinear()
-      .domain([minY + minY / 20, maxY - minY / 20])
-      .range([this.component.height - 5, 5]);
+      .domain([minY - borderY, maxY + borderY])
+      .range([this.component.height, 0]);
 
     const accessorScale = d3
       .scaleLinear()
@@ -183,7 +195,13 @@ export class GlyphplotLayoutController {
   }
 
   public getPositions(): any {
-    (this.component.circle.configuration as DotGlyphConfiguration).drawAggregate = this.component.configuration.aggregateItems;
+    if (this.component.circle !== undefined) {
+          (this.component.circle.configuration as DotGlyphConfiguration).drawAggregate = this.component.configuration.aggregateItems;
+    }
+
+    if (this.component.data === null) {
+      return new Array();
+    }
 
     if (!this.component.configuration.aggregateItems) {
       return this.component.data.positions;
@@ -191,24 +209,5 @@ export class GlyphplotLayoutController {
     return this.component.configuration.currentLevelOfDetail === 0 && this.component.data.clusterPositions !== undefined
       ? this.component.data.clusterPositions
       : this.component.data.positions;
-  }
-
-  public getFeaturesForItem(d: any) {
-    const item = this.component.data.features.find(f => {
-      return f.id === d.id;
-    });
-    let itemContext = this.component.configuration.individualFeatureContexts[d.id];
-    if (itemContext === undefined) {
-      if (this.component.configuration.globalFeatureContext >= 0) {
-        itemContext = this.component.configuration.globalFeatureContext;
-      } else {
-        itemContext = item['default-context'];
-      }
-    }
-    const ret = {
-      features: Object.assign(item.features[itemContext], item.features['global']),
-      values: item.values
-    }
-    return ret;
-  }
+  }  
 }

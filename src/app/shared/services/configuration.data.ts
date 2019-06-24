@@ -8,6 +8,7 @@ import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { SwitchVisualizationEvent, VisualizationType } from '../events/switch-visualization.event';
 
 export class ConfigurationData {
   
@@ -245,9 +246,14 @@ export class ConfigurationData {
     if (this._idOfHoveredGlyph >= 0 && changed && this._data.getValue()) {
       this.selectedItemVersions = [];
       const data = this._data.getValue();
+
+      if (data === null) {
+        return;
+      }
       const item = data.features.find(f => {
         return f.id === this._idOfHoveredGlyph;
       });
+
       for (const context in item.features) {
         if (context === 'global') { continue; }
         if (item.features.hasOwnProperty(context)) {
@@ -308,4 +314,53 @@ export class ConfigurationData {
   get minScaleLevel() { return this._minScaleLevel }
   set minScaleLevel(value: number) { this._minScaleLevel = value; }
 
+  // Refresh ID list
+  // public filterRefresh() {
+  //   var filteredIds = [];
+
+  //   if(this._data == null){
+  //     return;
+  //   }
+  //   this._data.getValue().positions.forEach(d => {
+  //     let itemConfirmsFilter = true;
+  //     let featureItem = this.getFeaturesForItem(d);
+  //     const filters: FeatureFilter[] = this.featureFilters;
+  //     let filter: FeatureFilter;
+
+  //     for (let i = 0; i < filters.length; i++) {
+  //       filter = filters[i];
+  //       itemConfirmsFilter = itemConfirmsFilter && filter.itemConfirmsToFilter(d.id, featureItem.features, featureItem.values);
+  //     }
+
+  //     if (itemConfirmsFilter) {
+  //       filteredIds.push(d.id);
+  //     }
+ 
+  //   });
+  //   this._filteredItemsIds = filteredIds;
+  //   if (this._featureFilters.length == 0) {
+  //     this._filteredItemsCount = this._data.getValue().positions.length;
+  //   } else {
+  //     this._filteredItemsCount = this._filteredItemsIds.length;
+  //   }
+  // }
+
+  public getFeaturesForItem(d: any) {
+    const item = this._data.getValue().features.find(f => {
+        return f.id === d.id;
+    });
+    let itemContext = this.individualFeatureContexts[d.id];
+    if (itemContext === undefined) {
+        if (this.globalFeatureContext >= 0) {
+            itemContext = this.globalFeatureContext;
+        } else {
+            itemContext = item['default-context'];
+        }
+    }
+    const ret = {
+        features: Object.assign(item.features[itemContext], item.features['global']),
+        values: item.values
+    }
+    return ret;
+  }
 }

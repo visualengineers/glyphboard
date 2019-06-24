@@ -16,6 +16,7 @@ import {ConfigurationData} from '../shared/services/configuration.data';
 
 import {LenseCursor} from 'app/lense/cursor.service';
 import {EventAggregatorService} from 'app/shared/events/event-aggregator.service';
+import { RegionManager } from 'app/region/region.manager';
 import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
 import { GlyphType } from 'app/glyph/glyph.type';
 
@@ -23,6 +24,7 @@ import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
 import { GlyphLayout } from 'app/glyph/glyph.layout';
 import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
+import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
 import { SelectionService } from 'app/shared/services/selection.service';
 
 @Component({
@@ -54,12 +56,13 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _simulation: any;
   private _currentLayout: any;
   private _drawLock: boolean;
-  private _suppressAnimations = false;
+  private _suppressAnimations = true;
   private _uniqueID: string;
   private _zoom: any;
   private _quadtree: any;
   private _clusterPoints;
   private _dataUpdated: boolean;
+  private _cameraUtil: CameraSyncUtilities;
 
   //#region static methods
   static zoomed(component: GlyphplotComponent): void {
@@ -103,6 +106,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private configurationService: Configuration,
     private cursor: LenseCursor,
     private eventAggregator: EventAggregatorService,
+    private _regionManager: RegionManager,
     private selectionService: SelectionService
   ) {
     this.configuration = this.configurationService.addConfiguration();
@@ -253,6 +257,10 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * between glyph and circle. Draws the tooltip box.
    */
   draw(): void {
+    if (!this.regionManager.IsD3Active()) {
+       return;
+    }
+
     this.drawLock = true;
 
     const that = this;
@@ -312,7 +320,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.context.beginPath();
         this.context.moveTo(d.position.x, d.position.y);
 
-        const data = this.layoutController.getFeaturesForItem(d);
+        const data = this.configuration.getFeaturesForItem(d);
 
         if (this.selectionService.filteredItemsIds.indexOf(d.id) > -1 || this.selectionService.featureFilters.length == 0) {
           this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
@@ -361,7 +369,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * by draw().
    */
   public updateGlyphLayout(updateAllItems: boolean = false): void {
-    if (this.data === undefined || this.data.length === 0) {
+    if (this.data === undefined || this.data === null || this.data.length === 0) {
       return;
     }
     const that = this;
@@ -456,7 +464,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
    * max radius is reached. This creates a 'blossoming' effect for the glyphs.
    */
   private animateGlyphs(): void {
-    if (!this._suppressAnimations) {
+      if (!this._suppressAnimations) {
       const timer = d3.timer(elapsed => {
         const t = Math.min(
           1,
@@ -491,7 +499,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.context.beginPath();
       this.context.moveTo(d.position.x, d.position.y);
 
-      const features = this._layoutController.getFeaturesForItem(d).features;
+      const features = this.configuration.getFeaturesForItem(d).features;
 
       // draw the circle glyph and the current glyph to improve the blossoming effect
       if (this.configuration.currentLevelOfDetail > 0) {
@@ -518,7 +526,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       d.position.sy = d.position.y;
     });
 
-    if (!arguments.length) {
+    if (arguments !== null && !arguments.length) {
       // set cx to the target positions using the latest zoom-transform
       this.updateGlyphLayout();
 
@@ -624,5 +632,10 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   get layoutController() { return this._layoutController; }
   get dataUpdated() { return this._dataUpdated; }
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
+  get regionManager() { return this._regionManager; }
+  set regionManager(value: RegionManager) { this._regionManager = value; }
+  get cameraUtil() { return this._cameraUtil; }
+  set cameraUtil(value: CameraSyncUtilities) { this._cameraUtil = value; }
+
   //#endregion
 }

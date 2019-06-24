@@ -1,14 +1,21 @@
-import { GlyphplotComponent } from './glyphplot.component';
+import { InteractionEventData } from 'app/shared/events/interaction.event.data';
+import { DotGlyph } from 'app/glyph/glyph.dot';
+import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
+import { Glyph } from 'app/glyph/glyph';
+import { Point } from 'app/shared/types/point';
 
 export class SelectionRect {
-  private component: GlyphplotComponent;
+  private component: any; // GlyphplotWebglComponent or GlyplotComponent
   private context: any;
   private _animationIntervalId: number;
   private _animationProgress = 0;
 
   private _start: Point = { x: -1, y: -1 };
   private _end: Point = { x: -1, y: -1 };
-  private _offset: Point = { x: 0, y: 0 };
+  private _offset: any = { x: 0, y: 0 };
+
+  //webgl pulse effect
+  private _dotGlyph: Glyph;
 
   // x, y are standardized 0..1
   static applyEasing(x: number): number {
@@ -27,7 +34,7 @@ export class SelectionRect {
     this.drawHighlightedGlyph();
   }
 
-  constructor(component: GlyphplotComponent, context: any, helper: any) {
+  constructor(component: any, context: any, helper: any) {
     this.context = context;
     this.component = component;
   }
@@ -45,6 +52,26 @@ export class SelectionRect {
 
     const w = event.sourceEvent.offsetX - this.start.x;
     const h = event.sourceEvent.offsetY - this.start.y;
+
+    this.end.x = this.start.x + w;
+    this.end.y = this.start.y + h;
+
+    this.context.strokeRect(this.start.x + this.offset.x, this.start.y + this.offset.y, w, h);
+
+    this.context.restore();
+  }
+
+  public drawWebGl(event: InteractionEventData): void {
+    if (!arguments.length) { return; }
+
+    this.clear();
+    this.context.save();
+    this.context.lineWidth = 1;
+    this.context.setLineDash([4, 2]);
+    this.context.strokeStyle = 'rgba(48, 48, 48, .73)';
+
+    const w = event.GetPositionX() - this.start.x;
+    const h = event.GetPositionY() - this.start.y;
 
     this.end.x = this.start.x + w;
     this.end.y = this.start.y + h;
@@ -72,7 +99,61 @@ export class SelectionRect {
   }
 
   public drawHighlightedGlyph() {
-    if  (this.component.configuration.showHighlightInNormalMode || this.component.configuration.useDragSelection) {
+    if (this.component.regionManager.IsD3Active() == false) {
+      // draw highlighted glyph when webgl is active
+      this.clear();
+      this.context.save();
+      //use existing pulse effect
+      const idOfHoveredGlyph = this.component.configuration.idOfHoveredGlyph;
+      if (idOfHoveredGlyph !== undefined && idOfHoveredGlyph !== -1) {
+        let hoveredGlyph;
+        for (const glyph of this.component.data.positions) {
+          if (glyph.id === idOfHoveredGlyph) {
+            hoveredGlyph = glyph;
+            break;
+          }
+        }
+        const positions = {
+          x: hoveredGlyph.position.x + (this.offset.x),
+          y: hoveredGlyph.position.y + (this.offset.y)
+        };
+
+        var featuresOfHoveredGlyph = this.component.configuration.getFeaturesForItem(hoveredGlyph, this.component.configuration);
+
+        const colorScale = item => {
+          return item === undefined
+            ? 0
+            : this.component.configuration.color(+item[this.component.data.schema.color]);
+        };
+        if (this._dotGlyph == undefined) {
+          this._dotGlyph = new DotGlyph(this.context, colorScale, new DotGlyphConfiguration());
+        }
+
+        var position: { x: number, y: number } = positions;
+        this._dotGlyph.draw(position,
+          featuresOfHoveredGlyph.features,
+          null,
+          false,
+          true,
+          SelectionRect.applyEasing(this._animationProgress));
+
+        this.context.restore();
+
+        if (this._animationIntervalId === undefined || this._animationIntervalId === null) {
+          this._animationIntervalId = window.setInterval(SelectionRect.animationTick(this), 10);
+        } else {
+          if (this._animationProgress >= 1) {
+            this._animationProgress = 0;
+          }
+        }
+      } else if (this._animationIntervalId !== undefined && this._animationIntervalId !== null) {
+        clearInterval(this._animationIntervalId);
+        this._animationIntervalId = undefined;
+        this._animationProgress = 0;
+      }
+    }
+
+    if (this.component.configuration.showHighlightInNormalMode || this.component.configuration.useDragSelection) {
       // draw highlighted glyph
       const idOfHoveredGlyph = this.component.configuration.idOfHoveredGlyph;
       if (idOfHoveredGlyph !== undefined && idOfHoveredGlyph !== -1) {
@@ -84,25 +165,27 @@ export class SelectionRect {
           }
         }
 
-        this.clear();
-        this.context.save();
-        const featuresOfHoveredGlyph = this.component.layoutController.getFeaturesForItem(hoveredGlyph);
-        this.component.circle.context = this.context;
-        this.component.configuration.glyph.context = this.context;
-        const positions = {
-          x: hoveredGlyph.position.x + (this.offset.x),
-          y: hoveredGlyph.position.y + (this.offset.y)
-        };
-        this.component.layoutController.drawSingleGlyph(
-          positions,
-          featuresOfHoveredGlyph.features,
-          null,
-          false,
-          true,
-          SelectionRect.applyEasing(this._animationProgress));
-        this.context.restore();
-        this.component.circle.context = this.component.context;
-        this.component.configuration.glyph.context = this.component.context;
+        if (this.component.regionManager.IsD3Active() == true) {
+          this.clear();
+          this.context.save();
+          const featuresOfHoveredGlyph = this.component.configuration.getFeaturesForItem(hoveredGlyph);
+          this.component.circle.context = this.context;
+          this.component.configuration.glyph.context = this.context;
+          const positions = {
+            x: hoveredGlyph.position.x + (this.offset.x),
+            y: hoveredGlyph.position.y + (this.offset.y)
+          };
+          this.component.layoutController.drawSingleGlyph(
+            positions,
+            featuresOfHoveredGlyph.features,
+            null,
+            false,
+            true,
+            SelectionRect.applyEasing(this._animationProgress));
+          this.context.restore();
+          this.component.circle.context = this.component.context;
+          this.component.configuration.glyph.context = this.component.context;
+        }
 
         if (this._animationIntervalId === undefined || this._animationIntervalId === null) {
           this._animationIntervalId = window.setInterval(SelectionRect.animationTick(this), 10);
@@ -118,6 +201,7 @@ export class SelectionRect {
       }
     }
   }
+
 
   //#region Getters and Setters
   public get start(): any { return this._start; }

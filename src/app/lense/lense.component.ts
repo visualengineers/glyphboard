@@ -220,7 +220,7 @@ export class MagicLenseComponent implements OnInit {
    * @return {void}
    */
   private draw(ctx: any, positions: [any], features: [any], config: any, primary_lens: boolean): void {
-    if (!this.cursor.isVisible && !this.cursor.display) {
+    if (ctx == null || !this.cursor.isVisible && !this.cursor.display) {
       return; // reduce cpu stress when lens is not visible
     }
 

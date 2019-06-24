@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { FeatureFilter } from 'app/shared/filter/feature-filter';
 import { EventAggregatorService } from '../events/event-aggregator.service';
 import { RefreshSelectionEvent } from '../events/refresh-selection.event';
+import { Point } from '../types/point';
 
 @Injectable({
   providedIn: 'root'
