@@ -91,43 +91,6 @@ export class SelectionRect {
     this.context.restore();
   }
 
-  // public get selectedGlyphs(): any {
-  //   const selectedArea = { start: this._start, end: this._end };
-
-  //   // create independence from direction of selection-movement
-  //   const top: number = (selectedArea.end.y < selectedArea.start.y)
-  //     ? selectedArea.end.y
-  //     : selectedArea.start.y;
-  //   const bottom: number = (top === selectedArea.end.y)
-  //     ? selectedArea.start.y
-  //     : selectedArea.end.y;
-  //   const left: number = (selectedArea.end.x < selectedArea.start.x)
-  //     ? selectedArea.end.x
-  //     : selectedArea.start.x;
-  //   const right: number = (left === selectedArea.end.x)
-  //     ? selectedArea.start.x
-  //     : selectedArea.end.x;
-
-  //   const filteredData = Object.create(this._data);
-
-  //   const selectedIds = [];
-  //   filteredData.positions = filteredData.positions.filter((elem) => {
-  //     const position = elem.position;
-  //     if (!this.helper.checkClipping(position)
-  //       && position.x > left && position.x < right
-  //       && position.y > top && position.y < bottom) {
-  //       selectedIds.push(elem.id);
-  //       return true;
-  //     };
-  //   });
-
-  //   filteredData.features = filteredData.features.filter((elem) => {
-  //     return selectedIds.indexOf(elem.id) !== -1;
-  //   });
-
-  //   return filteredData;
-  // }
-
   public increaseAnimationProgress() {
     this._animationProgress += 0.01;
     if (this._animationProgress > 1) {

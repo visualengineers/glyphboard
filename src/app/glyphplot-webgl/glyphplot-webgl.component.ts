@@ -656,11 +656,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           }
         });
     
-        const selection = this.selectionService.filteredItemsIds;
-        // const selectedIds: number[] = selection.positions.reduce((arrayOfIds: number[], item: any) => {
-        //   arrayOfIds.push(item.id);
-        //   return arrayOfIds;
-        // }, []);
+        this.selectionService.selectByArea(this._selectionRect.start, this._selectionRect.end);
+        const selection = this.selectionService.selectedItemsIds;
     
         this.clearIdFilters();
     
@@ -678,10 +675,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
             idFilter = new IdFilter('id', selection);
           }
           if (this.viewsShowTheSameDataSet()) {
-            this.selectionService[0].featureFilters.push(idFilter);
-            this.selectionService[1].featureFilters.push(idFilter);
-            this.selectionService[0].filterRefresh();
-            this.selectionService[1].filterRefresh();
+            this.selectionService.featureFilters.push(idFilter);
+            this.selectionService.filterRefresh();
           } else {
             this.selectionService.featureFilters.push(idFilter);
             this.selectionService.filterRefresh();
