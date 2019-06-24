@@ -3,10 +3,12 @@ import { LenseCursor } from '../lense/cursor.service';
 import { ConfigurationData } from '../shared/services/configuration.data';
 import { Logger } from 'app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
+import { FlexiWallTouchPoint } from 'app/shared/types/flexiWallTouchPoint';
+import { FlexiWallPosition } from 'app/shared/types/flexiWallPosition';
 
 export class FlexiWallController {
 
-  private urlFlexiwall = 'ws://localhost:8080/Broadcast';
+  private urlFlexiwall = 'ws://localhost:8080/';
 
   private flexiLastX: number;
   private flexiLastY: number;
@@ -56,14 +58,40 @@ export class FlexiWallController {
   }
 
   onMessage (event) {
-    const data = JSON.parse(event.data);
+    const touchPoints = JSON.parse(event.data);
+
+    let data = new FlexiWallTouchPoint();
+    touchPoints.forEach(pt => {
+      if (!pt.Position.IsValid) {
+        return;
+      }
+
+      var absData = Math.abs(data.Position.Z);
+      var absPt = Math.abs(pt.Position.Z);
+
+      if (absData < absPt)
+      {
+        data = new FlexiWallTouchPoint(
+          new FlexiWallPosition(pt.Position.X, pt.Position.Y, pt.Position.Z, pt.Position.IsValid),
+          pt.Type,
+          pt.Confidence,
+          pt.Time
+        )
+      }
+    });
+
+    if (!data.Position.IsValid) {
+      return;
+    }
+
+
     // if (data.Position.Z > 1300 || data.Position.Z < 1500) return;
     // this.logger.log("X " + data.Position.X + " Y " + data.Position.Y + " Z " + data.Position.Z);
 
     // Find out if there is a minimal push on the wall
     // Move the lense
     // if (data.Position.Z < -0.5 && this.cursor.isVisible)
-    if (data.Position.Z < 1300 && this.cursor.isVisible) {
+    if (data.Position.Z < -0.1 && this.cursor.isVisible) {
       let deltaX = 0;
       let deltaY = 0;
       const moveX = Math.abs(this.flexiLastX - data.Position.X);
@@ -89,7 +117,8 @@ export class FlexiWallController {
       this.flexiLastY = data.Position.Y;
       this.flexiLastX = data.Position.X;
     }
-    if (data.Position.Z > 1280 && this.cursor.isVisible) {
+
+    if (data.Position.Z > 0.1 && this.cursor.isVisible) {
       this.cursor.forceAnimateGlyphs = true;
       const currentPosition = this.cursor.position;
       this.cursor.position = currentPosition;
@@ -100,7 +129,9 @@ export class FlexiWallController {
       return; // no zoom when lense is active
     }
 
-    const zoomFactor = data.Position.Z > 1500 ? 0.95 : data.Position.Z < 1200 ? 1.05 : 1;
+    const zoomFactor = Math.abs(data.Position.Z) > 0.1
+      ? 1.0 + 0.2 * data.Position.Z
+      : 1.0;
     // const zoomFactor = data.Position.Z < -0.5 ? 1.05 : data.Position.Z > 0.5 ? 0.95 : 1;
     const trans = this.component.transform;
     trans.k = trans.k * zoomFactor;
