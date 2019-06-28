@@ -681,6 +681,9 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
             this.selectionService.featureFilters.push(idFilter);
             this.selectionService.filterRefresh();
           }
+        } else {
+          this.selectionService.featureFilters = [];
+          this.selectionService.filterRefresh();
         }
         // draws the selection rectangle if the user is currently in the specific mode
         if (this.configuration.useDragSelection) {
