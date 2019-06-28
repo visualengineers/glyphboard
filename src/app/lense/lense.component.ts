@@ -10,6 +10,7 @@ import { LenseCursor } from './cursor.service';
 import { TooltipComponent } from 'app/tooltip/tooltip.component';
 import { Logger } from 'app/shared/services/logger.service';
 import { Helper } from 'app/glyph/glyph.helper';
+import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 
 import * as d3 from 'd3';
 import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
@@ -101,7 +102,7 @@ export class MagicLenseComponent implements OnInit {
   constructor(
     public cursor: LenseCursor,
     private configuration: Configuration,
-    private selectionService: SelectionService) {}
+    private selectionService: SelectionService,) { }
 
   ngOnInit() {
     const that = this;
@@ -293,6 +294,10 @@ export class MagicLenseComponent implements OnInit {
             itemContext = currentFeatures['default-context'];
           }
         }
+
+        const colorFeature = this.data.schema.color; // the feature that is used for the color
+        const colorScale = item => config.color(+item[colorFeature]);
+        this.activeGlyph.color = colorScale;
 
         const feature = currentFeatures.features[itemContext];
         const passive = !((this.selectionService.filteredItemsIds.indexOf(d.id) > -1) || (this.selectionService.featureFilters.length == 0));
