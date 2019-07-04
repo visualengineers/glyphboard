@@ -58,6 +58,7 @@ export class ConfigurationData {
 
   private _glyph: Glyph; // class of used glyph type (flower, star, dot)
   private _activeFeatures: any[];
+  private _featureGroups: any[];
   private _activeDataSet: any; // currently active dataset (schema, features, position)
   private _activeGlyphConfig: GlyphConfiguration; // currently active glyph config
   private _selectedContext: any;
@@ -136,8 +137,19 @@ export class ConfigurationData {
       }
       count++;
     });
-
-    this.currentLevelOfDetail = newLevel;
+    var hasActiveFeatures = false;
+    if(this.activeFeatures != undefined){
+      this.activeFeatures.forEach(d => {
+        if(d.active) {
+          hasActiveFeatures = true;
+        }
+      });
+    }
+    if(hasActiveFeatures || this.activeFeatures == undefined){
+      this.currentLevelOfDetail = newLevel;
+    } else {
+      this.currentLevelOfDetail = 0;
+    }
   }
 
   /**
@@ -159,6 +171,9 @@ export class ConfigurationData {
 
   get activeFeatures(): any { return this._activeFeatures; }
   set activeFeatures(features: any) { this._activeFeatures = features; }
+
+  get featureGroups(): any { return this._featureGroups; }
+  set featureGroups(groups: any) { this._featureGroups = groups; }
 
   get glyph(): Glyph { return this._glyph; }
   set glyph(value: Glyph) { this._glyph = value; }

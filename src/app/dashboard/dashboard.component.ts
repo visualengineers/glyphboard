@@ -57,7 +57,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       // set the dataset for the appropriate configuration object (either 0 or 1)
       this.configuration.configurations[this.configuration.dataSetRequest].setData(message);
       this.configuration.configurations[this.configuration.dataSetRequest].activeDataSet = message;
-
+      this.configuration.configurations[this.configuration.dataSetRequest].featureGroups = message.schema.groups;
+      
       // get the list of contexts that each feature has. Set the list to the appropriate variable
       const unorderedContexts: any = message.schema['variant-context'];
       const orderedContexts: Array<any> = [];
@@ -72,6 +73,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       // initially set all features in the data as active
       this.configuration.configurations[this.configuration.dataSetRequest].activeFeatures = [];
+      this.configuration.configurations[this.configuration.dataSetRequest].featureGroups = message.schema.groups;
 
       // Histograms should show all the features not only glyphs...
       for (const key in message.schema.label) {

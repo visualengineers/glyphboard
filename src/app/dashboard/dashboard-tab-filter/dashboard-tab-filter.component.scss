@@ -88,3 +88,47 @@
     }
 }
 
+.grouplabelBox {
+
+    min-width: 100%;
+    min-height: 30px;
+    line-height: 30px;
+    margin-bottom: 8px;
+    border-bottom: solid 1px #FFF;
+    display: block;
+
+}
+
+.grouplabel {
+
+    display: block;
+
+    &.right {
+        float: right;
+        margin-left: 5px;
+
+        &:hover {
+            color: $button-active-color;
+        }
+        
+        &.last {
+            margin-right: 2px;
+
+            &.collapsed {
+                display: none;
+                transition: 0.3;
+            }
+        }
+    }
+
+    &.left {
+        float: left
+    }
+}
+
+.histogramBox {
+    &.collapsed {
+        display: none;
+        transition: 0.3;
+    }
+}
