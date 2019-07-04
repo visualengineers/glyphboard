@@ -13,19 +13,23 @@ import { delay } from 'q';
 
 export class FlexiWallController {
 
+  // number of events ignored for performance reasons
+  private static readonly _eventFilter = 3;
+
+  // defauilt offset which is used to pan the suface once (multiplied by depth)
+  private static readonly panningOffset = 300;
+
+  // defines the width of the border used for panning
+  private static readonly panningBorder = new Point (0.2, 0.2);
+
+  // couhnting variable for event filtering
+  private static eventCount = 0;
+
   private urlFlexiwall = 'ws://localhost:8080/';
 
   private flexiLastX: number;
   private flexiLastY: number;
   private flexiLastZ: number;
-
-  private eventCount = 0;
-
-  // defauilt offset which is used to pan the suface once (multiplied by depth)
-  private static panningOffset = 300;
-
-  // defines the width of the border used for panning
-  private static panningBorder = new Point (0.2, 0.2);
 
   private flexiOffset = new Point(0, 0);
 
@@ -51,11 +55,10 @@ export class FlexiWallController {
       };
 
       websocket.onmessage = (e: any) => {
-        that.eventCount++;
-        // if (that.eventCount > 5)
-        {
+        FlexiWallController.eventCount++;
+        if (FlexiWallController.eventCount > FlexiWallController._eventFilter) {
           that.onMessage (e);
-          that.eventCount = 0;
+          FlexiWallController.eventCount = 0;
         }
       };
 
@@ -111,7 +114,7 @@ export class FlexiWallController {
     // Find out if there is a minimal push on the wall
     // Move the lense
     // if (data.Position.Z < -0.5 && this.cursor.isVisible)
-    if (data.Position.Z < -0.1 && this.cursor.isVisible) {
+    if (data.Position.Z > 0.1 && this.cursor.isVisible) {
       let deltaX = 0;
       let deltaY = 0;
       const moveX = Math.abs(this.flexiLastX - data.Position.X);
@@ -154,29 +157,29 @@ export class FlexiWallController {
     if (data.Position.Z > 0.1) {
 
       if (data.Position.X < FlexiWallController.panningBorder.x) {
-        this.flexiOffset.x += FlexiWallController.panningOffset * data.Position.Z;
-        isPanning = true;
-      }
-
-      if (data.Position.X > 1.0 - FlexiWallController.panningBorder.x) {
         this.flexiOffset.x -= FlexiWallController.panningOffset * data.Position.Z;
         isPanning = true;
       }
 
+      if (data.Position.X > 1.0 - FlexiWallController.panningBorder.x) {
+        this.flexiOffset.x += FlexiWallController.panningOffset * data.Position.Z;
+        isPanning = true;
+      }
+
       if (data.Position.Y < FlexiWallController.panningBorder.y) {
-        this.flexiOffset.y += FlexiWallController.panningOffset * data.Position.Z;
+        this.flexiOffset.y -= FlexiWallController.panningOffset * data.Position.Z;
         isPanning = true;
       }
 
       if (data.Position.Y > 1.0 - FlexiWallController.panningBorder.y) {
-        this.flexiOffset.y -= FlexiWallController.panningOffset * data.Position.Z;
+        this.flexiOffset.y += FlexiWallController.panningOffset * data.Position.Z;
         isPanning = true;
       }
     }
 
 
     const zoomFactor = Math.abs(data.Position.Z) > 0.1 && !isPanning
-      ? 1.0 + 0.2 * data.Position.Z
+      ? 1.0 - 0.2 * data.Position.Z
       : 1.0;
     // const zoomFactor = data.Position.Z < -0.5 ? 1.05 : data.Position.Z > 0.5 ? 0.95 : 1;
     const trans = this.component.transform;

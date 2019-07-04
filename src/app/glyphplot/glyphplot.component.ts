@@ -63,6 +63,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _clusterPoints;
   private _dataUpdated: boolean;
   private _cameraUtil: CameraSyncUtilities;
+  private _isFlexiWallEnabled = false;
 
   //#region static methods
   static zoomed(component: GlyphplotComponent): void {
@@ -133,7 +134,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.configurationService
     );
     this.configuration.leftSide = this.configurationService.configurations.length === 1;
-    if (this.configuration.leftSide) {
+    if (this.configuration.leftSide && this._isFlexiWallEnabled) {
       // Flexiwall connection only for first glyphboard component
       this._flexiWallController.doWebSocket();
     }

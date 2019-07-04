@@ -25,3 +25,7 @@ Checkout the [Glyphboard](https://github.com/visualengineers/glyphboard.git) Sou
 Enter directory and run `npm install` and follow the instruction at https://github.com/visualengineers/glyphboard-backend.
 
 Run `npm start` for a dev server inside the project directory. Navigate to `http://localhost:4200/` for the client and `http://localhost:4201/` to test the [backend](https://github.com/visualengineers/glyphboard-backend). The app will automatically reload if you change any of the source files, but you will have to restart manually if you change the python backend.
+
+### FlexiWall Websocket Connection
+
+To use Glyphboard with Elastic Displays, the __FlexiWallController__ class establishes a websocket connection to the tracking server instance (default address: `ws://localhost:8080/`). By default, the controller is disabled. This can be changed by setting the flag  `_isFlexiWallEnabled` in __GlyphplotComponent__. 
