@@ -40,12 +40,24 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
    * Switch between splitscreen and single-view mode.
    */
   public onScreenToggle(): void {
-    this.regionManager.regions[1].display =
-      this.regionManager.regions[1].display === 'none' ? 'block' : 'none';
-    this.regionManager.regions[0].display = 'block';
-    this.regionManager.regions[3].display = 'none';
-    this.configuration.splitScreenActive =
-      this.regionManager.regions[1].display === 'block';
+    if(this.regionManager.IsD3Active()){
+      this.regionManager.regions[1].display =
+        this.regionManager.regions[1].display === 'none' ? 'block' : 'none';
+      this.regionManager.regions[0].display = 'block';
+      this.regionManager.regions[3].display = 'none';
+      this.configuration.splitScreenActive =
+        this.regionManager.regions[1].display === 'block';
+
+      this.cursor.splitActive = this.regionManager.regions[1].display === 'block';
+    } else{
+      this.regionManager.regions[4].display =
+        this.regionManager.regions[4].display === 'none' ? 'block' : 'none';
+      this.regionManager.regions[3].display = 'block';
+      this.configuration.splitScreenActive =
+        this.regionManager.regions[4].display === 'block';
+
+      this.cursor.splitActive = this.regionManager.regions[4].display === 'block';
+    }
 
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -56,9 +68,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
       this.cursor.position.left -= width / 2;
     } else {
       this.cursor.position.left += width / 2;
-    }
-
-    this.cursor.splitActive = this.regionManager.regions[1].display === 'block';
+    }  
     this.cursor.boundaries.right = width / (this.cursor.splitActive ? 2 : 1);
   }
 

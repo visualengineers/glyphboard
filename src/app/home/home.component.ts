@@ -28,6 +28,7 @@ export class HomeComponent implements OnInit {
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
     this.regionManager.addRegion('features', 0, 0, false);
     this.regionManager.addRegion('webgl', 0, 0, true);
+    this.regionManager.addRegion('webgl2', 0, 0, false);
 
     this.eventAggregator.getEvent(SwitchVisualizationEvent).subscribe(this.onVisualizationTypeChanged);
   }
@@ -86,10 +87,12 @@ export class HomeComponent implements OnInit {
             this.regionManager.regions[0].display = 'none';
             this.regionManager.regions[1].display = 'none';
             this.regionManager.regions[3].display = 'block';
+            this.regionManager.regions[4].display = this.splitScreen ? 'block' : 'none';
           } else {
             this.regionManager.regions[0].display = 'block';
             this.regionManager.regions[1].display = this.splitScreen ? 'block' : 'none';
             this.regionManager.regions[3].display = 'none';
+            this.regionManager.regions[4].display = 'none';
           }
 
           const width = window.innerWidth;
@@ -130,6 +133,10 @@ export class HomeComponent implements OnInit {
     this.regionManager.regions[3].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
     this.regionManager.regions[0].display = type === VisualizationType.D3 ? 'block' : 'none';
 
+    if(this.regionManager.IsSplitScreen){
+      this.regionManager.regions[4].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
+      this.regionManager.regions[1].display = type === VisualizationType.D3 ? 'block' : 'none';
+    }
     this.onResize();
   }
 }

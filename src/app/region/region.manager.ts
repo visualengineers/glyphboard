@@ -54,6 +54,10 @@ export class RegionManager {
       } else {
         element.heightPercentCalc = element.heightPercent;
       }
+      //web gl canvas height
+      if (this.regions.find(reg => reg.name === 'webgl').display !== 'none') {
+        element.heightPercentCalc = 1;
+      }
     });
 
     this.regions.forEach(element => {
