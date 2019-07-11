@@ -69,6 +69,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   private _selectionRect: SelectionRect;
   private _context: any;
 
+  private leftSide: boolean;
+
   //event controller
   private counter: number;
   private selectionEnded: boolean;
@@ -111,22 +113,14 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       this._shaderDiskMaterial.fragmentShader = fragmentShader as string
     });
 
-    this.configurationService.configurations[0].getData().subscribe(message => {
-      if (message != null) {
-        this._data = message;
-        if (this.data) {
-          this.selectionService.data = this.data;
-        }
-        this.buildParticles();
-      }
-    });
-
     this._configuration = this.configurationService.configurations[0];
     this.eventAggregator.getEvent(RefreshPlotEvent).subscribe(this.onRefreshPlot);
     this.eventAggregator.getEvent(RefreshHoverEvent).subscribe(this.onRefreshHover);
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
     this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
     this.eventAggregator.getEvent(FitToSelectionEvent).subscribe(this.fitToSelection);
+
+    console.log("split " + this.regionManager.IsSplitScreen());
   }
 
   ngOnInit(): void {
@@ -151,15 +145,39 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this._selectionRect = new SelectionRect(this, this._context, this.helper);
     // this._selectionRect.data = this._data;
     this._selectionRect.offset = {
-      x: this.configuration.leftSide ? 0 : window.innerWidth - this.width,
+      x: this._configuration.leftSide ? 0 : window.innerWidth - this.width,
       y: 0
     };
 
     this.tooltip.data = this._data;
 
-    //todo refactor listener?
     this.tooltip.tooltipElement.addEventListener('mouseover', this.onHoverTooltip);
     this.tooltip.tooltipElement.addEventListener('mouseout', this.onEndHoverTooltip);
+
+    this.leftSide = this.regionManager.regions[3].name === (this.canvasRef.nativeElement as HTMLElement).parentElement.getAttribute("name");    
+
+    //Switch between different configs in splitscreen
+    if(this.leftSide){
+      this.configurationService.configurations[0].getData().subscribe(message => {
+        if (message != null) {
+          this._data = message;
+          if (this.data) {
+            this.selectionService.data = this.data;
+          }
+          this.buildParticles();
+        }
+      });
+    } else {
+      this.configurationService.configurations[1].getData().subscribe(message => {
+        if (message != null) {
+          this._data = message;
+          if (this.data) {
+            this.selectionService.data = this.data;
+          }
+          this.buildParticles();
+        }
+      });
+    }
   }
 
   private createScene() {
@@ -224,7 +242,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
    }
 
     this.renderer.render( this.scene, this.camera );
-
   }
 
   //#region HostListeners
@@ -437,6 +454,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
        this._particleSystem = null;
     }
 
+    if(this.leftSide){
+      this._configuration = this.configurationService.configurations[0];
+    } else {
+      this._configuration = this.configurationService.configurations[1];
+    }
+
     const particlePositions = [];
     const particleColors = [];
     const particleSizes = [];
@@ -522,7 +545,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           !((this.selectionService.filteredItemsIds.indexOf(item.id) > -1) ||
           (this.selectionService.featureFilters.length === 0));
 
-        const feature = this.configuration.getFeaturesForItem(item).features;
+        const feature = this._configuration.getFeaturesForItem(item).features;
         const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
         particleColors.push( color.r, color.g, color.b);
 
@@ -553,7 +576,12 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     if (this.data == null) {
       return;
     }
-    this._configuration = this.configurationService.configurations[0];
+
+    if(this.leftSide){
+      this._configuration = this.configurationService.configurations[0];
+    } else {
+      this._configuration = this.configurationService.configurations[1];
+    }
     this.updateParticles();
   }
 
@@ -731,7 +759,13 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   private updateParticles() {
     const colorFeature = this.data.schema.color;
-    const configuration = this.configurationService.configurations[0];
+
+    if (this.leftSide) {
+      this._configuration = this.configurationService.configurations[0];
+    } else {
+      this._configuration = this.configurationService.configurations[1];
+    }
+
     const colorScale = item => {
       return item === undefined
         ? 0
@@ -744,7 +778,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       const isPassive =
             !((this.selectionService.filteredItemsIds.indexOf(item.id) > -1) ||
             (this.selectionService.featureFilters.length === 0));
-          const feature = this.configuration.getFeaturesForItem(item).features;
+          const feature = this._configuration.getFeaturesForItem(item).features;
           const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
           particleColors.push( color.r, color.g, color.b);
     });
