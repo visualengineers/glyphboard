@@ -1,0 +1,134 @@
+@import "../dashboard-tab/dashboard-tab.component";
+
+.dashboard-tab-filter {
+    background: $background-color;
+    color: $text-foreground-color;
+
+    &__search {
+        font-family: 'Glyphboard-Condensed';
+        letter-spacing: $letter-spacing-condensed;
+        box-sizing: border-box;
+        width: 190px;
+        box-sizing: border-box;
+        margin-right: $dashboard-padding;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        border: none;
+        height: 32px;
+        line-height: 32px;
+        background-color: $button-dark-color;
+        color: $text-foreground-color;
+        padding-left: 8px;
+
+        &:focus {
+            border: none;
+            outline: none;
+        }
+    }
+
+    &__searchbutton {
+        color: $tab-inactive-color;
+        box-sizing: border-box;
+        border: none; /* Remove borders */
+        margin-left: -48px; /* Some padding */
+        cursor: pointer; /* Mouse pointer on hover */
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        background-color: $button-dark-color;
+        font-size: 18px;
+
+        i {
+            color: $tab-inactive-color;
+            margin-top: 8px;
+        }
+    
+        &:hover {
+            color: $button-active-color !important;
+    
+            i {
+                color: $button-active-color;
+            }
+        }
+    }
+
+    &__filtereditemcounter {
+        float: right;
+        padding-top: 5px;
+    }
+
+    &__erasebutton {
+        float: right;
+        color: $text-foreground-color;
+        box-sizing: border-box;
+        border: none; /* Remove borders */
+        margin-top: 4px;
+        cursor: pointer; /* Mouse pointer on hover */
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        background-color: $background-color;
+        font-size: 18px;
+
+        i {
+            color: $text-foreground-color;
+            background-color: $background-color;
+            margin-top: 8px;
+        }
+    
+        &:hover {
+            color: $button-active-color !important;
+    
+            i {
+                color: $button-active-color;
+            }
+        }
+    }
+}
+
+.grouplabelBox {
+
+    min-width: 100%;
+    min-height: 30px;
+    line-height: 30px;
+    margin-bottom: 8px;
+    border-bottom: solid 1px #FFF;
+    display: block;
+
+}
+
+.grouplabel {
+
+    display: block;
+
+    &.right {
+        float: right;
+        margin-left: 5px;
+
+        &:hover {
+            color: $button-active-color;
+        }
+        
+        &.last {
+            margin-right: 2px;
+
+            &.collapsed {
+                display: none;
+                transition: 0.3;
+            }
+        }
+    }
+
+    &.left {
+        float: left
+    }
+}
+
+.histogramBox {
+    &.collapsed {
+        display: none;
+        transition: 0.3;
+    }
+}
