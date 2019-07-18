@@ -3,6 +3,7 @@ import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component'
 import { FitToSelectionTransmitterEvent } from 'app/shared/events/fit-to-selection-transmitter.event';
 import { FitToScreenEvent } from 'app/shared/events/fit-to-screen.event';
 import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
+import { DashboardSplitScreenEvent} from 'app/shared/events/dashboard-split-screen.event'
 import { environment } from 'environments/environment';
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
@@ -51,6 +52,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
     const height = window.innerHeight;
     this.regionManager.updateRegions(width, height);
 
+
     // move lens position
     if (this.configuration.splitScreenActive) {
       this.cursor.position.left -= width / 2;
@@ -60,6 +62,8 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
 
     this.cursor.splitActive = this.regionManager.regions[1].display === 'block';
     this.cursor.boundaries.right = width / (this.cursor.splitActive ? 2 : 1);
+
+    this.eventAggregator.getEvent(DashboardSplitScreenEvent).publish(this.configuration.splitScreenActive);
   }
 
   /**

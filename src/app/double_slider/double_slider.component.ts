@@ -3,6 +3,7 @@ import { EventAggregatorService } from 'app/shared/events/event-aggregator.servi
 
 import * as d3 from 'd3';
 import { ManualZoom } from 'app/shared/events/manual-zoom.event';
+import { DashboardSplitScreenEvent } from 'app/shared/events/dashboard-split-screen.event';
 
 @Component({
   selector: 'app-doubleslider',
@@ -27,6 +28,7 @@ export class DoubleSliderComponent implements OnInit {
   @Input() primaryID: string;
   @Input() secondaryID: string;
   @Output() onChange = new EventEmitter<any>();
+  private splitScreenInactive = true;
 
   static dragging(component: DoubleSliderComponent, slider: string): void {
     if (slider === 'min') {
@@ -51,6 +53,10 @@ export class DoubleSliderComponent implements OnInit {
   constructor(
     private eventAggregator: EventAggregatorService
     ) {
+
+    this.eventAggregator
+      .getEvent(DashboardSplitScreenEvent)
+      .subscribe(this.updateSplitScreenState);
     // TODO: HARD CODED LEVELS OF DETAIL
     this.lowerBound = 0.2 * this.max;
     this.upperBound = 0.5 * this.max;
@@ -79,5 +85,9 @@ export class DoubleSliderComponent implements OnInit {
       .on('drag', () => DoubleSliderComponent.dragging(that, 'secondary'))
       .on('end', () => this.draggingIndicator = false)
       );
+  }
+
+  private updateSplitScreenState = (payload: boolean) => {
+    this.splitScreenInactive = !payload;
   }
 };

@@ -20,7 +20,7 @@
     }
 
     &.secondary{
-      outline: 2px solid #0000FF;
+      outline: 2px solid $text-foreground-color;
     }
   }
 
@@ -78,7 +78,7 @@
   &.secondary{
     border-left: calc(15px/0.866/2) solid transparent;
     border-right: calc(15px/0.866/2) solid transparent;
-    border-top: 15px solid #0000FF;
+    border-top: 15px solid $text-foreground-color;
     transform: translateY(-20px);
   }
 
@@ -89,4 +89,8 @@
   &:hover {
     cursor: grab;
   }
+}
+
+.invisible {
+  visibility: hidden;
 }

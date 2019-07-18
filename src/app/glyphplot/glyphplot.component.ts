@@ -560,7 +560,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   }
 
   public fitToSelectionTransmitter = (payload: boolean) => {
-    this.eventController.fitToSelection(this._uniqueID);
+    this.eventAggregator.getEvent(FitToSelectionEvent).publish(this._uniqueID);
   }
 
   private updateZoomIdentity = (payload: boolean) => {

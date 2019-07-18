@@ -375,8 +375,11 @@ export class GlyphplotEventController {
     this.formerTranslation = {x: 0, y: 0};
   };
 
-  public fitToSelection(id: string): void {
-    if (id != this.component.uniqueID) {
+  public fitToSelection = (payload: string) => {
+    if (this.component == null){
+      return
+    }
+    if (payload != this.component.uniqueID ) {
       return;
     }
     const that = this;
@@ -384,7 +387,7 @@ export class GlyphplotEventController {
     this.component.layoutController.getPositions().forEach(d => {
       const data = this.component.layoutController.getFeaturesForItem(d);
 
-        if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
+        if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || that.configuration.featureFilters.length === 0) {
           filteredPositions.push(d.position);
         }
       });

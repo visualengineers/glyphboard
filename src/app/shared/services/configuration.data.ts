@@ -49,7 +49,7 @@ export class ConfigurationData {
   private _lockLevelOfDetail: boolean;
   private _lockUpdated: boolean;
   private _currentZoomLevel: number;
-  private _zoomIdentity: any = d3.zoomIdentity;
+  private _zoomIdentity = d3.zoomIdentity;
 
   private _minScaleLevel = 0.5;
 
