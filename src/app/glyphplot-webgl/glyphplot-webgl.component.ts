@@ -170,7 +170,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
           this.activeView.onSelection(this.selectionService);
           this.activeView.onConfiguration(this._configuration);
           this.activeView.onData(this.data);
-          
+          this.setViewFrustum();
         }
       });
   }
