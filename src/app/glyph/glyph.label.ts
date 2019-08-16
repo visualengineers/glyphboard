@@ -91,6 +91,7 @@ export class LabelGlyph extends Glyph {
       }
       this.context.fillStyle = color;
       this.context.strokeStyle = strokeColor;
+      this.context.lineWidth = 2;
       this.context.arc(
         position.x,
         position.y,

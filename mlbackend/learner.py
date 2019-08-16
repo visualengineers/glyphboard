@@ -32,7 +32,7 @@ nlp = spacy.load('de')
 
 
 # Classifiers
-SGD = SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3,
+SGD = SGDClassifier(loss="modified_huber", penalty='l2', alpha=1e-3,
                     random_state=42, max_iter=5, tol=None)
 MNB = MultinomialNB()
 LR = LogisticRegression()
@@ -81,7 +81,7 @@ def mockInit():
 
     test_data = df[SPLICE_POINT+1:]
     saveData(test_data, 'test_data')
-    data_with_scores = getSelectionScores(rest_data=df, train_data=test_data)
+    data_with_scores = getSelectionScores(rest_data=df, train_data=test_data, clf=SGD)
     saveData(data_with_scores)
     resetTrainData()
 
@@ -140,7 +140,7 @@ def updateDatasetJson():
         LC_data = json.load(read_file)
 
     data = loadData()
-    data = getSelectionScores(rest_data=data, train_data=getTrainData())
+    data = getSelectionScores(rest_data=data, train_data=getTrainData(), clf=SGD)
 
     for doc in LC_data:
         doc['features']['1']['31'] = int(

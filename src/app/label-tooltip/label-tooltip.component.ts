@@ -3,7 +3,8 @@ import { Helper } from 'app/glyph/glyph.helper';
 import { Configuration } from 'app/shared/services/configuration.service';
 import { Observable, of } from 'rxjs';
 import { LabelingService } from 'app/labeling/labeling.service';
-import { MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material';
+import { MatButtonToggleChange, MatButtonToggleGroup, MatIconRegistry } from '@angular/material';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-label-tooltip',
@@ -37,8 +38,15 @@ export class TooltipNewComponent implements OnInit {
   constructor(
     private helper: Helper,
     private configuration: Configuration,
-    private label: LabelingService
-  ) {}
+    private label: LabelingService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
+  ) {
+    this.matIconRegistry.addSvgIcon(
+      'apple',
+      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/img/apple.svg')
+    );
+  }
 
   ngOnInit(): void {
     this.tooltipElement = this.tooltipContainer.nativeElement;
