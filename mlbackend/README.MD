@@ -20,7 +20,8 @@ Download and install command line interface of [Angular.IO](https://angular.io/)
 
 ## Machine Learning Backend
 
-Run `npm run ml`
+~~Run `npm run ml`~~ (deprecated)
+The ML backend routine is included in the `npm start` script now.
 
 ## Jupyter Notebook
 
@@ -30,4 +31,4 @@ Change directory to `mlbackend` and run `jupyter notebook`
 
 Run `npm install` to install all node modules.
 
-Run `npm start` for a dev server inside the project directory. Navigate to `http://localhost:4200/` for the client and `http://localhost:4201/` to test the [backend](https://github.com/visualengineers/glyphboard-backend). The app will automatically reload if you change any of the source files, but you will have to restart manually if you change the python backend.
+Run `npm start` for a dev server inside the project directory. Navigate to `http://localhost:4200/` for the client and `http://localhost:4201/` to test the [backend](https://github.com/visualengineers/glyphboard-backend).

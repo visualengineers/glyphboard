@@ -67,8 +67,10 @@ def mockInit():
         'entities': [' '] * len(LC_data)
     })
 
+    # split into a partial test set
     test_data = df[SPLICE_POINT+1:]
     saveData(test_data, 'test_data')
+    # add selection scores to data
     data_with_scores = getSelectionScores(rest_data=df, train_data=test_data, clf=SGD)
     saveData(data_with_scores)
     resetTrainData()
