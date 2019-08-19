@@ -2,27 +2,18 @@ import json
 import csv
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import chi2
-from sklearn.cross_validation import train_test_split
 import numpy as np
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import LinearSVC
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
-from sklearn.manifold import MDS, TSNE
 from sklearn.decomposition import TruncatedSVD
-from MulticoreTSNE import MulticoreTSNE
 import umap
 import pandas as pd
-import random
 from gb_writer import GlyphboardWriter
-# from sklearn.model_selection import GridSearchCV
 from typing import Any
 import spacy
 from spacy.lang.de.stop_words import STOP_WORDS
@@ -31,15 +22,18 @@ from spacy.lang.de.stop_words import STOP_WORDS
 nlp = spacy.load('de')
 
 
-# Classifiers
+# Classifiers (used for testing)
 SGD = SGDClassifier(loss="modified_huber", penalty='l2', alpha=1e-3,
                     random_state=42, max_iter=5, tol=None)
 MNB = MultinomialNB()
 LR = LogisticRegression()
 SVC = LinearSVC()
 
+# init tfidf vectorizer
 vec = TfidfVectorizer(strip_accents='ascii', max_df=0.5, sublinear_tf=True)
+# where to split the data/test set
 SPLICE_POINT = 800
+# unlabeled data is -1
 UNLABELED_VALUE = -1
 
 
@@ -50,7 +44,7 @@ def init():
     # cleanupTexts()
     print('Done')
 
-
+# set environment to a clean state
 def mockInit():
     texts = []
     labels = []
@@ -94,9 +88,8 @@ def saveData(data, name='data'):
     with open('mlbackend/{}.csv'.format(name), mode='w', newline='\n', encoding='utf-8') as f:
         data.to_csv(f, sep=";", line_terminator='\n',
                     encoding='utf-8', index=False)
-    # data.to_csv('mlbackend/{}.csv'.format(name), sep=";", encoding="utf-8", index=False)
 
-
+# handle incoming label annotation
 def handleNewAnswer(answer):
     newAnswer = {
         'text': answer['text'],
@@ -110,20 +103,16 @@ def handleNewAnswer(answer):
 
     data = updateDataWithLabel(
         loadData(), newAnswer['docId'], newAnswer['label'])
+    # classifiers need some samples, start after 3
     if len(train_data) > 3:
-        # tfidf = vec.fit_transform(data.text)
-        # positions = applyDR(tfidf, withPreviousPos=False, labels=data.label)
-        # writer = GlyphboardWriter('test_name')
-        # position_response = writer.write_position(positions=positions, algorithm='umap')
         train_result = train(train_data, test_data, SGD)
         return {
-            # 'positions': position_response,
             'train_result': train_result
         }
     else:
         return ''
 
-
+# handle manual update by user on frontend
 def handleCompleteUpdate():
     data = loadData()
     # data = updateDatasetJson()
@@ -134,7 +123,7 @@ def handleCompleteUpdate():
         positions=positions, algorithm='umap')
     return position_response
 
-
+# update the whole json containing the data set in the backend
 def updateDatasetJson():
     with open("mlbackend/test_data.json", "r") as read_file:
         LC_data = json.load(read_file)
@@ -165,10 +154,6 @@ def updateDatasetJson():
 
     return data
 
-# def updateSingleData(id: number, label, isLabeled):
-#     data = loadData()
-#     json =
-
 
 def updateDataWithLabel(data, docId, label):
     print('before', data.loc[data['id'] == docId])
@@ -193,7 +178,6 @@ def createMetrics(algo, train_data):
 
 def train(train_data, test_data, algo: Any) -> dict:
     text_clf = Pipeline([
-        # ('vect', CountVectorizer()),
         ('tfidf', vec),
         ('clf', algo),
     ])
@@ -224,7 +208,7 @@ def resetTrainData():
     data.loc[:, 'isLabeled'] = 0
     saveData(data)
 
-
+# mock a number of iterations
 def mockTraining(amount):
     data = loadData()
     for i in range(amount):
@@ -235,14 +219,14 @@ def mockTraining(amount):
             data.loc[i, 'label'] = 0
     saveData(data)
 
-
+# simulate a number of iterations and set up a clean enviroenment (for tests and demo)
 def simulateTraining(iterations):
     test_data = getTestData()
     mockTraining(iterations)
     train_data = getTrainData()
     train(train_data, test_data, SGD)
 
-
+# return all previous metrics
 def getHistory():
     history = []
     with open(
@@ -253,7 +237,7 @@ def getHistory():
         file.close()
     return history
 
-
+# add a metric to the history
 def addHistory(metrics):
     with open(
             "mlbackend/metrics.csv", "a",  newline="", encoding="utf-8") as file:
@@ -265,32 +249,27 @@ def addHistory(metrics):
 def getCurrentScore() -> int:
     return getHistory().pop()
 
-
-def applyDR(tfidf, labels=[], withPreviousPos=True, factor=1):
-    # pre_computed = TruncatedSVD(n_components=100, random_state=1).fit_transform(tfidf.toarray())
-    # LABEL_IMPACT = 0
+# calculate coordinates
+# withPreviousPos tells if each iteration should be influenced by the last one
+def applyDR(tfidf, labels=[], withPreviousPos=False, factor=1):
     if withPreviousPos:
         previousPositions = loadData('previousPositions').values
     else:
         previousPositions = 'spectral'
     labels_arr = np.asarray(labels)
     labels_arr = labels_arr.reshape(len(labels_arr), 1)
-    # with_labels = np.hstack((tfidf.toarray(), labels_arr))
     computed_coords = umap.UMAP(init=previousPositions, min_dist=0.8,
                                 random_state=1, learning_rate=0.5).fit(tfidf.toarray(), y=labels_arr)
     computed_coords = computed_coords.embedding_
     saveData(pd.DataFrame(computed_coords), 'previousPositions')
     computed_coords *= factor
-    # computed_coords = MulticoreTSNE(n_jobs=4, random_state=1).fit_transform(with_labels)
     df = pd.DataFrame(columns=['x', 'y'])
     df['x'] = computed_coords[:, 0]
     df['y'] = computed_coords[:, 1]
 
     return df
 
-# def resetPositions():
-
-
+# clean up texts routine
 def cleanupTexts():
     data = loadData()
     for idx, text in enumerate(data.text):
@@ -299,13 +278,12 @@ def cleanupTexts():
 
     saveData(data)
 
-
 def preprocessText(text: str) -> str:
     doc = nlp(text)
     # Remove Stop Words and get Lemmas
     return ' '.join([token.text for token in doc if not token.is_stop])
 
-
+# return entities from a text
 def extractNER(text):
     doc = nlp(text)
     entities = []
@@ -316,9 +294,7 @@ def extractNER(text):
     else:
         return ''
 
-# Score by uncertainty selection
-
-
+# Set scores by uncertainty selection
 def getSelectionScores(rest_data, train_data, clf=MNB):
     text_clf = Pipeline([
         ('tfidf', vec),
@@ -330,7 +306,7 @@ def getSelectionScores(rest_data, train_data, clf=MNB):
     rest_data['score'] = result_pos
     return rest_data
 
-
+# Display words that influence the classification (used in jupyter notebook)
 def analyseImportantFeatures(clf=SGD):
     train_data = getTrainData()
     tfidf = vec.fit_transform(train_data.text)
