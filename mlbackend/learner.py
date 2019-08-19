@@ -3,14 +3,11 @@ import csv
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import LinearSVC
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
-from sklearn.decomposition import TruncatedSVD
 import umap
 import pandas as pd
 from gb_writer import GlyphboardWriter
@@ -25,15 +22,12 @@ nlp = spacy.load('de')
 # Classifiers (used for testing)
 SGD = SGDClassifier(loss="modified_huber", penalty='l2', alpha=1e-3,
                     random_state=42, max_iter=5, tol=None)
-MNB = MultinomialNB()
-LR = LogisticRegression()
-SVC = LinearSVC()
 
 # init tfidf vectorizer
 vec = TfidfVectorizer(strip_accents='ascii', max_df=0.5, sublinear_tf=True)
 # where to split the data/test set
 SPLICE_POINT = 800
-# unlabeled data is -1
+# unlabeled data is set to -1
 UNLABELED_VALUE = -1
 
 
@@ -44,7 +38,7 @@ def init():
     # cleanupTexts()
     print('Done')
 
-# set environment to a clean state
+# set environment to a clean state for testing
 def mockInit():
     texts = []
     labels = []
@@ -123,7 +117,7 @@ def handleCompleteUpdate():
         positions=positions, algorithm='umap')
     return position_response
 
-# update the whole json containing the data set in the backend
+# update the whole json containing the data set in the glyphboard backend
 def updateDatasetJson():
     with open("mlbackend/test_data.json", "r") as read_file:
         LC_data = json.load(read_file)
@@ -250,7 +244,7 @@ def getCurrentScore() -> int:
     return getHistory().pop()
 
 # calculate coordinates
-# withPreviousPos tells if each iteration should be influenced by the last one
+# withPreviousPos: tells if each iteration should be influenced by the last one
 def applyDR(tfidf, labels=[], withPreviousPos=False, factor=1):
     if withPreviousPos:
         previousPositions = loadData('previousPositions').values
@@ -295,7 +289,7 @@ def extractNER(text):
         return ''
 
 # Set scores by uncertainty selection
-def getSelectionScores(rest_data, train_data, clf=MNB):
+def getSelectionScores(rest_data, train_data, clf=SGD):
     text_clf = Pipeline([
         ('tfidf', vec),
         ('clf', clf),

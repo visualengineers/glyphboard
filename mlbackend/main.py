@@ -22,13 +22,6 @@ def getScore():
 def triggerUpdate():
     position = handleCompleteUpdate()
     return json.dumps(position)
-    
-
-# def getUpdatedDataset():
-#     updated_scores = getSelectionScores()
-#     response = updated_scores[['isLabeled', 'label', 'score']]
-#     return response.to_json()
-
 
 
 if __name__ == '__main__':

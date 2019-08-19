@@ -2,9 +2,9 @@ from datetime import datetime
 from os import path, makedirs
 import json
 import os
-
 from config import config_manager
 
+# Write jsons for Glyphboard
 class GlyphboardWriter:
     def __init__(self, name):
         target_directory = path.join(
