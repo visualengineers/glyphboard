@@ -34,6 +34,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // the checkboxes in the settings
   public activeOptions: [any] | undefined;
   public selectedFeatureName: string = "";
+  public infoHidden = false;
 
   // allows for tabbing. 'glyphs' shows glyph-options, 'settings' shows
   // global settings like split-view, magic-lens or zoom, etc.
@@ -53,6 +54,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (message === null || message === undefined || message.schema === undefined) {
         return;
       }
+
+      this.infoHidden = this.configuration.configurations[0].activeFeatures.length > 0;
 
       // set the dataset for the appropriate configuration object (either 0 or 1)
       this.configuration.configurations[this.configuration.dataSetRequest].setData(message);

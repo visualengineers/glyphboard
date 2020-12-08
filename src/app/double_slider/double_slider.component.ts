@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, Injector } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit } from '@angular/core';
 import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
 import * as d3 from 'd3';
 import * as d3Drag from 'd3-drag';
@@ -10,7 +10,7 @@ import { ManualZoom } from 'src/app/shared/events/manual-zoom.event';
   styleUrls: ['./double_slider.component.scss']
 })
 
-export class DoubleSliderComponent implements OnInit {
+export class DoubleSliderComponent implements AfterViewInit {
   public min = 0;
   public max = 237;
 
@@ -48,28 +48,28 @@ export class DoubleSliderComponent implements OnInit {
     this.upperBound = 0.5 * this.max;
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     const that: DoubleSliderComponent = this;
 
     let sliderMinDrag: d3Drag.DragBehavior<SVGSVGElement, any, any | d3Drag.SubjectPosition>;
     sliderMinDrag = d3Drag.drag<SVGSVGElement, any>()
-      .on('drag', (element: SVGSVGElement, event: any) => DoubleSliderComponent.dragging(event, that, 'min'))
+      .on('drag', (event: any) => {
+        DoubleSliderComponent.dragging(event, that, 'min')
+      })
       .on('end', (element: SVGSVGElement, event: any) => { that.draggingMin = false; });
-    let sliderMin: SVGSVGElement = d3.select<SVGSVGElement, any>('.slider.min').node()!;
-    sliderMinDrag.container(sliderMin);
+
+    d3.select<SVGSVGElement, any>('.slider.min').call(sliderMinDrag);
 
     let sliderMaxDrag: d3Drag.DragBehavior<SVGSVGElement, any, any | d3Drag.SubjectPosition>;
     sliderMaxDrag = d3Drag.drag<SVGSVGElement, any>()
-    .on('drag', (element: SVGSVGElement, event: any) => DoubleSliderComponent.dragging(event, that, 'max'))
-    .on('end', (element: SVGSVGElement, event: any) => { that.draggingMax = false; });
-    let sliderMax: SVGSVGElement = d3.select<SVGSVGElement, any>('.slider.max').node()!;
-    sliderMaxDrag.container(sliderMax);
+    .on('drag', (event: any) => DoubleSliderComponent.dragging(event, that, 'max'))
+    .on('end', (event: any) => { that.draggingMax = false; });
+    d3.select<SVGSVGElement, any>('.slider.max').call(sliderMaxDrag);
 
     let indicatorDrag: d3Drag.DragBehavior<SVGSVGElement, any, any | d3Drag.SubjectPosition>;
     indicatorDrag = d3Drag.drag<SVGSVGElement, any>()
-    .on('drag', (element: SVGSVGElement, event: any) => DoubleSliderComponent.dragging(event, that, 'indicator'))
-    .on('end', (element: SVGSVGElement, event: any) => { that.draggingIndicator = false; });
-    let sliderIndicator: SVGSVGElement = d3.select<SVGSVGElement, any>('.indicator').node()!;
-    indicatorDrag.container(sliderIndicator);
+    .on('drag', (event: any) => DoubleSliderComponent.dragging(event, that, 'indicator'))
+    .on('end', (event: any) => { that.draggingIndicator = false; });
+    d3.select<SVGSVGElement, any>('.indicator').call(indicatorDrag);
   }
 };

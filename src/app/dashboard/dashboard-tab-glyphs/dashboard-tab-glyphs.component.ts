@@ -92,7 +92,7 @@ export class DashboardTabGlyphsComponent extends DashboardTabComponent
     this.onLayoutChange();
   }
 
-  private onGlyphConfigChange(e: any): void {
+  public onGlyphConfigChange(e: any): void {
     const conf: any = this.configuration.activeGlyphConfig();
     conf[e.property] = e.active;
     this.onConfigChange();

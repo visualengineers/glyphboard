@@ -8,6 +8,7 @@ import { RefreshPlotEvent } from 'src/app/shared/events/refresh-plot.event';
 import { Observable } from 'rxjs';
 import { ToggleGroupEvent } from 'src/app/shared/events/toggle-group.event';
 import { RefreshConfigEvent } from 'src/app/shared/events/refresh-config.event';
+import { D3BrushEvent } from 'd3';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -132,8 +133,6 @@ export class DashboardFeatureConfigComponent implements AfterViewInit, OnChanges
     this.dataProvider.getDataSet().subscribe(message => {
       if (message == null) { return; }
       this.dat = message.meta;
-      console.log("from dashboard feature config l. 135");
-      console.log(this.dat);
       this.data = this.loadValues(this.property, this.dat);
       this.dataSteps = this.data.length;
     });
@@ -274,42 +273,42 @@ export class DashboardFeatureConfigComponent implements AfterViewInit, OnChanges
       this.chart.selectAll('.selection')
       .style('fill', '#0093d6')
       .on('mouseover', function() { tooltip.style('display', 'block'); })
-      .on('mousemove', function() {
+      .on('mousemove', function(event: any, d: any) {
       tooltip
         .select('text')
         .text(
-            Math.round((Math.floor(d3.pointer(that)[0] / (that.width / that.dataSteps)) / that.dataSteps) * 100) / 100
+            Math.round((Math.floor(d3.pointer(event)[0] / (that.width / that.dataSteps)) / that.dataSteps) * 100) / 100
               + '-'
-              + Math.round(((Math.floor(d3.pointer(that)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
+              + Math.round(((Math.floor(d3.pointer(event)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       })
       .on('mouseout', function() { tooltip.style('display', 'none');
       });
 
       this.chart.selectAll('.overlay')
       .on('mouseover', function() { tooltip.style('display', 'block'); })
-      .on('mousemove', function() {
+      .on('mousemove', function(event: any, d: any) {
       tooltip
         .select('text')
         .text(
-          Math.round((Math.floor(d3.pointer(that)[0] / (that.width / that.dataSteps)) / that.dataSteps) * 100) / 100
+          Math.round((Math.floor(d3.pointer(event)[0] / (that.width / that.dataSteps)) / that.dataSteps) * 100) / 100
             + '-'
-            + Math.round(((Math.floor(d3.pointer(that)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
+            + Math.round(((Math.floor(d3.pointer(event)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       })
       .on('mouseout', function() { tooltip.style('display', 'none');
       });
 
       this.chart.selectAll('.handle')
-      .on('mousemove', function() {
+      .on('mousemove', function(event: any, d: any) {
         tooltip
           .select('text')
           .text(
-            Math.round((Math.floor(d3.pointer(that)[0] / (that.width / that.dataSteps)) / that.dataSteps) * 100) / 100
+            Math.round((Math.floor(d3.pointer(event)[0] / (that.width / that.dataSteps)) / that.dataSteps) * 100) / 100
               + '-'
-              + Math.round(((Math.floor(d3.pointer(that)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
+              + Math.round(((Math.floor(d3.pointer(event)[0] / (that.width / that.dataSteps)) + 1 ) / that.dataSteps) * 100) / 100);
       });
 
       if (init && this.configuration!.configurations[0].featureFilters.length != 0) {
-        var min, max;
+        var min: number = 0, max: number = 0;
         this.configuration!.configurations[0].featureFilters.forEach( d => {
           if (d.featureName == this.property) {
             min = Math.floor(d.minValue*this.width+1);
@@ -318,8 +317,7 @@ export class DashboardFeatureConfigComponent implements AfterViewInit, OnChanges
           }
         });
         this.propertyInConfiguration = this.property;
-        // TODO: Update Brush API of D3 v6
-        // this.brush.move(this.chart.select('#overlay-wrap'), [min, max]);
+        this.brush.move(this.chart.select('#overlay-wrap'), [min, max]);
         this.configuration!.configurations[0].filterRefresh();
         this.configuration!.configurations[1].filterRefresh();
         this.onLayoutChange();
@@ -366,12 +364,9 @@ export class DashboardFeatureConfigComponent implements AfterViewInit, OnChanges
     const x = d3.scaleLinear()
       .domain(this.data.map((d: any) => d[0]))
       .range([0, this.width])
-    const selection: Iterable<string> = event.selection.map(x.invert, x);
-    // TODO: Update selection API of D3 v6
-    // this.brushMin = +d3.min(selection) * this.dataSteps;
-    // this.brushMax = Math.floor(+d3.max(selection) * this.dataSteps);
-    
-
+    const selection: any[] = event.selection.map(x.invert, x);
+    this.brushMin = +d3.min(selection) * this.dataSteps;
+    this.brushMax = Math.floor(+d3.max(selection) * this.dataSteps);
     this.chart.selectAll('.bar').style('fill',  (d: any) => this.colorDecision(d));
   }
 
