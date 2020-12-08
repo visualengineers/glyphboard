@@ -1,5 +1,5 @@
 import { GlyphplotComponent } from './glyphplot.component';
-import { Logger } from 'app/shared/services/logger.service';
+import { Logger } from 'src/app/shared/services/logger.service';
 import * as d3 from 'd3';
 import { Configuration } from '../shared/services/configuration.service';
 import { DotGlyphConfiguration } from '../glyph/glyph.dot.configuration';
@@ -33,7 +33,7 @@ export class GlyphplotLayoutController {
 
     this.component.data.positionsRaw = [];
 
-    this.component.data.positions.forEach(d => {
+    this.component.data.positions.forEach((d: any) => {
       if (d.position.ox === undefined && parseFloat(d.position.x) < minX) {
         minX = parseFloat(d.position.x);
       } else if (parseFloat(d.position.ox) < minX) {
@@ -117,7 +117,7 @@ export class GlyphplotLayoutController {
     }
 
     this.component.data.clusterPositions = [];
-    this.component.data.positions.forEach(d => {
+    this.component.data.positions.forEach((d: any) => {
       for (const element in this.component.clusterPoints) {
         if (this.component.clusterPoints.hasOwnProperty(element)) {
           const point = this.component.clusterPoints[element];
@@ -132,11 +132,11 @@ export class GlyphplotLayoutController {
 
     if (this.component.dataUpdated) {
       // empty accessors in case of updating
-      const accessors = [];
+      const accessors: any[] = [];
 
       // for every feature in the schema, add an accessor for the glyphs
-      this.component.data.schema.glyph.forEach(feat => {
-        accessors.push(d => {
+      this.component.data.schema.glyph.forEach((feat: any) => {
+        accessors.push((d: any) => {
           return accessorScale(d[feat]);
         });
       });
@@ -151,7 +151,7 @@ export class GlyphplotLayoutController {
 
     // use ox and oy so that original x and y can be stay unchanged. Then the zoom transformation
     // can simply be applied to the original coordinates to get target tx and ty for animation
-    this.component.data.positions.forEach(d => {
+    this.component.data.positions.forEach((d: any) => {
       if (d.position.ox === undefined) {
         d.position.ox = d.position.x;
       }
@@ -162,10 +162,10 @@ export class GlyphplotLayoutController {
   }
 
   // Find the nodes within the specified rectangle.
-  private search(quadtree, x0, y0, x3, y3) {
+  private search(quadtree: any, x0: any, y0: any, x3: any, y3: any) {
     const that = this;
-    const validData = [];
-    quadtree.visit(function(node, x1, y1, x2, y2) {
+    const validData: any[] = [];
+    quadtree.visit(function(node: any, x1: any, y1: any, x2: any, y2: any) {
       const p = node.data;
       if (p) {
         p.selected =
@@ -194,7 +194,7 @@ export class GlyphplotLayoutController {
   }
 
   public getFeaturesForItem(d: any) {
-    const item = this.component.data.features.find(f => {
+    const item = this.component.data.features.find((f: any) => {
       return f.id === d.id;
     });
     let itemContext = this.component.configuration.individualFeatureContexts[d.id];

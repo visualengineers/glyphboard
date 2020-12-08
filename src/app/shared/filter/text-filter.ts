@@ -6,7 +6,7 @@ export class TextFilter extends FeatureFilter {
 
   constructor(acceptableStrings?: string[]) {
     super();
-    this.acceptableStrings = acceptableStrings;
+    this._acceptableStrings = acceptableStrings === undefined ? [] : acceptableStrings;
   }
 
   public itemConfirmsToFilter(id: number, item: any, values: any): boolean {
@@ -22,6 +22,7 @@ export class TextFilter extends FeatureFilter {
                 ret = true;
                 return ret;
             }
+            return false;
         });
     });
 

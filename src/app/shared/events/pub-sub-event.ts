@@ -6,13 +6,13 @@ import { EventBase } from './event-base';
 @Injectable()
 export class PubSubEvent<T> extends EventBase {
 
-    private source = new Subject<T>();
+    protected source = new Subject<T>();
 
     // Observable string streams
-    private observable = this.source.asObservable();
+    protected observable = this.source.asObservable();
 
     // Cache array of tuples
-    private subscriptions: Array<[(a: T) => void, Subscription]> = [];
+    protected subscriptions: Array<[(a: T) => void, Subscription]> = [];
 
     subscribe(observer: (a: T) => void) {
         if (this.subscriptions.find(item => item[0] === observer) !== undefined) {
@@ -22,7 +22,7 @@ export class PubSubEvent<T> extends EventBase {
         this.subscriptions.push([observer, subscription]);
     }
 
-    publish(payload: T) {
+    publish(payload: T): void {
         this.source.next(payload);
     }
 

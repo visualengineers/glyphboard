@@ -4,7 +4,7 @@ export class SelectionRect {
   private component: GlyphplotComponent;
   private context: any;
   private helper;
-  private _animationIntervalId: number;
+  private _animationIntervalId: number = 0;
   private _animationProgress = 0;
   private _data: any;
 
@@ -86,8 +86,8 @@ export class SelectionRect {
 
     const filteredData = Object.create(this._data);
 
-    const selectedIds = [];
-    filteredData.positions = filteredData.positions.filter((elem) => {
+    const selectedIds: any[] = [];
+    filteredData.positions = filteredData.positions.filter((elem: any) => {
       const position = elem.position;
       if (!this.helper.checkClipping(position)
          && position.x > left && position.x < right
@@ -95,9 +95,10 @@ export class SelectionRect {
         selectedIds.push(elem.id);
         return true;
       };
+      return false;
     });
 
-    filteredData.features = filteredData.features.filter((elem) => {
+    filteredData.features = filteredData.features.filter((elem: any) => {
       return selectedIds.indexOf(elem.id) !== -1;
     });
 
@@ -136,7 +137,7 @@ export class SelectionRect {
         this.component.layoutController.drawSingleGlyph(
           positions,
           featuresOfHoveredGlyph.features,
-          null,
+          0,
           false,
           true,
           SelectionRect.applyEasing(this._animationProgress));
@@ -153,7 +154,7 @@ export class SelectionRect {
         }
       } else if (this._animationIntervalId !== undefined && this._animationIntervalId !== null) {
         clearInterval(this._animationIntervalId);
-        this._animationIntervalId = undefined;
+        this._animationIntervalId = 0;
         this._animationProgress = 0;
       }
     }

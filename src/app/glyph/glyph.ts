@@ -1,12 +1,13 @@
 import * as d3 from 'd3';
 import { GlyphType } from './glyph.type';
 import { GlyphConfiguration } from './glyph.configuration';
+import { FlowerGlyphConfiguration } from './glyph.flower.configuration';
 
 export abstract class Glyph {
     private _configuration: GlyphConfiguration;
     public context: any;
     color: any;
-    glyphType: GlyphType;
+    glyphType: GlyphType = GlyphType.Flower;
 
     static rgbToString(rgb: number[]): string {
         return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
@@ -30,10 +31,11 @@ export abstract class Glyph {
     constructor(context: any, color: any) {
         this.color = color;
         this.context = context;
+        this._configuration = new FlowerGlyphConfiguration;
     }
 
-    abstract draw(position: any, features: any, progress?: number, isPassive?: boolean, isHighlighted?: boolean, animation?: number);
-    abstract drawWithLabels(datum: any, features: any, progress?: number, isPassive?: boolean, labels?: string[]);
+    abstract draw(position: any, features: any, progress?: number, isPassive?: boolean, isHighlighted?: boolean, animation?: number): void;
+    abstract drawWithLabels(datum: any, features: any, progress?: number, isPassive?: boolean, labels?: string[]): void;
 
     getCurrentScale(linear: boolean, radius: number): any {
         return linear

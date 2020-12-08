@@ -1,5 +1,4 @@
 import { Logger } from '../shared/services/logger.service';
-import * as d3 from 'd3';
 import { Injectable } from '@angular/core';
 import { Region } from './region';
 

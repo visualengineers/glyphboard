@@ -1,8 +1,8 @@
 <div class="option" [ngClass]="{ 'active': active }">
   <div class="d3-chart" (click)="resize()" #chart>
   </div>
-  <div class="context" [ngClass]="{ 'small' : small, 'big': !small, 'continuous' : this.configuration.configurations[0].selectedFeatureName == label && this.configuration.configurations[0].useColorRange, 'invisible' : this.configuration.configurations[0].selectedFeatureName == label && !this.configuration.configurations[0].useColorRange }"></div>
-  <div class="context" [ngClass]="{ 'small' : small, 'big': !small, 'invisible' : this.configuration.configurations[0].selectedFeatureName !== label || this.configuration.configurations[0].useColorRange }">
+  <div class="context" [ngClass]="{ 'small' : small, 'big': !small, 'continuous' : this.configuration!.configurations[0].selectedFeatureName == label && this.configuration!.configurations[0].useColorRange, 'invisible' : this.configuration!.configurations[0].selectedFeatureName == label && !this.configuration!.configurations[0].useColorRange }"></div>
+  <div class="context" [ngClass]="{ 'small' : small, 'big': !small, 'invisible' : this.configuration!.configurations[0].selectedFeatureName !== label || this.configuration!.configurations[0].useColorRange }">
     <div class="categorical" *ngFor="let f of colorSteps" [style.background-color]="f"></div>
   </div>
   <div class="label_wrap">

@@ -11,7 +11,6 @@ export class DotGlyph extends Glyph {
     }
 
     public draw(position: any, features: any, progress?: number, isPassive?: boolean, isHighlighted?: boolean, animationProgress?: number) {
-        if (progress === 0) { return; }
         if (isPassive === undefined) { isPassive = false }
         if (isHighlighted === undefined) { isHighlighted = false }
 
@@ -20,7 +19,7 @@ export class DotGlyph extends Glyph {
         if (rad >= 8) { rad = 8; }
         if (rad <= this.preferredRadius) { rad = this.preferredRadius; }
         const radius = isHighlighted ? rad * 1.3 * progress : rad * progress;
-        const opacity = 1 - animationProgress;
+        const opacity = 1 - ((animationProgress === undefined) ? 0 : animationProgress);
         const inverseColorRGB = Glyph.inverseColorRgbFromRgb(Glyph.hexToRgb(this.color(features)));
 
         this.context.globalCompositeOperation = isPassive ? 'destination-over' : 'source-over';
@@ -35,6 +34,7 @@ export class DotGlyph extends Glyph {
             + inverseColorRGB[2]
             + ', '
             + opacity + ')';
+          if(animationProgress === undefined) animationProgress = 1;
           this.context.arc(position.x, position.y, radius + (animationProgress * 20), 0, 2 * Math.PI);
           this.context.fill();
         }

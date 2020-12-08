@@ -5,10 +5,10 @@ export abstract class GlyphConfiguration {
   private _useCategories = true;
   private _useLabels = false;
   private _radius = 0;
-  private _accessors: any[];
+  private _accessors: any[] = [];
   private _scaleLinear = true;
 
-  private _glyphType: GlyphType;
+  private _glyphType: GlyphType = GlyphType.Flower;
 
   private options = [
     { property: 'useCoordinateSystem', label: 'Coordinate System' },
@@ -16,7 +16,7 @@ export abstract class GlyphConfiguration {
     { property: 'useLabels', label: 'Labels' }
   ];
 
-  public abstract clone();
+  public abstract clone(): GlyphConfiguration;
 
   get useCoordinateSystem(): boolean { return this._useCoordinateSystem; }
   set useCoordinateSystem(flag: boolean) { this._useCoordinateSystem = flag; }

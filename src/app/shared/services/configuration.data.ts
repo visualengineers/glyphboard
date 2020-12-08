@@ -1,14 +1,17 @@
-import { Glyph } from 'app/glyph/glyph';
-import { FeatureFilter } from 'app/shared/filter/feature-filter';
+import { Glyph } from 'src/app/glyph/glyph';
+import { FeatureFilter } from 'src/app/shared/filter/feature-filter';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import * as d3 from 'd3';
-import { GlyphConfiguration } from 'app/glyph/glyph.configuration';
+import { GlyphConfiguration } from 'src/app/glyph/glyph.configuration';
 import { Configuration } from './configuration.service';
-import { GlyphLayout } from 'app/glyph/glyph.layout';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
-import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { GlyphLayout } from 'src/app/glyph/glyph.layout';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { RefreshHoverEvent } from 'src/app/shared/events/refresh-hover.event';
+import { RefreshHoverEventData } from 'src/app/shared/events/refresh-hover.event.data';
+import { FlowerGlyph } from 'src/app/glyph/glyph.flower';
+import { DotGlyph } from 'src/app/glyph/glyph.dot';
+import { DotGlyphConfiguration } from 'src/app/glyph/glyph.dot.configuration';
 
 export class ConfigurationData {
   private configuration: Configuration;
@@ -43,27 +46,27 @@ export class ConfigurationData {
   public duration = 1000; // duration of glyph-blossoming animation
 
   private _levelOfDetails: number[] = [];
-  private _maxZoom: number; // greatest magnification of glyphs (i.e. limits zoom.transform.k)
+  private _maxZoom: number = 1; // greatest magnification of glyphs (i.e. limits zoom.transform.k)
   private _currentLevelOfDetail = 0; // level of detail on current zoom level
   private _previousLevelOfDetail: any; // level of detail on last zoom level
-  private _lockLevelOfDetail: boolean;
-  private _lockUpdated: boolean;
-  private _currentZoomLevel: number;
+  private _lockLevelOfDetail: boolean = false;
+  private _lockUpdated: boolean = false;
+  private _currentZoomLevel: number = 1;
 
   private _minScaleLevel = 0.5;
 
-  private _useColorRange = false; // switch between continuous and discrete color scale
+  private _useColorRange: boolean = false; // switch between continuous and discrete color scale
 
   private _featureFilters: FeatureFilter[] = []; // list of filters applied to glyphs
 
   private _glyph: Glyph; // class of used glyph type (flower, star, dot)
-  private _activeFeatures: any[];
-  private _featureGroups: any[];
+  private _activeFeatures: any[] = [];
+  private _featureGroups: any[] = [];
   private _activeDataSet: any; // currently active dataset (schema, features, position)
-  private _activeGlyphConfig: GlyphConfiguration; // currently active glyph config
+  private _activeGlyphConfig: GlyphConfiguration | undefined; // currently active glyph config
   private _selectedContext: any;
   private _featureContexts = new Array<any>();
-  private _selectedFeatureName: string;
+  private _selectedFeatureName: string = "";
 
   // used to pick value context per item globally and individually (global -1 --> not set)
   private _globalFeatureContext = -1;
@@ -72,7 +75,7 @@ export class ConfigurationData {
   private _useDragSelection = false; // whether or not selection by drag is possible
   private _extendSelection = false; // extend the selection in dragSelection-Mode by pressing 'Shift'
   private _useForceLayout = false; // whether or not glyphs are repositioned with force
-  private _layouts: GlyphLayout;
+  private _layouts: GlyphLayout | undefined;
   private _currentLayout = 0;
 
   private _data = new BehaviorSubject<any>(null);
@@ -83,15 +86,16 @@ export class ConfigurationData {
   };
   private _idOfHoveredGlyph = -1;
   private _showHighlightInNormalMode = false;
-  private _selectedItemVersions;
+  private _selectedItemVersions: any;
   private _aggregateItems = false;
-  private _itemsCount: number;
-  private _leftSide: boolean;
-  private _filteredItemsIds = [];
+  private _itemsCount: number = 0;
+  private _leftSide: boolean = false;
+  private _filteredItemsIds: number[] = [];
   private _filteredItemsCount = 0;
 
   constructor(configuration: Configuration, eventAggregator: EventAggregatorService
   ) {
+    this._glyph = new DotGlyph(0, 0, new DotGlyphConfiguration);
     this.configuration = configuration;
     this.eventAggregator = eventAggregator;
     this.maxZoom = 50;
@@ -139,7 +143,7 @@ export class ConfigurationData {
     });
     var hasActiveFeatures = false;
     if(this.activeFeatures != undefined){
-      this.activeFeatures.forEach(d => {
+      this.activeFeatures.forEach((d: any) => {
         if(d.active) {
           hasActiveFeatures = true;
         }
@@ -195,7 +199,7 @@ export class ConfigurationData {
 
   get levelOfDetails(): any { return this._levelOfDetails.map(level => level / this.maxZoom); }
   set levelOfDetails(lods: any) {
-    lods.forEach((level, i) => {
+    lods.forEach((level: number, i: number) => {
       this._levelOfDetails[i] = level * this.maxZoom;
     });
   }
@@ -258,14 +262,14 @@ export class ConfigurationData {
     if (this._idOfHoveredGlyph >= 0 && changed) {
       this.selectedItemVersions = [];
       const data = this._data.getValue();
-      const item = data.features.find(f => {
+      const item = data.features.find((f: any) => {
         return f.id === this._idOfHoveredGlyph;
       });
       for (const context in item.features) {
         if (context === 'global') { continue; }
         if (item.features.hasOwnProperty(context)) {
           const features = item.features[context];
-          let label: string;
+          let label: string = "";
           for (const ctx in data.schema['variant-context']) {
             if (data.schema['variant-context'].hasOwnProperty(ctx)) {
               const c = data.schema['variant-context'][ctx];
@@ -309,8 +313,8 @@ export class ConfigurationData {
   get selectedFeatureName() { return this._selectedFeatureName; }
   set selectedFeatureName(value: string) { this._selectedFeatureName = value; }
 
-  get activeGlyphConfig() { return this._activeGlyphConfig; }
-  set activeGlyphConfig(value: GlyphConfiguration) { this._activeGlyphConfig = value; }
+  get activeGlyphConfig(): GlyphConfiguration | undefined { return this._activeGlyphConfig; }
+  set activeGlyphConfig(value: GlyphConfiguration | undefined) { this._activeGlyphConfig = value; }
 
   get itemsCount() { return this._itemsCount }
   set itemsCount(value: number) { this._itemsCount = value; }
@@ -330,9 +334,9 @@ export class ConfigurationData {
 
   // Refresh ID list
   public filterRefresh() {
-    var filteredIds = [];
+    var filteredIds: number[] = [];
 
-    this._data.getValue().positions.forEach(d => {
+    this._data.getValue().positions.forEach((d: any) => {
       let itemConfirmsFilter = true;
       let featureItem = this.getFeaturesForItem(d);
       const filters: FeatureFilter[] = this.featureFilters;
@@ -357,7 +361,7 @@ export class ConfigurationData {
   }
 
   private getFeaturesForItem(d: any) {
-    const item = this._data.getValue().features.find(f => {
+    const item = this._data.getValue().features.find((f: any) => {
         return f.id === d.id;
     });
     let itemContext = this.individualFeatureContexts[d.id];
