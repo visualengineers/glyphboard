@@ -259,26 +259,28 @@ export class ConfigurationData {
     const changed = this._idOfHoveredGlyph !== value && value >= 0;
     this._idOfHoveredGlyph = value;
 
-    if (this._idOfHoveredGlyph >= 0 && changed) {
+    if (this._idOfHoveredGlyph > 0 && changed) {
       this.selectedItemVersions = [];
       const data = this._data.getValue();
       const item = data.features.find((f: any) => {
         return f.id === this._idOfHoveredGlyph;
       });
-      for (const context in item.features) {
-        if (context === 'global') { continue; }
-        if (item.features.hasOwnProperty(context)) {
-          const features = item.features[context];
-          let label: string = "";
-          for (const ctx in data.schema['variant-context']) {
-            if (data.schema['variant-context'].hasOwnProperty(ctx)) {
-              const c = data.schema['variant-context'][ctx];
-              if (c.id === context) {
-                label = c.description;
+      if(item !== undefined) {
+        for (const context in item.features) {
+          if (context === 'global') { continue; }
+          if (item.features.hasOwnProperty(context)) {
+            const features = item.features[context];
+            let label: string = "";
+            for (const ctx in data.schema['variant-context']) {
+              if (data.schema['variant-context'].hasOwnProperty(ctx)) {
+                const c = data.schema['variant-context'][ctx];
+                if (c.id === context) {
+                  label = c.description;
+                }
               }
             }
+            this.selectedItemVersions.push({label: label, features: features});
           }
-          this.selectedItemVersions.push({label: label, features: features});
         }
       }
       const payload = new RefreshHoverEventData(

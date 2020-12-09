@@ -116,7 +116,7 @@ export class SelectionRect {
     if  (this.component.configuration.showHighlightInNormalMode || this.component.configuration.useDragSelection) {
       // draw highlighted glyph
       const idOfHoveredGlyph = this.component.configuration.idOfHoveredGlyph;
-      if (idOfHoveredGlyph !== undefined && idOfHoveredGlyph !== -1) {
+      if (idOfHoveredGlyph !== undefined && idOfHoveredGlyph > 0) {
         let hoveredGlyph;
         for (const glyph of this.component.data.positions) {
           if (glyph.id === idOfHoveredGlyph) {
@@ -136,7 +136,7 @@ export class SelectionRect {
         };
         this.component.layoutController.drawSingleGlyph(
           positions,
-          featuresOfHoveredGlyph.features,
+          featuresOfHoveredGlyph!.features,
           0,
           false,
           true,

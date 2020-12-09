@@ -313,9 +313,9 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         const data = this.layoutController.getFeaturesForItem(d);
 
         if (this.configuration?.filteredItemsIds.indexOf(d.id) > -1 || this.configuration?.featureFilters.length == 0) {
-          this.layoutController.drawSingleGlyph(d.position, data.features, 0, false, false, 0);
+          this.layoutController.drawSingleGlyph(d.position, data!.features, 0, false, false, 0);
         } else {
-          this.layoutController.drawSingleGlyph(d.position, data.features, 1.0, true, d.id === this.configuration.idOfHoveredGlyph, 0);
+          this.layoutController.drawSingleGlyph(d.position, data!.features, 1.0, true, d.id === this.configuration.idOfHoveredGlyph, 0);
         }
       });
 
@@ -489,7 +489,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.context.beginPath();
       this.context.moveTo(d.position.x, d.position.y);
 
-      const features = this._layoutController.getFeaturesForItem(d).features;
+      const features = this._layoutController.getFeaturesForItem(d)!.features;
 
       // draw the circle glyph and the current glyph to improve the blossoming effect
       if (this.configuration.currentLevelOfDetail > 0) {

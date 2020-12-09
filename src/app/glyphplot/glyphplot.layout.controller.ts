@@ -194,7 +194,8 @@ export class GlyphplotLayoutController {
   }
 
   public getFeaturesForItem(d: any) {
-    const item = this.component.data.features.find((f: any) => {
+    if(d === undefined) return null;
+    const item = this.component.data.features.find((f: any) => { 
       return f.id === d.id;
     });
     let itemContext = this.component.configuration.individualFeatureContexts[d.id];
