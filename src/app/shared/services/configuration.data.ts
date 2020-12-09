@@ -49,6 +49,7 @@ export class ConfigurationData {
   private _lockLevelOfDetail: boolean;
   private _lockUpdated: boolean;
   private _currentZoomLevel: number;
+  private _zoomIdentity = d3.zoomIdentity;
 
   private _minScaleLevel = 0.5;
 
@@ -89,6 +90,7 @@ export class ConfigurationData {
   private _leftSide: boolean;
   private _filteredItemsIds = [];
   private _filteredItemsCount = 0;
+  private _uniqueID: string;
 
   constructor(configuration: Configuration, eventAggregator: EventAggregatorService
   ) {
@@ -235,6 +237,9 @@ export class ConfigurationData {
 
   get currentZoomLevel(): number { return this._currentZoomLevel; }
 
+  get uniqueID(): string { return this._uniqueID; }
+  set uniqueID( uniqueID: string) { this._uniqueID = uniqueID; }
+
   get selectedDataSetInfo(): {
     name: string;
     version: string;
@@ -327,6 +332,9 @@ export class ConfigurationData {
 
   get minScaleLevel() { return this._minScaleLevel }
   set minScaleLevel(value: number) { this._minScaleLevel = value; }
+
+  get zoomIdentity() { return this._zoomIdentity }
+  set zoomIdentity(newIdentity: any) { this._zoomIdentity = newIdentity;}
 
   // Refresh ID list
   public filterRefresh() {

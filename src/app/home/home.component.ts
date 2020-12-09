@@ -5,6 +5,7 @@ import { Logger } from '../shared/services/logger.service';
 import { Configuration } from 'app/shared/services/configuration.service';
 import { LenseCursor } from 'app/lense/cursor.service';
 import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
+import { UpdateZoomIdentityEvent } from 'app/shared/events/update-zoom-identity.event';
 import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
 
 @Component({
@@ -106,12 +107,15 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.onResize();
+    this.onResize(true);
   }
 
-  onResize() {
+  onResize(init: boolean = false) {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    if(!init){
+      this.eventAggregator.getEvent(UpdateZoomIdentityEvent).publish(true);
+    }
     this.regionManager.updateRegions(width, height);
   }
 }

@@ -3,6 +3,7 @@ import { EventAggregatorService } from 'app/shared/events/event-aggregator.servi
 
 import * as d3 from 'd3';
 import { ManualZoom } from 'app/shared/events/manual-zoom.event';
+import { DashboardSplitScreenEvent } from 'app/shared/events/dashboard-split-screen.event';
 
 @Component({
   selector: 'app-doubleslider',
@@ -21,8 +22,13 @@ export class DoubleSliderComponent implements OnInit {
   public draggingMax = false;
   public draggingIndicator = false;
 
-  @Input() currentValue: number;
+
+  @Input() currentValuePrimary: number;
+  @Input() currentValueSecondary: number;
+  @Input() primaryID: string;
+  @Input() secondaryID: string;
   @Output() onChange = new EventEmitter<any>();
+  private splitScreenInactive = true;
 
   static dragging(component: DoubleSliderComponent, slider: string): void {
     if (slider === 'min') {
@@ -33,16 +39,24 @@ export class DoubleSliderComponent implements OnInit {
       component.draggingMax = true;
       component.upperBound = Math.max(Math.min(d3.event.x, component.max), component.lowerBound + 10);
       component.onChange.emit({ 'slider': 1, 'value': component.upperBound * 20 / 50 / component.max });
-    } else if (slider === 'indicator') {
+    } else if (slider === 'primary') {
       component.draggingIndicator = true;
-      component.currentValue = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
-      component.eventAggregator.getEvent(ManualZoom).publish(component.currentValue);
+      component.currentValuePrimary = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
+      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValuePrimary, component.primaryID]);
+    } else if (slider === 'secondary') {
+      component.draggingIndicator = true;
+      component.currentValueSecondary = Math.min(Math.max(((d3.event.x) / component.max) * 20, 0.5 ), ((component.max - 8.66) / component.max) * 20);
+      component.eventAggregator.getEvent(ManualZoom).publish([component.currentValueSecondary, component.secondaryID ]);
     }
   }
 
   constructor(
     private eventAggregator: EventAggregatorService
     ) {
+
+    this.eventAggregator
+      .getEvent(DashboardSplitScreenEvent)
+      .subscribe(this.updateSplitScreenState);
     // TODO: HARD CODED LEVELS OF DETAIL
     this.lowerBound = 0.2 * this.max;
     this.upperBound = 0.5 * this.max;
@@ -61,10 +75,19 @@ export class DoubleSliderComponent implements OnInit {
         .on('drag', () => DoubleSliderComponent.dragging(that, 'max'))
         .on('end', () => this.draggingMax = false)
       );
-      d3.select('.indicator')
-        .call(d3.drag()
-          .on('drag', () => DoubleSliderComponent.dragging(that, 'indicator'))
-          .on('end', () => this.draggingIndicator = false)
-        );
+    d3.select('.indicator.primary')
+      .call(d3.drag()
+      .on('drag', () => DoubleSliderComponent.dragging(that, 'primary'))
+      .on('end', () => this.draggingIndicator = false)
+      );
+    d3.select('.indicator.secondary')
+      .call(d3.drag()
+      .on('drag', () => DoubleSliderComponent.dragging(that, 'secondary'))
+      .on('end', () => this.draggingIndicator = false)
+      );
+  }
+
+  private updateSplitScreenState = (payload: boolean) => {
+    this.splitScreenInactive = !payload;
   }
 };

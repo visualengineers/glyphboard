@@ -68,11 +68,11 @@ export class GlyphplotEventController {
       const trans = d3.event.transform;
       trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
       trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
-      this.component.transform = trans;
-      this.formerTranslation.x = this.component.transform.x / this.component.transform.k;
-      this.formerTranslation.y = this.component.transform.y / this.component.transform.k;
+      this.component.configuration.zoomIdentity = trans;
+      this.formerTranslation.x = this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k;
+      this.formerTranslation.y = this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k;
       this.selectionEnded = true;
-      this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
       this.configuration.currentLayout = GlyphLayout.Cluster;
     }
 
@@ -255,7 +255,7 @@ export class GlyphplotEventController {
       this.cursor.position = { left: e.clientX, top: e.clientY };
       this.component.tooltip.isVisible = false;
     } else if (!this.component.tooltip.isFixed && !this.configuration.useDragSelection) {
-      this.component.tooltip.updateClosestPoint(e, this.component.transform);
+      this.component.tooltip.updateClosestPoint(e, this.component.configuration.zoomIdentity);
     } else if (!this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
@@ -359,29 +359,35 @@ export class GlyphplotEventController {
 
     this.configuration.glyph.color = colorScale;
     this.component.circle.color = colorScale;
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.updateSelectionMode(this.configuration.useDragSelection);
     this.component.updateGlyphLayout(true);
     this.component.draw();
   };
 
   private fitToScreen = (payload: boolean) => {
-    this.component.transform.x = 0;
-    this.component.transform.y = 0;
-    this.component.transform.k = 1;
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.component.configuration.zoomIdentity.x = 0;
+    this.component.configuration.zoomIdentity.y = 0;
+    this.component.configuration.zoomIdentity.k = 1;
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.updateGlyphLayout(true);
     this.component.animate();
     this.formerTranslation = {x: 0, y: 0};
   };
 
-  private fitToSelection = (payload: boolean) => {
+  public fitToSelection = (payload: string) => {
+    if (this.component == null){
+      return
+    }
+    if (payload != this.component.uniqueID ) {
+      return;
+    }
     const that = this;
-    const filteredPositions = [];
+    var filteredPositions = [];
     this.component.layoutController.getPositions().forEach(d => {
       const data = this.component.layoutController.getFeaturesForItem(d);
 
-        if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || this.configuration.featureFilters.length === 0) {
+        if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || that.configuration.featureFilters.length === 0) {
           filteredPositions.push(d.position);
         }
       });
@@ -389,26 +395,31 @@ export class GlyphplotEventController {
       return;
     }
     let minX, maxX, minY, maxY: number;
-    minX = filteredPositions[0].x;
-    maxX = filteredPositions[0].x;
-    minY = filteredPositions[0].y;
-    maxY = filteredPositions[0].y;
+    this.component.configuration.zoomIdentity.k = 1;
+    this.component.configuration.zoomIdentity.x = 0;
+    this.component.configuration.zoomIdentity.y = 0;
+    minX = this.component.configuration.zoomIdentity.applyX(this.component.xAxis(filteredPositions[0].ox));
+    maxX = minX;
+    minY = this.component.configuration.zoomIdentity.applyY(this.component.yAxis(filteredPositions[0].oy));
+    maxY = minY;
+    let k: number;
     filteredPositions.forEach( d => {
-        if (d.x < minX) {
-          minX = d.x;
+        var ox = this.component.configuration.zoomIdentity.applyX(this.component.xAxis(d.ox));
+        var oy = this.component.configuration.zoomIdentity.applyY(this.component.yAxis(d.oy))
+        if (ox < minX) {
+          minX = ox;
         }
-        if (d.x > maxX) {
-          maxX = d.x;
+        if (ox > maxX) {
+          maxX = ox;
         }
-        if (d.y < minY) {
-          minY = d.y;
+        if (oy < minY) {
+          minY = oy;
         }
-        if (d.y > maxY) {
-          maxY = d.y;
+        if (oy > maxY) {
+          maxY = oy;
         }
     });
-    let k;
-    if (maxX === minX || maxY === minY) {
+    if (maxX == minX || maxY == minY) {
       k = 8;
     } else {
       if ((this.component.width / this.component.height) * (maxY - minY) < (maxX - minX)) {
@@ -420,27 +431,31 @@ export class GlyphplotEventController {
         k = 8;
       }
     }
-    this.component.transform.k = k;
-    this.component.transform.x = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
-    this.component.transform.y =
+    this.component.configuration.zoomIdentity.k = k;
+    this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * k) / 2 + (this.component.width / 2 - (maxX + minX) / 2) * k;
+    this.component.configuration.zoomIdentity.y =
       (this.component.height - this.component.height * k) / 2 +
       (this.component.height / 2 - (maxY + minY) / 2) * k;
-    this.formerTranslation.x = this.component.transform.x;
-    this.formerTranslation.y = this.component.transform.y;
+    this.formerTranslation.x = this.component.configuration.zoomIdentity.x;
+    this.formerTranslation.y = this.component.configuration.zoomIdentity.y;
 
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.component.updateGlyphLayout();
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.component.animate();
 
   };
 
-  private manualZoom = (payload: number) => {
-
-    this.component.transform.x = (this.component.width - this.component.width * payload) / 2 + this.formerTranslation.x * payload;
-    this.component.transform.y = (this.component.height - this.component.height * payload) / 2 + this.formerTranslation.y * payload;
-    this.component.transform.k = payload;
-    this.component.updateGlyphLayout();
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
-    this.component.animate();
+  private manualZoom = (payload: any[]) => {
+    
+    var newValue = payload[0];
+    if (this.component.uniqueID == payload[1]) {
+      this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * newValue) / 2 + this.formerTranslation.x * newValue;
+      this.component.configuration.zoomIdentity.y = (this.component.height - this.component.height * newValue) / 2 + this.formerTranslation.y * newValue;
+      this.component.configuration.zoomIdentity.k = newValue;
+      this.component.updateGlyphLayout();
+      this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
+      this.component.animate();
+    }
   };
 
   private onRefreshHover = (payload: RefreshHoverEventData) => {
