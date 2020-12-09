@@ -18,7 +18,9 @@ import {LenseCursor} from 'src/app/lense/cursor.service';
 import {EventAggregatorService} from 'src/app/shared/events/event-aggregator.service';
 import { FlowerGlyphConfiguration } from 'src/app/glyph/glyph.flower.configuration';
 import { GlyphType } from 'src/app/glyph/glyph.type';
-
+import { FitToSelectionEvent } from 'src/app/shared/events/fit-to-selection.event';
+import { FitToSelectionTransmitterEvent } from 'src/app/shared/events/fit-to-selection-transmitter.event';
+import { UpdateZoomIdentityEvent } from 'src/app/shared/events/update-zoom-identity.event';
 import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
 import { GlyphLayout } from 'src/app/glyph/glyph.layout';
@@ -142,6 +144,13 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.createChart();
       }
     });
+    this.configuration.uniqueID = this.uniqueID;
+    this.eventAggregator
+      .getEvent(FitToSelectionTransmitterEvent)
+      .subscribe(this.fitToSelectionTransmitter);
+    this.eventAggregator
+      .getEvent(UpdateZoomIdentityEvent)
+      .subscribe(this.updateZoomIdentity);
   }
 
   //#region initialization and update methods
@@ -208,7 +217,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
 
     this._layoutController.updatePositions();
     this.updateZoom();
-    this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
     this.animate();
   }
 
@@ -284,7 +293,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     ) {
       // going to level 1 coming from level 0 -> show glyphs
       this.animateGlyphs();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       this.updateGlyphConfiguration();
       this.solveCollisions();
     } else if (
@@ -293,12 +302,12 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     ) {
       // going to level 0 coming from level 1 -> hide glyphs and show dots
       this.animateGlyphs();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       this.updateGlyphConfiguration();
       this._simulation.stop();
     } else {
       this.updateGlyphConfiguration();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       // level of detail did not change, so redraw each glyph at it's current
       // position
       this._layoutController.getPositions().forEach((d: any) => {
@@ -368,8 +377,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       if (
         that.configuration?.currentLayout === GlyphLayout.Cluster
       ) {
-        d.position.x = that.transform.applyX(that.xAxis(d.position.ox));
-        d.position.y = that.transform.applyY(that.yAxis(d.position.oy));
+        d.position.x = that.configuration.zoomIdentity.applyX(that.xAxis(d.position.ox));
+        d.position.y = that.configuration.zoomIdentity.applyY(that.yAxis(d.position.oy));
       } else if (
         that.configuration?.currentLayout === GlyphLayout.Matrix
       ) {
@@ -551,15 +560,17 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     }
     this.drawLock = false;
   }
+
+  public fitToSelectionTransmitter = (payload: boolean) => {
+    this.eventAggregator.getEvent(FitToSelectionEvent).publish(this._uniqueID);
+  }
+
+  private updateZoomIdentity = (payload: boolean) => {
+    this.updateGlyphLayout
+  }
   //#endregion
 
   //#region getters and setters
-  get transform(): any {
-    return this._transform;
-  }
-  set transform(t: any) {
-    this._transform = t;
-  }
   get simulation(): any {
     return this._simulation;
   }
@@ -622,5 +633,6 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   get layoutController() { return this._layoutController; }
   get dataUpdated() { return this._dataUpdated; }
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
+  get uniqueID() {return this._uniqueID; }
   //#endregion
 }

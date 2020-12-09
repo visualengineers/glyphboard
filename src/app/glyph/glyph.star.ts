@@ -31,7 +31,12 @@ export class StarGlyph extends Glyph {
 
     context.globalCompositeOperation = isPassive ? 'destination-over' : 'source-over';
     context.beginPath();
-
+    if(this.starConfig().useBackground){
+      context.fillStyle = '#ccc';
+      context.opacity = 0.5;
+      context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
+      context.fill();
+    }
     if (this.configuration.useCoordinateSystem) {
       this.drawAxes(position, features, radius, progress);
     }
@@ -174,6 +179,7 @@ export class StarGlyph extends Glyph {
     this.context.stroke();
     this.context.closePath();
     this.context.restore();
+
   }
 
   private drawLabels(position: any, features: any, radius: number, labels: string[], progress?: number): void {

@@ -106,6 +106,16 @@ td.value {
   background: white;
 }
 
+.tableScroll {
+  overflow-y:auto;
+  position: relative;
+  line-height: 1.2em;
+  max-height: 12em;
+  text-align: justify;
+  margin-right: -1em;
+  padding-right: 1em;
+}
+
 td.value > textarea {
   width: 300px;
   max-width: 300px;
