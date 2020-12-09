@@ -1,7 +1,7 @@
 <div #tooltip id="tooltip" [style.left]="(x) + 'px'" [style.top]="(y) + 'px'" [ngClass]="{ 'hidden': !isVisible, 'fixed': isFixed }">
   <div id="heading">
     <div id="controls">
-      <fa-icon [icon]="faPencilAlt" [ngClass]="{ 'active': isEdit }" (click)="saveChanges($event)"></fa-icon>
+      <fa-icon [icon]="faPencilAlt" [class.active]="isEdit" (click)="saveChanges($event)"></fa-icon>
       <fa-icon [icon]="faCircle"></fa-icon>
       <fa-icon [icon]="faThumbsUp"></fa-icon>
     </div>
