@@ -2,9 +2,14 @@
 
 Glyphboard is our approach, to combine dimensionality reduction with a seamless integration of glyph-based visualizations that are able to show the most relevant dimensions in a data set at one glance. To this end, we adopted the visual metaphor of a Big Data Landscape, which is explored by a zoomable user interface. This Glyphboard is an efficient tool to complete low-level and high-level analysis tasks with regards to high-dimensional data.
 
+<sub><sup>From 2016–2019 the development of Glyphboard has been supported by the European Union through the European Regional Development Fund and the
+Free State of Saxony, Germany (Visual Analytics Interfaces for Big Data Environments (VANDA) – project no. 100238473).</sup></sub>
+
+![Funding by European Union through the European Regional Development Fund](funding_erdf.png?raw=true)
+
 ## Getting Started
 
-![Alt text](glyphboard.png?raw=true "Glyphboard overview with activated split screen")
+![Glyphboard overview with activated split screen](glyphboard.png?raw=true)
 
 A demo of Glyphboard is available at  http://glyphboard.mediadesign-tud.de/. The documentation can be found at https://visualengineers.github.io/glyphboard-doc/.
 

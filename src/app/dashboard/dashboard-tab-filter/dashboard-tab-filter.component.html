@@ -1,0 +1,32 @@
+<div class="dashboard-tab dashboard-tab-filter">
+  <div>
+    <input #searchfield class="dashboard-tab-filter__search" (keyup.enter)="search(searchfield.value)" type="text" name="search" placeholder="Search...">
+    <button class="dashboard-tab-filter__searchbutton" (click)="search(searchfield.value)" matTooltip="Perform search"><i class="icon-menubar icon-lens"></i></button>    
+    <button class="dashboard-tab-filter__erasebutton" (click)="resetFilters()" matTooltip="Reset all filters"><i class="icon-menubar icon-erase"></i></button>
+    <span class="dashboard-tab-filter__filtereditemcounter">{{ this.configuration.configurations[0].filteredItemsCount === 0 ? 'None' : this.configuration.configurations[0].filteredItemsCount | number:'':'de' }} Selected</span>
+  </div>
+
+  <div id="featureOptions" [style.display]="this.configuration.configurations[0].featureGroups == undefined ? 'none' : '' "> 
+    <div class="group" *ngFor="let g of this.configuration.configurations[0].featureGroups | keyvalue">
+      <div class="grouplabelBox">
+          <div class="grouplabel left"> {{ g.key }}: {{ g.value.name }} </div>
+          <div class="grouplabel right last" [ngClass]="{ 'collapsed': !groupCollapsed[g.key]}"><i class="icon-arrow_down" (click)="resizeGroup(g.key)"></i></div>
+          <div class="grouplabel right last" [ngClass]="{ 'collapsed': groupCollapsed[g.key]}" ><i class="icon-arrow_up" (click)="resizeGroup(g.key)"></i></div>
+          <div class="grouplabel right"><i class="icon-minus" (click)="toggleGroupInactive(g.key)"></i></div>
+          <div class="grouplabel right"><i class="icon-plus" (click)="toggleGroupActive(g.key)"></i></div>
+      </div>
+      <div class="histogramBox" [ngClass]="{ 'collapsed': groupCollapsed[g.key]}">
+        <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
+          *ngFor="let f of featuresInGroup(this.configuration.configurations[0].featureGroups[g.key])" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
+          [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
+      </div>
+    </div>
+  </div>
+<div id="featureOptions" [style.display]="this.configuration.configurations[0].featureGroups == undefined ? '' : 'none' "> 
+    <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
+      *ngFor="let f of this.configuration.configurations[0].activeFeatures" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
+      [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
+  </div>
+  <div class="infobox" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures !== undefined }">
+    Please select dataset first. Then you can filter your visualization using the histograms displayed in this tab.
+  </div>
