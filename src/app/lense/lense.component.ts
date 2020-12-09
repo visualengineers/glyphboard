@@ -136,8 +136,11 @@ export class MagicLenseComponent implements OnInit {
           });
 
           // define the glyphs used in both lenses
+          var secondaryConfig = new StarGlyphConfiguration;
+          secondaryConfig = this.configuration.starConfigs[1].clone() as StarGlyphConfiguration;
+          secondaryConfig.useBackground = true;
           this.flowerGlyph = new FlowerGlyph(this.context, colorScale, this.configuration.flowerConfigs[1] as FlowerGlyphConfiguration);
-          this.starGlyph = new StarGlyph(this.context, colorScale, this.configuration.starConfigs[1] as StarGlyphConfiguration);
+          this.starGlyph = new StarGlyph(this.context, colorScale, secondaryConfig);
 
           // start with flowerglyph per default
           this.activeGlyph = this.flowerGlyph;
