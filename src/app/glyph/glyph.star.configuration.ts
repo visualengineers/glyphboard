@@ -5,6 +5,7 @@ export class StarGlyphConfiguration extends GlyphConfiguration {
   private _useContour = true;
   private _useAbsoluteAxes = true;
   private _useAreaFill = true;
+  private _useBackground = false;
 
   private starOptions = [
     { property: 'useCoordinateSystem', label: 'Coordinate System' },
@@ -48,4 +49,8 @@ export class StarGlyphConfiguration extends GlyphConfiguration {
 
   get useAbsoluteAxes(): boolean { return this._useAbsoluteAxes; }
   set useAbsoluteAxes(flag: boolean) { this._useAbsoluteAxes = flag; }
+
+  
+  get useBackground(): boolean { return this._useBackground; }
+  set useBackground(flag: boolean) { this._useBackground = flag; }
 }

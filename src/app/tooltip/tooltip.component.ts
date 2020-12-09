@@ -24,6 +24,7 @@ export class TooltipComponent implements OnInit {
   private _isFixed = false;
   private _isEdit = false;
   private _tolerance = -1;
+  public isActive = true;
 
   private readonly cursorOffset = 5;
 
@@ -99,7 +100,7 @@ export class TooltipComponent implements OnInit {
           }
         }
       }
-
+      this.isActive = true;
       this._isVisible = true;
     }
   }

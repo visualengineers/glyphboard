@@ -10,7 +10,7 @@
     <tr *ngFor="let row of values">
       <td class="label">{{row[0]}}</td>
       <td class="value">
-        <div class="tableContent">
+        <div [ngClass]="{'tableContent': isActive, 'tableScroll': !isActive}" (click)="isActive = !isActive">
           <span *ngIf="(row[1] + '').indexOf('http://') === -1">{{(row[1]+'')}}</span>
           <a href="{{(row[1]+'')}}" *ngIf="(row[1] + '').indexOf('http://') !== -1">{{(row[1]+'')}}</a>
         </div>
