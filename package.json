@@ -1,6 +1,6 @@
 {
   "name": "glyphboard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "ng": "ng",
     "start": "concurrently \"ng serve --open\" \"python3 backend/server.py\"",
