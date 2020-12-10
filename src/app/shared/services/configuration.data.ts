@@ -127,7 +127,7 @@ export class ConfigurationData {
     // set the current level of detail relative to the zoom transform k
     // (which is given by GlyphplotComponent as zoomLevel parameter for
     // this function)
-    this._levelOfDetails.forEach(element => {
+    this._levelOfDetails.forEach((element: number) => {
       if (zoomLevel > element) {
         newLevel = count;
       }

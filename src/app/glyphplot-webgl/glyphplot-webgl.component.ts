@@ -293,7 +293,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
   mousewheel(e: WheelEvent) {
     //if tooltip is active disable zooming
     //TODO: disable zooming only when hovering over tooltip
-    if (this.tooltip!.isFixed || this.activeView!.getCameraUtil() === undefined){
+    if (this.tooltip!.isFixed || this.activeView!.getCameraUtil() === null){
       return;
     }
 
