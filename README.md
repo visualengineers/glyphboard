@@ -30,3 +30,15 @@ Checkout the [Glyphboard](https://github.com/visualengineers/glyphboard.git) Sou
 Enter directory and run `npm install` and follow the instruction at https://github.com/visualengineers/glyphboard-backend.
 
 Run `npm start` for a dev server inside the project directory. Navigate to `http://localhost:4200/` for the client and `http://localhost:4201/` to test the [backend](https://github.com/visualengineers/glyphboard-backend). The app will automatically reload if you change any of the source files, but you will have to restart manually if you change the python backend.
+
+### Upgrading from previous versions
+
+Pull newest code from master, then delete `node_modules` folder. Use current Node version, e.g. via NVM and rebuild. Make sure you use the current `package-lock.json` from master.
+
+````
+$ git pull
+$ rm -rf node_modules
+$ git checkout package-lock.json
+$ npm install
+$ npm start
+````
