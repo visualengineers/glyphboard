@@ -3,7 +3,7 @@ export class ExportService {
 
     public exportData(data: any, ids: number[], meta: string[], activeFeatures: any[], filtersNotActive: boolean) {
         const head = ['ID']
-        const keyListActiveFeatures = [];
+        const keyListActiveFeatures: any[] = [];
         activeFeatures.forEach( feat => {
             if (feat.active) {
             head.push(data.schema.label[feat.property]);
@@ -13,7 +13,7 @@ export class ExportService {
         head.push('x');
         head.push('y');
         this.exportConfirmedItems.push(head);
-        data.features.forEach(d => {
+        data.features.forEach((d: any) => {
             if (ids.indexOf(d.id) > -1 || filtersNotActive) {
                 const a = [];
                 a.push(d.id);
@@ -36,7 +36,7 @@ export class ExportService {
     private createCSVString(): string {
         let csv = '';
         this.exportConfirmedItems.forEach( d => {
-            d.forEach( f => {
+            d.forEach((f: any) => {
                 csv = csv + f;
                 if (d.indexOf(f) !== d.length - 1) {
                     csv = csv + ';';

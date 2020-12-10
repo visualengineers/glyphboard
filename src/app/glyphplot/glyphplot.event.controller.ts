@@ -1,30 +1,30 @@
 import { GlyphplotComponent } from './glyphplot.component';
 import { ConfigurationData } from '../shared/services/configuration.data';
 import { LenseCursor } from './../lense/cursor.service';
-import { Logger } from 'app/shared/services/logger.service';
-import { IdFilter } from 'app/shared/filter/id-filter';
-import { FeatureFilter } from 'app/shared/filter/feature-filter';
+import { Logger } from 'src/app/shared/services/logger.service';
+import { IdFilter } from 'src/app/shared/filter/id-filter';
+import { FeatureFilter } from 'src/app/shared/filter/feature-filter';
 import { Configuration } from '../shared/services/configuration.service';
 
 import * as d3 from 'd3';
-import { FlowerGlyph } from 'app/glyph/glyph.flower';
-import { StarGlyph } from 'app/glyph/glyph.star';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
-import { FitToScreenEvent } from 'app/shared/events/fit-to-screen.event';
-import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
-import { ManualZoom } from 'app/shared/events/manual-zoom.event';
-import { GlyphLayout } from 'app/glyph/glyph.layout';
-import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
-import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { FlowerGlyph } from 'src/app/glyph/glyph.flower';
+import { StarGlyph } from 'src/app/glyph/glyph.star';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { RefreshPlotEvent } from 'src/app/shared/events/refresh-plot.event';
+import { FitToScreenEvent } from 'src/app/shared/events/fit-to-screen.event';
+import { FitToSelectionEvent } from 'src/app/shared/events/fit-to-selection.event';
+import { ManualZoom } from 'src/app/shared/events/manual-zoom.event';
+import { GlyphLayout } from 'src/app/glyph/glyph.layout';
+import { RefreshHoverEvent } from 'src/app/shared/events/refresh-hover.event';
+import { RefreshHoverEventData } from 'src/app/shared/events/refresh-hover.event.data';
 
 export class GlyphplotEventController {
-  private counter: number;
+  private counter: number = 0;
   private saveEndTransform = { x: 0, y: 0 };
   private saveStartTransform = { x: 0, y: 0 };
   private formerTranslation = { x: 0, y: 0 };
-  private selectionEnded: boolean;
-  private currentEventType: string;
+  private selectionEnded: boolean = false;
+  private currentEventType: string = "";
 
   constructor(private component: GlyphplotComponent,
     private configuration: ConfigurationData,
@@ -54,20 +54,21 @@ export class GlyphplotEventController {
    * When the mousewheel is rotated on the canvas, update the transform of the viewport by updating
    * glyph posititions according to the new transform.
    */
-  public onZoomed(): void {
+  public onZoomed(event: any): void {
     if (this.component.drawLock) { return; }
-    if (d3.event.sourceEvent === null) { return; }
+    if (event.sourceEvent === null) { return; }
 
     // save eventType for use in onDragEnd
-    this.currentEventType = d3.event.sourceEvent.type;
+    this.currentEventType = event.sourceEvent.type;
 
     this.component.simulation.stop();
 
     // apply transformation only, if event was a scroll or if we are not using DragSelection
-    if (d3.event && (d3.event.sourceEvent.type === 'wheel' || !this.configuration.useDragSelection)) {
-      const trans = d3.event.transform;
-      trans.x = this.saveStartTransform.x + d3.event.transform.x - this.saveEndTransform.x;
-      trans.y = this.saveStartTransform.y + d3.event.transform.y - this.saveEndTransform.y;
+
+    if (event && (event.sourceEvent.type === 'wheel' || !this.configuration.useDragSelection)) {
+      const trans = event.transform;
+      trans.x = this.saveStartTransform.x + event.transform.x - this.saveEndTransform.x;
+      trans.y = this.saveStartTransform.y + event.transform.y - this.saveEndTransform.y;
       this.component.configuration.zoomIdentity = trans;
       this.formerTranslation.x = this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k;
       this.formerTranslation.y = this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k;
@@ -76,21 +77,21 @@ export class GlyphplotEventController {
       this.configuration.currentLayout = GlyphLayout.Cluster;
     }
 
-    if (!d3.event.sourceEvent) { return; }
+    if (!event.sourceEvent) { return; }
 
     // Prevent event overkill by only using every 15th touch event
-    if (d3.event.sourceEvent.type === 'touchmove') {
+    if (event.sourceEvent.type === 'touchmove') {
       this.counter++;
       if (this.counter % 15 !== 0) { return; }
     }
 
     // Draw selection rectangle
     if (this.configuration.useDragSelection) {
-      this.component.selectionRect.draw(d3.event);
+      this.component.selectionRect.draw(event);
       return;
     }
 
-    if (d3.event.sourceEvent.type === 'touchmove' || d3.event.sourceEvent.type === 'mousemove') {
+    if (event.sourceEvent.type === 'touchmove' || event.sourceEvent.type === 'mousemove') {
       if (this.configuration.currentLayout === GlyphLayout.Matrix
         && !this.configuration.useDragSelection) {
         this.component.animate();
@@ -107,9 +108,9 @@ export class GlyphplotEventController {
    * When a new drag event is started, stop the collision simulation and set the starting values of
    * the selection rect depending on whats set in the current configuration.
    */
-  public onDragStart(): void {
+  public onDragStart(event: any): void {
     if (this.selectionEnded) {
-      this.saveStartTransform = d3.event.transform;
+      this.saveStartTransform = event.transform;
     }
 
     this.counter = 0;
@@ -120,31 +121,32 @@ export class GlyphplotEventController {
       return;
     }
 
-    if (!d3.event.sourceEvent) { return; }
+    if (!event.sourceEvent) { return; }
 
     this.selectionEnded = false;
-    const startX: number = d3.event.sourceEvent.offsetX;
-    const startY: number = d3.event.sourceEvent.offsetY;
+    const startX: number = event.sourceEvent.offsetX;
+    const startY: number = event.sourceEvent.offsetY;
     this.component.selectionRect.start = { x: startX, y: startY };
   }
 
   /**
    * Dragging the canvas ended, so update collisions and get a a list of selected glyphs.
    */
-  public onDragEnd(): void {
-    this.saveEndTransform = d3.event.transform;
+  public onDragEnd(event: any): void {
+    this.saveEndTransform = event.transform;
 
     // prevent selection if event was zoom (eventType is something like wheel)
     if (!this.configuration.useDragSelection || this.currentEventType !== 'mousemove') {
-      this.currentEventType = null;
+      this.currentEventType = "";
       return;
     }
-    this.currentEventType = null;
+    this.currentEventType = "";
 
     const existingIdFilters: FeatureFilter[] = this.configuration.featureFilters.filter((filter: FeatureFilter) => {
       if (filter instanceof IdFilter) {
         return true;
       }
+      return false;
     });
 
     const selection = this.component.selectionRect.selectedGlyphs;
@@ -157,7 +159,7 @@ export class GlyphplotEventController {
 
     // filter only if at least one glyph was selected
     if (selectedIds.length > 0) {
-      let idFilter: IdFilter;
+      let idFilter: IdFilter = new IdFilter;
 
       if (this.configuration.extendSelection && existingIdFilters.length > 0) {
         const existingFilter = existingIdFilters[0];
@@ -181,9 +183,9 @@ export class GlyphplotEventController {
     // draws the selection rectangle if the user is currently in the specific mode
     if (
       this.configuration.useDragSelection &&
-      d3.event
+      event
     ) {
-      this.component.selectionRect.draw(d3.event);
+      this.component.selectionRect.draw(event);
     }
     this.eventAggregator.getEvent(RefreshPlotEvent).publish(true);
   }
@@ -223,7 +225,7 @@ export class GlyphplotEventController {
   public onKeyPress(e: KeyboardEvent): void {
     switch (e.key.toLowerCase()) {
       case 'shift': {
-        let extendSelection: boolean;
+        let extendSelection: boolean = false;
 
         if (e.type === 'keydown') {
           extendSelection = true;
@@ -251,17 +253,17 @@ export class GlyphplotEventController {
    * @param e mouse move event
    */
   public onMouseMove(e: MouseEvent): void {
-    if (this.cursor.isVisible && !this.cursor.isFixed) {
+    if (this.cursor.isVisible && !this.cursor.isFixed && this.component.tooltip !== undefined) {
       this.cursor.position = { left: e.clientX, top: e.clientY };
       this.component.tooltip.isVisible = false;
-    } else if (!this.component.tooltip.isFixed && !this.configuration.useDragSelection) {
+    } else if (this.component.tooltip !== undefined && !this.component.tooltip.isFixed && !this.configuration.useDragSelection) {
       this.component.tooltip.updateClosestPoint(e, this.component.configuration.zoomIdentity);
-    } else if (!this.component.tooltip.isFixed) {
+    } else if (this.component.tooltip !== undefined && !this.component.tooltip.isFixed) {
       this.component.tooltip.isVisible = false;
     }
     if (!this.cursor.isVisible || this.cursor.isFixed ) {
       // find glyph to highlight
-      let glyphRadius: number;
+      let glyphRadius: number = 1;
       if (this.configuration.currentLevelOfDetail === 0) {
         glyphRadius = 5;
       } else {
@@ -272,15 +274,15 @@ export class GlyphplotEventController {
       }
       if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
         this.configurationService.configurations[1].selectedDataSetInfo.name) {
-        this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
-        this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
+        this.configurationService.configurations[0].idOfHoveredGlyph = 0;
+        this.configurationService.configurations[1].idOfHoveredGlyph = 0;
       } else {
-        this.configuration.idOfHoveredGlyph = undefined;
+        this.configuration.idOfHoveredGlyph = 0;
       }
       for (const element of this.component.data.positions) {
         if (
-          Math.abs(element.position.x - e.layerX) <= glyphRadius &&
-          Math.abs(element.position.y - e.layerY) <= glyphRadius
+          Math.abs(element.position.x - e.clientX) <= glyphRadius &&
+          Math.abs(element.position.y - e.clientY) <= glyphRadius
         ) {
           if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
             this.configurationService.configurations[1].selectedDataSetInfo.name) {
@@ -306,10 +308,10 @@ export class GlyphplotEventController {
     if (e.target !== this.component.context.canvas) {
       return;
     }
-    if (this.component.tooltip.isVisible && !this.component.tooltip.isFixed) {
-      this.component.tooltip.isFixed = true;
-    } else if (!this.component.tooltip.isEdit) {
-      this.component.tooltip.isFixed = false;
+    if (this.component.tooltip!.isVisible && !this.component.tooltip!.isFixed) {
+      this.component.tooltip!.isFixed = true;
+    } else if (!this.component.tooltip!.isEdit) {
+      this.component.tooltip!.isFixed = false;
     }
     if (this.configuration.useDragSelection && !this.configuration.extendSelection) {
       this.clearIdFilters();
@@ -322,7 +324,7 @@ export class GlyphplotEventController {
       return;
     }
 
-    const element = this.component.chartContainer.nativeElement;
+    const element = this.component.chartContainer!.nativeElement;
 
     if (useDragSelection) {
       if (this.configuration.extendSelection) {
@@ -336,10 +338,10 @@ export class GlyphplotEventController {
       // remove highlight
       if (this.configurationService.configurations[0].selectedDataSetInfo.name ===
         this.configurationService.configurations[1].selectedDataSetInfo.name) {
-        this.configurationService.configurations[0].idOfHoveredGlyph = undefined;
-        this.configurationService.configurations[1].idOfHoveredGlyph = undefined;
+        this.configurationService.configurations[0].idOfHoveredGlyph = 0;
+        this.configurationService.configurations[1].idOfHoveredGlyph = 0;
       } else {
-        this.configuration.idOfHoveredGlyph = undefined;
+        this.configuration.idOfHoveredGlyph = 0;
       }
     }
   }
@@ -351,7 +353,7 @@ export class GlyphplotEventController {
 
     // Calculate Colors for Glyphs new ...
     const colorFeature = this.component.data.schema.color;
-    const colorScale = item => {
+    const colorScale = (item: any) => {
       return item === undefined
         ? 0
         : this.configuration.color(+item[colorFeature]);
@@ -383,8 +385,8 @@ export class GlyphplotEventController {
       return;
     }
     const that = this;
-    var filteredPositions = [];
-    this.component.layoutController.getPositions().forEach(d => {
+    const filteredPositions: any[] = [];
+    this.component.layoutController.getPositions().forEach((d: any) => {
       const data = this.component.layoutController.getFeaturesForItem(d);
 
         if (that.configuration.filteredItemsIds.indexOf(d.id) > -1 || that.configuration.featureFilters.length === 0) {
@@ -394,7 +396,7 @@ export class GlyphplotEventController {
     if (filteredPositions.length === this.component.layoutController.getPositions().length || filteredPositions.length === 0) {
       return;
     }
-    let minX, maxX, minY, maxY: number;
+    let minX: number, maxX: number, minY: number, maxY: number;
     this.component.configuration.zoomIdentity.k = 1;
     this.component.configuration.zoomIdentity.x = 0;
     this.component.configuration.zoomIdentity.y = 0;

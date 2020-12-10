@@ -8,8 +8,8 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 
 export class DashboardGlyphConfigComponent {
-  @Input() label: string;
-  @Input() property: string;
+  @Input() label: string = "";
+  @Input() property: string = "";
   @Input() active = false;
 
   @Output() onConfigChange = new EventEmitter<any>();

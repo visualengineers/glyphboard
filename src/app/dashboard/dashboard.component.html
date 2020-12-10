@@ -9,11 +9,11 @@
     </div>
     <div class="dashboard__title__text">GLYPHBOARD</div>
   </div>
-  <div class="dashboard__infobox-main" [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures !== undefined }">
+  <div class="dashboard__infobox-main" [ngClass]="{ 'hidden': infoHidden === true }">
       Welcome to Glypboard! This application is intended for data scientists and domain experts to explore their datasets using clustering and classification algorithms. Please start by selecting one of the datasets provided below. Instead of this information you will see a glyph in this place that represents a data item once you zoom into the Big Data Landscape shown to you after the data is loaded.
   </div>
   
-  <app-dashboard-glyphlegend [ngClass]="{ 'hidden': this.configuration.configurations[0].activeFeatures === undefined }"></app-dashboard-glyphlegend>
+  <app-dashboard-glyphlegend [ngClass]="{ 'hidden': infoHidden === false }"></app-dashboard-glyphlegend>
   <app-dashboard-functionbuttons></app-dashboard-functionbuttons>
 
   <div class="dashboard__tabselection">

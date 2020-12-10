@@ -1,14 +1,19 @@
-import { OnInit, ElementRef,  ViewChild,   Component } from '@angular/core';
-import { Helper } from 'app/glyph/glyph.helper';
-import { Configuration } from 'app/shared/services/configuration.service';
+import { ElementRef,  ViewChild,   Component, AfterViewInit } from '@angular/core';
+import { Helper } from 'src/app/glyph/glyph.helper';
+import { Configuration } from 'src/app/shared/services/configuration.service';
+import { faCircle, faPencilAlt, faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-tooltip',
   templateUrl: './tooltip.component.html',
   styleUrls: ['./tooltip.component.scss']
 })
-export class TooltipComponent implements OnInit {
-  @ViewChild('tooltip') private tooltipContainer: ElementRef;
+export class TooltipComponent implements AfterViewInit {
+  @ViewChild('tooltip') private tooltipContainer: ElementRef | undefined ;
+
+  faPencilAlt = faPencilAlt;
+  faCircle = faCircle;
+  faThumbsUp = faThumbsUp;
 
   public tooltipElement: any;
   private _data: any;
@@ -30,8 +35,8 @@ export class TooltipComponent implements OnInit {
 
   constructor(private helper: Helper, private configuration: Configuration) {}
 
-  ngOnInit(): void {
-    this.tooltipElement = this.tooltipContainer.nativeElement;
+  ngAfterViewInit(): void {
+    this.tooltipElement = this.tooltipContainer!.nativeElement;
   }
 
   public updateClosestPoint(event: any, transform: any): void {
@@ -60,7 +65,7 @@ export class TooltipComponent implements OnInit {
       : clientY + this.cursorOffset;
     this._values = [];
 
-    this._data.positions.forEach(d => {
+    this._data.positions.forEach((d: any) => {
       // ignore invisible points
       if (this.helper.checkClipping(d.position)) {
         return;
@@ -86,7 +91,7 @@ export class TooltipComponent implements OnInit {
     // member variable is undefined if no datapoint matches the criteria
 
     if (closestPoint !== undefined && closestPoint != null) {
-      this.closestPoint = this._data.features.find(item => item.id === closestPoint.id);
+      this.closestPoint = this._data.features.find((item: any) => item.id === closestPoint.id);
       this.title = `ID: ${closestPoint.id}`;
       const context = this.configuration.configurations[0].globalFeatureContext;
 

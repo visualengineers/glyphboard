@@ -1,4 +1,4 @@
-import {RegionManager} from 'app/region/region.manager';
+import { RegionManager } from 'src/app/region/region.manager';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
   providers: [RegionManager]
 })
 export class FeatureplotComponent implements OnInit {
-  public manager;
+  public manager: RegionManager | undefined;
 
   constructor(public regionManager: RegionManager) { }
 

@@ -6,12 +6,14 @@ import {
   ViewChild,
   OnInit
 } from '@angular/core';
-import { Configuration } from 'app/shared/services/configuration.service';
+import { Configuration } from 'src/app/shared/services/configuration.service';
 import { Glyph } from '../../glyph/glyph';
 import { FlowerGlyph } from '../../glyph/glyph.flower';
 import { GlyphType } from '../../glyph/glyph.type';
 import { StarGlyph } from '../../glyph/glyph.star';
 import { Observable } from 'rxjs';
+import { StarGlyphConfiguration } from 'src/app/glyph/glyph.star.configuration';
+import { FlowerGlyphConfiguration } from 'src/app/glyph/glyph.flower.configuration';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -20,45 +22,50 @@ import { Observable } from 'rxjs';
   styleUrls: ['./dashboard-selection-version.component.scss']
 })
 export class DashboardSelectionVersionComponent implements OnInit, OnChanges {
-  @ViewChild('chart')
-  private chartContainer: ElementRef;
+  @ViewChild('chart', {static: false}) public chartContainer: ElementRef | undefined;
   private eventsSubscription: any
 
-  @Input() label: string;
-  @Input() property: string;
+  @Input() label: string = "";
+  @Input() property: string = "";
   @Input() object: any;
-  @Input() configuration: Configuration;
-  @Input() events: Observable<void>;
+  @Input() configuration: Configuration | undefined;
+  @Input() events: Observable<void> | undefined;
 
   private context: any;
-  private glyph: Glyph;
+  private glyph: Glyph | undefined;
 
   ngOnInit(): void {
-    this.eventsSubscription = this.events.subscribe(() => this.draw());
+    this.eventsSubscription = this.events?.subscribe(() => this.draw());
     this.draw();
   }
 
   private draw() {
-    const element = this.chartContainer.nativeElement;
+    const element = this.chartContainer?.nativeElement;
+    if(element === undefined) return;
+    
     this.context = element.getContext('2d');
 
     const colorFeature = 1;
-    const colorScale = item => {
+    const colorScale = (item: any) => {
       return item === undefined
         ? 0
-        : this.configuration.configurations[0].color(+item[colorFeature]);
+        : this.configuration?.configurations[0].color(+item[colorFeature]);
     };
 
-    switch (this.configuration.activeGlyphType) {
+    switch (this.configuration?.activeGlyphType) {
       case GlyphType.Star:
-        const flowerConfig = this.configuration.starConfigs[2].clone();
-        flowerConfig.radius = 45;
-        this.glyph = new StarGlyph(this.context, colorScale, flowerConfig);
+        const starConfig: StarGlyphConfiguration = this.configuration?.starConfigs[2].clone() as StarGlyphConfiguration;
+        if(starConfig !== undefined) {
+          starConfig.radius = 45;
+          this.glyph = new StarGlyph(this.context, colorScale, starConfig);
+        }
         break;
       default:
-        const starConfig = this.configuration.flowerConfigs[2].clone();
-        starConfig.radius = 45;
-        this.glyph = new FlowerGlyph(this.context, colorScale, starConfig);
+        const flowerConfig = this.configuration?.flowerConfigs[2].clone() as FlowerGlyphConfiguration;
+        if(flowerConfig !== undefined) {
+          flowerConfig.radius = 45;
+          this.glyph = new FlowerGlyph(this.context, colorScale, flowerConfig);
+        }
         break;
     }
 
@@ -71,7 +78,7 @@ export class DashboardSelectionVersionComponent implements OnInit, OnChanges {
     };
 
     this.context.beginPath();
-    this.glyph.draw(dummyPosition, this.object, 1.0, false);
+    this.glyph!.draw(dummyPosition, this.object, 1.0, false);
     this.context.restore();
   }
 

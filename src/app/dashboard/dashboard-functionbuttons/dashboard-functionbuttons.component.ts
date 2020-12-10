@@ -1,13 +1,14 @@
 import { Component, OnInit, Injector, TemplateRef } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
-import { FitToSelectionTransmitterEvent } from 'app/shared/events/fit-to-selection-transmitter.event';
-import { FitToScreenEvent } from 'app/shared/events/fit-to-screen.event';
-import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
-import { DashboardSplitScreenEvent} from 'app/shared/events/dashboard-split-screen.event'
-import { environment } from 'environments/environment';
+import { FitToScreenEvent } from 'src/app/shared/events/fit-to-screen.event';
+import { FitToSelectionEvent } from 'src/app/shared/events/fit-to-selection.event';
+import { environment } from 'src/environments/environment';
+import { FitToSelectionTransmitterEvent } from 'src/app/shared/events/fit-to-selection-transmitter.event';
+import { DashboardSplitScreenEvent} from 'src/app/shared/events/dashboard-split-screen.event'
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
-import { GlobalDialogEvent, GlobalDialogPayload } from 'app/shared/events/global-dialog.event';
+import { GlobalDialogEvent, GlobalDialogPayload } from 'src/app/shared/events/global-dialog.event';
+import { AngularFileUploaderConfig } from 'angular-file-uploader';
 
 @Component({
   selector: 'app-dashboard-functionbuttons',
@@ -17,10 +18,10 @@ import { GlobalDialogEvent, GlobalDialogPayload } from 'app/shared/events/global
 export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   implements OnInit {
   public backendUploadRoute = environment.backendAddress;
-  public afuConfig = {
+  public afuConfig: AngularFileUploaderConfig = {
     multiple: false,
     formatsAllowed: '.csv',
-    maxSize: '5',
+    maxSize: 5,
     uploadAPI:  {
       url: this.backendUploadRoute
     },

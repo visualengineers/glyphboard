@@ -15,11 +15,11 @@ A demo of Glyphboard is available at  http://glyphboard.mediadesign-tud.de/. The
 
 ### Install Node 
 
-Download and install [NodeJS](https://nodejs.org/en/download/). Verify that you are running at least node 9.x.x and npm 5.6.x by running `node -v` and `npm -v` in a terminal/console window. Older versions produce errors, but newer versions are fine.
+Download and install [NodeJS](https://nodejs.org/en/download/). Verify that you are running at least node 14.x.x and npm 6.14.x by running `node -v` and `npm -v` in a terminal/console window. Older versions produce errors, but newer versions are fine.
 
 ### Install Angular
 
-Download and install command line interface of [Angular.IO](https://angular.io/) via NPM. We are using [Angular CLI](https://github.com/angular/angular-cli) version 6.1.X.
+Download and install command line interface of [Angular.IO](https://angular.io/) via NPM. We are using [Angular CLI](https://github.com/angular/angular-cli) version 11.0.X.
 
 `npm install -g @angular/cli`
 
@@ -30,3 +30,15 @@ Checkout the [Glyphboard](https://github.com/visualengineers/glyphboard.git) Sou
 Enter directory and run `npm install` and follow the instruction at https://github.com/visualengineers/glyphboard-backend.
 
 Run `npm start` for a dev server inside the project directory. Navigate to `http://localhost:4200/` for the client and `http://localhost:4201/` to test the [backend](https://github.com/visualengineers/glyphboard-backend). The app will automatically reload if you change any of the source files, but you will have to restart manually if you change the python backend.
+
+### Upgrading from previous versions
+
+Pull newest code from master, then delete `node_modules` folder. Use current Node version, e.g. via NVM and rebuild. Make sure you use the current `package-lock.json` from master.
+
+````
+$ git pull
+$ rm -rf node_modules
+$ git checkout package-lock.json
+$ npm install
+$ npm start
+````

@@ -2,11 +2,11 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { DataproviderService } from '../shared/services/dataprovider.service';
 import { RegionManager } from '../region/region.manager';
 import { Logger } from '../shared/services/logger.service';
-import { Configuration } from 'app/shared/services/configuration.service';
-import { LenseCursor } from 'app/lense/cursor.service';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { UpdateZoomIdentityEvent } from 'app/shared/events/update-zoom-identity.event';
-import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
+import { Configuration } from 'src/app/shared/services/configuration.service';
+import { LenseCursor } from 'src/app/lense/cursor.service';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { RefreshPlotEvent } from 'src/app/shared/events/refresh-plot.event';
+import { UpdateZoomIdentityEvent } from 'src/app/shared/events/update-zoom-identity.event';
 
 @Component({
   selector: 'app-home',
@@ -15,8 +15,8 @@ import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  private splitScreen: boolean;
-  private isKeyDown: boolean;
+  private splitScreen: boolean = false;
+  private isKeyDown: boolean = false;
 
   constructor(
     private logger: Logger,

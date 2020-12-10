@@ -7,11 +7,11 @@ import { Glyph } from '../../glyph/glyph';
 import { FlowerGlyphConfiguration } from '../../glyph/glyph.flower.configuration';
 import { StarGlyphConfiguration } from '../../glyph/glyph.star.configuration';
 import { GlyphType } from '../../glyph/glyph.type';
-import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
+import { RefreshConfigEvent } from 'src/app/shared/events/refresh-config.event';
 import { registerLocaleData } from '@angular/common';
 import de from '@angular/common/locales/de';
-import { RefreshHoverEvent } from 'app/shared/events/refresh-hover.event';
-import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.data';
+import { RefreshHoverEvent } from 'src/app/shared/events/refresh-hover.event';
+import { RefreshHoverEventData } from 'src/app/shared/events/refresh-hover.event.data';
 
 @Component({
   selector: 'app-dashboard-glyphlegend',
@@ -19,15 +19,15 @@ import { RefreshHoverEventData } from 'app/shared/events/refresh-hover.event.dat
   styleUrls: ['./dashboard-glyphlegend.component.scss']
 })
 export class DashboardGlyphlegendComponent extends DashboardTabComponent implements OnInit {
-  @ViewChild('canvas') private container: ElementRef;
+  @ViewChild('canvas') private container: ElementRef | undefined;
 
   private context: any; // 2D context of the example glyph canvas
 
-  private glyph: Glyph;
-  private flowerGlyph: FlowerGlyph;
-  private flowerConfig: FlowerGlyphConfiguration;
-  private starGlyph: StarGlyph;
-  private starConfig: StarGlyphConfiguration;
+  private glyph: Glyph | undefined;
+  private flowerGlyph: FlowerGlyph | undefined;
+  private flowerConfig: FlowerGlyphConfiguration | undefined;
+  private starGlyph: StarGlyph | undefined;
+  private starConfig: StarGlyphConfiguration | undefined;
 
   private dummyFeatures: any;
 
@@ -45,7 +45,10 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
       .subscribe(this.onRefreshConfig);
 
     this.dataProvider.getDataSet().subscribe(message => {
-      if (message == null) {
+      if (message == null || message === undefined) {
+        return;
+      }
+      if (this.configuration.configurations[0].activeDataSet === undefined) {
         return;
       }
       // update view
@@ -82,13 +85,13 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
     this.starConfig.useLabels = true;
     this.starConfig.radius = this.configuration.legendGlyphRadius;
 
-    const element = this.container.nativeElement;
+    const element = this.container?.nativeElement;
     this.context = element.getContext('2d');
 
     this.updateAccessors();
 
     const colorFeature = this.configuration.configurations[0].activeDataSet.schema.color;
-    const colorScale = item =>
+    const colorScale = (item: any) =>
       this.configuration.configurations[0].color(item[colorFeature]);
 
     this.flowerGlyph = new FlowerGlyph(
@@ -125,13 +128,13 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
       this.drawGroupArcs();
     }
 
-    const labels = [];
-    this.configuration.configurations[0].activeFeatures.forEach(feat => {
+    const labels: any[] = [];
+    this.configuration.configurations[0].activeFeatures.forEach((feat: any) => {
       if (feat.active) { labels.push(feat.label); }
     });
     if (labels.length != 0) {
       this.context.beginPath();
-      this.glyph.drawWithLabels(
+      this.glyph?.drawWithLabels(
         dummyPosition,
         this.dummyFeatures,
         1.0,
@@ -157,7 +160,7 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
       if (this.configuration.configurations[0].activeFeatures.hasOwnProperty(key)) {
         const value = this.configuration.configurations[0].activeFeatures[key];
         if (value.active) {
-          that.configuration.activeGlyphConfig().accessors.push(d => {
+          that.configuration.activeGlyphConfig().accessors.push((d: any) => {
             return accessorScale(d[value.property]);
           });
         }
@@ -168,9 +171,9 @@ export class DashboardGlyphlegendComponent extends DashboardTabComponent impleme
   private drawGroupArcs() {
     var activeFeatureCount = Array<number>(Object.keys(this.configuration.configurations[0].activeFeatures).length).fill(0);
 
-    this.configuration.configurations[0].activeFeatures.forEach(d => { 
+    this.configuration.configurations[0].activeFeatures.forEach((d: any) => { 
       if (d.active) {
-          Object.keys(this.configuration.configurations[0].featureGroups).forEach(key => {
+          Object.keys(this.configuration.configurations[0].featureGroups).forEach((key: any) => {
             if(this.configuration.configurations[0].featureGroups[key].member.indexOf(d.property) > -1 ) {
               activeFeatureCount[key]++;
             }

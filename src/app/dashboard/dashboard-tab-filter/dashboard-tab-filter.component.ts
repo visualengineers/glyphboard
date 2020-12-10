@@ -1,7 +1,8 @@
 import { Component, OnInit, Injector, ViewChild, ElementRef } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import * as d3 from 'd3';
-import { TextFilter } from 'app/shared/filter/text-filter';
+import { TextFilter } from 'src/app/shared/filter/text-filter';
+import { DashboardFeatureConfigComponent } from './dashboard-feature-config.component';
 import * as _ from 'lodash';
 import { Subject } from 'rxjs';
 import { ToggleGroupEvent } from '../../shared/events/toggle-group.event';
@@ -12,11 +13,11 @@ import { ToggleGroupEvent } from '../../shared/events/toggle-group.event';
   styleUrls: ['./dashboard-tab-filter.component.scss']
 })
 export class DashboardTabFilterComponent extends DashboardTabComponent implements OnInit {
-  @ViewChild('searchfield') private searchfield: ElementRef;
+  @ViewChild('searchfield') private searchfield: ElementRef | undefined;
 
   public eventsSubject: Subject<void> = new Subject<void>();
-  private _freeSearchFilter: TextFilter;
-  private groups = [];
+  private _freeSearchFilter: TextFilter = new TextFilter;
+  private groups: any[] = [];
   private groupCollapsed: {[key: string]: boolean} = {};
   private helper = 0;
 
@@ -25,15 +26,17 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   }
 
   ngOnInit() {
-    var that = this;
-    this.dataProvider.getDataSet().subscribe(message => {
-      if (message == null) { return; }
-      Object.keys(message.schema.groups).forEach(function (groupId) {
-        if (!that.groups.includes(message.schema.groups[groupId])){
-          that.groups.push(message.schema.groups[groupId]);
-        }
-      this.groupCollapsed[groupId] = true;
-      });
+    var that: DashboardTabFilterComponent = this;    
+    this.dataProvider.getDataSet().subscribe((message: any) => {
+      if (message == 0 || message === undefined) { return; }
+      if(message.schema.groups !== null && message.schema.groups !== undefined) {
+        Object.keys(message.schema.groups).forEach((groupId: any) => {
+          if (!that.groups.includes(message.schema.groups[groupId])){
+            that.groups.push(message.schema.groups[groupId]);
+          }
+        that.groupCollapsed[groupId] = true;      
+        });
+      }
     });
   }
 
@@ -41,8 +44,8 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   }
 
   private featuresInGroup(group: any): any {
-    var featureGroup = [];
-    this.configuration.configurations[0].activeFeatures.forEach( d => {
+    var featureGroup: any[] = [];
+    this.configuration.configurations[0].activeFeatures.forEach((d: any) => {
       if (group.member.indexOf(d.property) > -1) {
         featureGroup.push(d);
       }
@@ -60,11 +63,11 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
     return;
   }
 
-  private resizeGroup(key: string): void{
+  public resizeGroup(key: string): void{
     this.groupCollapsed[key] = !this.groupCollapsed[key];
   }
 
-  private onColorChange(e: any): void {
+  public onColorChange(e: any): void {
     this.configuration.configurations.forEach(config => {
       config.activeDataSet.schema.color = e.property;
       config.selectedFeatureName = this.configuration.configurations[0].activeDataSet.schema.label[e.property];
@@ -76,10 +79,10 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
    * Change which features are active/inactive whenever a feature is clicked on.
    * @param {any} e the onChange event for dashboard-feature-components
    */
-  private onFeatureConfigChange(e: any): void {
+  public onFeatureConfigChange(e: any): void {
     // keep at least two active features, so no need to fulfill code below if only 2 are active atm
     // and one of those is toggled
-    if (this.configuration.configurations[0].activeFeatures.filter(f => f.active).length <= 2 && e.active) {
+    if (this.configuration.configurations[0].activeFeatures.filter((f: any) => f.active).length <= 2 && e.active) {
       return;
     }
 
@@ -113,7 +116,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
       if (this.configuration.configurations[0].activeFeatures.hasOwnProperty(key)) {
         const value = this.configuration.configurations[0].activeFeatures[key];
         if (value.active) {
-          accessors.push(d => {
+          accessors.push((d: any) => {
             return accessorScale(d[value.property]);
           });
         }
@@ -147,7 +150,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   }
 
   public resetFilters() {
-    this.searchfield.nativeElement.value = '';
+    if(this.searchfield) this.searchfield.nativeElement.value = '';
     this.configuration.configurations[0].featureFilters.splice(0, this.configuration.configurations[0].featureFilters.length);
     this.configuration.configurations[1].featureFilters.splice(0, this.configuration.configurations[1].featureFilters.length);
     this.configuration.configurations[0].filterRefresh();

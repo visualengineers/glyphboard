@@ -1,16 +1,16 @@
 import { GlyphplotComponent } from './glyphplot.component';
 import { LenseCursor } from '../lense/cursor.service';
 import { ConfigurationData } from '../shared/services/configuration.data';
-import { Logger } from 'app/shared/services/logger.service';
+import { Logger } from 'src/app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
 
 export class FlexiWallController {
 
   private urlFlexiwall = 'ws://localhost:8080/Broadcast';
 
-  private flexiLastX: number;
-  private flexiLastY: number;
-  private flexiLastZ: number;
+  private flexiLastX: number = 0;
+  private flexiLastY: number = 0;
+  private flexiLastZ: number = 0;
 
   private eventCount = 0;
 
@@ -55,7 +55,7 @@ export class FlexiWallController {
     }
   }
 
-  onMessage (event) {
+  onMessage (event: any) {
     const data = JSON.parse(event.data);
     // if (data.Position.Z > 1300 || data.Position.Z < 1500) return;
     // this.logger.log("X " + data.Position.X + " Y " + data.Position.Y + " Z " + data.Position.Z);
