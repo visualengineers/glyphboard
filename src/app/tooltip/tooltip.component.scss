@@ -29,17 +29,17 @@
   padding-right: 0.5rem;
   font-size: 1.2rem;
 }
-fa {
+fa-icon {
   display: inline-block;
   float: right;
   color: #ccc;
-  padding-left: 0.5rem;
+  padding-left: 0.7rem;
 }
-fa:hover {
+fa-icon:hover {
   color: #888;
   cursor: pointer;
 }
-fa.active {
+fa-icon.active {
   color: teal;
 }
 
@@ -104,6 +104,16 @@ td.value {
   margin-top: 0.2em;
   /* bg color = bg color under block */
   background: white;
+}
+
+.tableScroll {
+  overflow-y:auto;
+  position: relative;
+  line-height: 1.2em;
+  max-height: 12em;
+  text-align: justify;
+  margin-right: -1em;
+  padding-right: 1em;
 }
 
 td.value > textarea {

@@ -1,7 +1,7 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { ConfigurationData } from '../../shared/services/configuration.data';
-import { SelectionService } from 'app/shared/services/selection.service';
+import { SelectionService } from 'src/app/shared/services/selection.service';
 
 @Component({
   selector: 'app-dashboard-tab-data',
@@ -10,22 +10,22 @@ import { SelectionService } from 'app/shared/services/selection.service';
 })
 export class DashboardTabDataComponent extends DashboardTabComponent implements OnInit {
   public datasets: any;
-  private allDatasets: Array<any>;
+  private allDatasets: Array<any> | undefined;
 
   // properties for the primary dataset (the one displayed on the left)
-  public selectedDataset: string;
-  public selectedVersion: string;
-  public selectedPositionAlgorithm: string;
-  public selectedContext: string;
+  public selectedDataset: string = "";
+  public selectedVersion: string = "";
+  public selectedPositionAlgorithm: string = "";
+  public selectedContext: string = "";
   public versions = new Array<string>();
   public positionAlgorithms = new Array<string>();
   public featureContexts = new Array<any>();
 
   // properties for the secondary dataset (displayed to the right of the primary one)
-  public selectedDatasetSecond: string;
-  public selectedVersionSecond: string;
-  public selectedPositionAlgorithmSecond: string;
-  public selectedContextSecond: string;
+  public selectedDatasetSecond: string = "";
+  public selectedVersionSecond: string = "";
+  public selectedPositionAlgorithmSecond: string = "";
+  public selectedContextSecond: string = "";
   public versionsSecond = new Array<string>();
   public positionAlgorithmsSecond = new Array<string>();
   public featureContextsSecond = new Array<any>();
@@ -55,23 +55,23 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   }
 
   private updateDatasets() {
-    if (this.datasets === undefined || this.datasets.length === 0) {
+    if (this.datasets === undefined || this.datasets == 0 || this.datasets.length === 0 || this.datasets == null) {
       return;
     }
 
     this.allDatasets = [];
-    this.datasets.forEach(dataset => {
-      dataset.Items.forEach(item => {
+    this.datasets.forEach((dataset: any) => {
+      dataset.Items.forEach((item: any) => {
         if (item.Algorithms.position instanceof Array) {
-          item.Algorithms.position.forEach(positionAlgorithm => {
-            this.allDatasets.push({
+          item.Algorithms.position.forEach((positionAlgorithm: any) => {
+            this.allDatasets?.push({
               name: dataset.Dataset,
               version: item.Time,
               position: positionAlgorithm
             });
           });
         } else {
-          this.allDatasets.push({
+          this.allDatasets?.push({
             name: dataset.Dataset,
             version: item.Time,
             position: item.Algorithms.position
@@ -104,14 +104,14 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   // Rebuild the dataset list every time its changed.
   dashboardDataSetChanged() {
     this.selectionService.featureFilters.length = 0;
-    if (this.allDatasets.length === 0) {
+    if (this.allDatasets?.length === 0) {
       return;
     }
 
     this.versions.splice(0, this.versions.length);
     this.positionAlgorithms.splice(0, this.positionAlgorithms.length);
 
-    this.allDatasets.forEach(dataset => {
+    this.allDatasets?.forEach(dataset => {
       if (
         dataset.name === this.selectedDataset &&
         !this.versions.includes(dataset.version)
@@ -121,7 +121,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
     });
     this.selectedVersion = this.versions[0];
 
-    this.allDatasets.forEach(dataset => {
+    this.allDatasets?.forEach(dataset => {
       if (
         dataset.name === this.selectedDataset &&
         dataset.version === this.selectedVersion
@@ -140,12 +140,12 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   }
 
   dashboardVersionChanged() {
-    if (this.allDatasets.length === 0) {
+    if (this.allDatasets?.length === 0) {
       return;
     }
 
     this.positionAlgorithms.splice(0, this.positionAlgorithms.length);
-    this.allDatasets.forEach(dataset => {
+    this.allDatasets?.forEach(dataset => {
       if (
         dataset.name === this.selectedDataset &&
         dataset.version === this.selectedVersion
@@ -167,7 +167,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
 
   dashboardDataSetChangedSecond() {
     this.selectionService.featureFilters.length = 0;
-    if (this.allDatasets.length === 0) {
+    if (this.allDatasets?.length === 0) {
       return;
     }
 
@@ -177,7 +177,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
       this.positionAlgorithmsSecond.length
     );
 
-    this.allDatasets.forEach(dataset => {
+    this.allDatasets?.forEach(dataset => {
       if (
         dataset.name === this.selectedDatasetSecond &&
         !this.versionsSecond.includes(dataset.version)
@@ -187,7 +187,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
     });
     this.selectedVersionSecond = this.versionsSecond[0];
 
-    this.allDatasets.forEach(dataset => {
+    this.allDatasets?.forEach(dataset => {
       if (
         dataset.name === this.selectedDatasetSecond &&
         dataset.version === this.selectedVersionSecond
@@ -202,7 +202,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   }
 
   dashboardVersionChangedSecond() {
-    if (this.allDatasets.length === 0) {
+    if (this.allDatasets?.length === 0) {
       return;
     }
 
@@ -210,7 +210,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
       0,
       this.positionAlgorithmsSecond.length
     );
-    this.allDatasets.forEach(dataset => {
+    this.allDatasets?.forEach(dataset => {
       if (
         dataset.name === this.selectedDatasetSecond &&
         dataset.version === this.selectedVersionSecond
@@ -244,9 +244,8 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
     // position of the selected option as the new global context.
     context = +e.value.id;
 
-    if (view === 'left') {
-      config = this.configuration.configurations[0];
-    } else if (view === 'right') {
+    config = this.configuration.configurations[0];
+    if (view === 'right') {
       config = this.configuration.configurations[1];
     }
 

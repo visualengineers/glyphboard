@@ -1,12 +1,15 @@
 import { Component, OnInit, Injector, TemplateRef } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
-import { FitToScreenEvent } from 'app/shared/events/fit-to-screen.event';
-import { FitToSelectionEvent } from 'app/shared/events/fit-to-selection.event';
-import { environment } from 'environments/environment';
+import { FitToScreenEvent } from 'src/app/shared/events/fit-to-screen.event';
+import { FitToSelectionEvent } from 'src/app/shared/events/fit-to-selection.event';
+import { environment } from 'src/environments/environment';
+import { FitToSelectionTransmitterEvent } from 'src/app/shared/events/fit-to-selection-transmitter.event';
+import { DashboardSplitScreenEvent} from 'src/app/shared/events/dashboard-split-screen.event'
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
-import { GlobalDialogEvent, GlobalDialogPayload } from 'app/shared/events/global-dialog.event';
-import { SelectionService } from 'app/shared/services/selection.service';
+import { SelectionService } from 'src/app/shared/services/selection.service';
+import { GlobalDialogEvent, GlobalDialogPayload } from 'src/app/shared/events/global-dialog.event';
+import { AngularFileUploaderConfig } from 'angular-file-uploader';
 
 @Component({
   selector: 'app-dashboard-functionbuttons',
@@ -16,10 +19,10 @@ import { SelectionService } from 'app/shared/services/selection.service';
 export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   implements OnInit {
   public backendUploadRoute = environment.backendAddress;
-  public afuConfig = {
+  public afuConfig: AngularFileUploaderConfig = {
     multiple: false,
     formatsAllowed: '.csv',
-    maxSize: '5',
+    maxSize: 5,
     uploadAPI:  {
       url: this.backendUploadRoute
     },
@@ -41,27 +44,28 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
    */
   public onScreenToggle(): void {
     if(this.regionManager.IsD3Active()){
-      this.regionManager.regions[1].display =
-        this.regionManager.regions[1].display === 'none' ? 'block' : 'none';
-      this.regionManager.regions[0].display = 'block';
-      this.regionManager.regions[3].display = 'none';
+      this.regionManager.regions![1].display =
+        this.regionManager.regions![1].display === 'none' ? 'block' : 'none';
+      this.regionManager.regions![0].display = 'block';
+      this.regionManager.regions![3].display = 'none';
       this.configuration.splitScreenActive =
-        this.regionManager.regions[1].display === 'block';
+        this.regionManager.regions![1].display === 'block';
 
-      this.cursor.splitActive = this.regionManager.regions[1].display === 'block';
+      this.cursor.splitActive = this.regionManager.regions![1].display === 'block';
     } else{
-      this.regionManager.regions[4].display =
-        this.regionManager.regions[4].display === 'none' ? 'block' : 'none';
-      this.regionManager.regions[3].display = 'block';
+      this.regionManager.regions![4].display =
+        this.regionManager.regions![4].display === 'none' ? 'block' : 'none';
+      this.regionManager.regions![3].display = 'block';
       this.configuration.splitScreenActive =
-        this.regionManager.regions[4].display === 'block';
+        this.regionManager.regions![4].display === 'block';
 
-      this.cursor.splitActive = this.regionManager.regions[4].display === 'block';
+      this.cursor.splitActive = this.regionManager.regions![4].display === 'block';
     }
 
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.regionManager.updateRegions(width, height);
+
 
     // move lens position
     if (this.configuration.splitScreenActive) {
@@ -70,6 +74,8 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
       this.cursor.position.left += width / 2;
     }  
     this.cursor.boundaries.right = width / (this.cursor.splitActive ? 2 : 1);
+
+    this.eventAggregator.getEvent(DashboardSplitScreenEvent).publish(this.configuration.splitScreenActive);
   }
 
   /**
@@ -107,7 +113,7 @@ export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   }
 
   public fitToSelection() {
-    this.eventAggregator.getEvent(FitToSelectionEvent).publish(true);
+    this.eventAggregator.getEvent(FitToSelectionTransmitterEvent).publish(true);
   }
 
   public fitToScreen() {

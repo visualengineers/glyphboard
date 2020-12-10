@@ -1,13 +1,13 @@
-import { InteractionEventData } from 'app/shared/events/interaction.event.data';
-import { DotGlyph } from 'app/glyph/glyph.dot';
-import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
-import { Glyph } from 'app/glyph/glyph';
-import { Point } from 'app/shared/types/point';
+import { InteractionEventData } from 'src/app/shared/events/interaction.event.data';
+import { DotGlyph } from 'src/app/glyph/glyph.dot';
+import { DotGlyphConfiguration } from 'src/app/glyph/glyph.dot.configuration';
+import { Glyph } from 'src/app/glyph/glyph';
+import { Point } from 'src/app/shared/types/point';
 
 export class SelectionRect {
   private component: any; // GlyphplotWebglComponent or GlyplotComponent
   private context: any;
-  private _animationIntervalId: number;
+  private _animationIntervalId: number | undefined = undefined;
   private _animationProgress = 0;
 
   private _start: Point = { x: -1, y: -1 };
@@ -15,7 +15,7 @@ export class SelectionRect {
   private _offset: any = { x: 0, y: 0 };
 
   //webgl pulse effect
-  private _dotGlyph: Glyph;
+  private _dotGlyph: Glyph = new DotGlyph(0, 0, new DotGlyphConfiguration());
 
   // x, y are standardized 0..1
   static applyEasing(x: number): number {
@@ -105,7 +105,7 @@ export class SelectionRect {
       this.context.save();
       //use existing pulse effect
       const idOfHoveredGlyph = this.component.configuration.idOfHoveredGlyph;
-      if (idOfHoveredGlyph !== undefined && idOfHoveredGlyph !== -1) {
+      if (idOfHoveredGlyph !== undefined && idOfHoveredGlyph > 0) {
         let hoveredGlyph;
         for (const glyph of this.component.data.positions) {
           if (glyph.id === idOfHoveredGlyph) {
@@ -120,7 +120,7 @@ export class SelectionRect {
 
         var featuresOfHoveredGlyph = this.component.configuration.getFeaturesForItem(hoveredGlyph, this.component.configuration);
 
-        const colorScale = item => {
+        const colorScale = (item: any) => {
           return item === undefined
             ? 0
             : this.component.configuration.color(+item[this.component.data.schema.color]);
@@ -132,7 +132,7 @@ export class SelectionRect {
         var position: { x: number, y: number } = positions;
         this._dotGlyph.draw(position,
           featuresOfHoveredGlyph.features,
-          null,
+          undefined,
           false,
           true,
           SelectionRect.applyEasing(this._animationProgress));
@@ -196,7 +196,7 @@ export class SelectionRect {
         }
       } else if (this._animationIntervalId !== undefined && this._animationIntervalId !== null) {
         clearInterval(this._animationIntervalId);
-        this._animationIntervalId = undefined;
+        this._animationIntervalId = 0;
         this._animationProgress = 0;
       }
     }

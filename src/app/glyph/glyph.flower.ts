@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import { GlyphType } from './glyph.type';
 
 export class FlowerGlyph extends Glyph {
-    private radians: number;
+    private radians: number = 0;
 
     constructor(context: any, color: any, configuration: FlowerGlyphConfiguration) {
         super(context, color);
@@ -13,9 +13,6 @@ export class FlowerGlyph extends Glyph {
     }
 
     public draw(position: any, features: any, progress?: number, isPassive?: boolean, isHighlighted?: boolean) {
-      if (progress === 0) {
-        return;
-      }
       if (isPassive === undefined) {
         isPassive = false;
       }
@@ -130,7 +127,7 @@ export class FlowerGlyph extends Glyph {
         labels = [];
       }
 
-      this.drawLabels(position, features, this.configuration.radius, progress, labels);
+      this.drawLabels(position, features, this.configuration.radius, labels, progress);
     }
 
     private applyBrightness(value: number, radius: number, features: any): string {
@@ -171,7 +168,7 @@ export class FlowerGlyph extends Glyph {
       this.context.restore();
     }
 
-    private drawLabels(position: any, features: any, radius: number, progress: number, labels: string[]): void {
+    private drawLabels(position: any, features: any, radius: number, labels: string[], progress?: number): void {
       this.context.save();
       this.context.beginPath();
       this.context.lineWidth = 1;
@@ -203,8 +200,8 @@ export class FlowerGlyph extends Glyph {
 
       this.context.moveTo(position.x + radius, position.y);
 
-      let previousAccessor = null;
-      let firstAccessor = null;
+      let previousAccessor: any = null;
+      let firstAccessor: any = null;
       let angle = 0
 
       // draw the segments of the full circle and leave out all null axes

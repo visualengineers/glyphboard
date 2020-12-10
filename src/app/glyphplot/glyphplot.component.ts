@@ -1,31 +1,33 @@
 import {Component, ElementRef, HostListener, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 
-import {Logger} from 'app/shared/services/logger.service';
+import {Logger} from 'src/app/shared/services/logger.service';
 
-import {Glyph} from 'app/glyph/glyph';
-import {DotGlyph} from 'app/glyph/glyph.dot';
-import {FlowerGlyph} from 'app/glyph/glyph.flower';
+import {Glyph} from 'src/app/glyph/glyph';
+import {DotGlyph} from 'src/app/glyph/glyph.dot';
+import {FlowerGlyph} from 'src/app/glyph/glyph.flower';
 import {GlyphplotEventController} from './glyphplot.event.controller';
 import {FlexiWallController} from './glyphplot.flexiwall.controller';
-import {Helper} from 'app/glyph/glyph.helper';
+import {Helper} from 'src/app/glyph/glyph.helper';
 
-import {TooltipComponent} from 'app/tooltip/tooltip.component';
+import {TooltipComponent} from 'src/app/tooltip/tooltip.component';
 import {SelectionRect} from './selection-rect';
 import {Configuration} from '../shared/services/configuration.service';
 import {ConfigurationData} from '../shared/services/configuration.data';
 
-import {LenseCursor} from 'app/lense/cursor.service';
-import {EventAggregatorService} from 'app/shared/events/event-aggregator.service';
-import { RegionManager } from 'app/region/region.manager';
-import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
-import { GlyphType } from 'app/glyph/glyph.type';
-
+import { RegionManager } from 'src/app/region/region.manager';
+import { CameraSyncUtilities } from 'src/app/shared/util/cameraSyncUtilities';
+import { SelectionService } from 'src/app/shared/services/selection.service';
+import { LenseCursor } from 'src/app/lense/cursor.service';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { FlowerGlyphConfiguration } from 'src/app/glyph/glyph.flower.configuration';
+import { GlyphType } from 'src/app/glyph/glyph.type';
+import { FitToSelectionEvent } from 'src/app/shared/events/fit-to-selection.event';
+import { FitToSelectionTransmitterEvent } from 'src/app/shared/events/fit-to-selection-transmitter.event';
+import { UpdateZoomIdentityEvent } from 'src/app/shared/events/update-zoom-identity.event';
 import * as d3 from 'd3';
 import { GlyphplotLayoutController } from './glyphplot.layout.controller';
-import { GlyphLayout } from 'app/glyph/glyph.layout';
-import { DotGlyphConfiguration } from 'app/glyph/glyph.dot.configuration';
-import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
-import { SelectionService } from 'app/shared/services/selection.service';
+import { GlyphLayout } from 'src/app/glyph/glyph.layout';
+import { DotGlyphConfiguration } from 'src/app/glyph/glyph.dot.configuration';
 
 @Component({
   selector: 'app-glyphplot',
@@ -33,11 +35,11 @@ import { SelectionService } from 'app/shared/services/selection.service';
   styleUrls: ['./glyphplot.component.css']
 })
 export class GlyphplotComponent implements OnInit, OnChanges {
-  @ViewChild('chart') public chartContainer: ElementRef;
-  @ViewChild('selectionrectangle') public selectionRectangle: ElementRef;
-  @ViewChild('tooltip') public tooltip: TooltipComponent;
-  @Input() width: number;
-  @Input() height: number;
+  @ViewChild('chart', { static: false }) public chartContainer: ElementRef | undefined;
+  @ViewChild('selectionrectangle') public selectionRectangle: ElementRef | undefined;
+  @ViewChild('tooltip') public tooltip: TooltipComponent | undefined;
+  @Input() width: number = 0;
+  @Input() height: number = 0;
 
   private _data: any;
   private _configuration: ConfigurationData;
@@ -45,8 +47,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _selectionContext: any;
   private _xAxis: any;
   private _yAxis: any;
-  private _originalWidth: number;
-  private _originalHeight: number;
+  private _originalWidth: number = 0;
+  private _originalHeight: number = 0;
   private _transform: any = d3.zoomIdentity;
   private _selectionRect: SelectionRect;
   private _eventController: GlyphplotEventController;
@@ -55,27 +57,27 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private _circle: Glyph;
   private _simulation: any;
   private _currentLayout: any;
-  private _drawLock: boolean;
-  private _suppressAnimations = true;
+  private _cameraUtil: CameraSyncUtilities | null = null;
+  private _isFlexiWallEnabled = false;
+  private _drawLock: boolean = false;
+  private _suppressAnimations = false;
   private _uniqueID: string;
   private _zoom: any;
   private _quadtree: any;
-  private _clusterPoints;
-  private _dataUpdated: boolean;
-  private _cameraUtil: CameraSyncUtilities;
-  private _isFlexiWallEnabled = false;
+  private _clusterPoints: any;
+  private _dataUpdated: boolean = false;
 
   //#region static methods
-  static zoomed(component: GlyphplotComponent): void {
-    component.eventController.onZoomed();
+  static zoomed(event: any, component: GlyphplotComponent): void {
+    component.eventController.onZoomed(event);
   }
 
-  static dragStart(component: GlyphplotComponent): void {
-    component.eventController.onDragStart();
+  static dragStart(event: any, component: GlyphplotComponent): void {
+    component.eventController.onDragStart(event);
   }
 
-  static dragEnd(component: GlyphplotComponent): void {
-    component.eventController.onDragEnd();
+  static dragEnd(event: any, component: GlyphplotComponent): void {
+    component.eventController.onDragEnd(event);
   }
 
   static ticked(component: GlyphplotComponent): void {
@@ -110,8 +112,9 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private _regionManager: RegionManager,
     private selectionService: SelectionService
   ) {
-    this.configuration = this.configurationService.addConfiguration();
-
+    this._configuration = this.configurationService.addConfiguration();
+    this._circle = new DotGlyph(this.context, 0, new DotGlyphConfiguration());
+    this._selectionRect = new SelectionRect(this, this.context, this.helper);
     this._eventController = new GlyphplotEventController(
       this,
       this.configuration,
@@ -151,6 +154,13 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         this.createChart();
       }
     });
+    this.configuration.uniqueID = this._uniqueID;
+    this.eventAggregator
+      .getEvent(FitToSelectionTransmitterEvent)
+      .subscribe(this.fitToSelectionTransmitter);
+    this.eventAggregator
+      .getEvent(UpdateZoomIdentityEvent)
+      .subscribe(this.updateZoomIdentity);
   }
 
   //#region initialization and update methods
@@ -180,15 +190,15 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   createChart(): void {
     const that = this;
 
-    const element = this.chartContainer.nativeElement;
-    this.selectionContext = this.selectionRectangle.nativeElement.getContext('2d');
+    const element = this.chartContainer?.nativeElement;
+    this.selectionContext = this.selectionRectangle?.nativeElement.getContext('2d');
 
     this.context = element.getContext('2d');
-    this.tooltip.data = this.data;
+    if(this.tooltip !== undefined) this.tooltip.data = this.data;
 
     this.currentLayout = this.configuration.currentLayout;
     const colorFeature = this.data.schema.color;
-    const colorScale = item => {
+    const colorScale = (item: any) => {
       return item === undefined
         ? 0
         : this.configuration.color(+item[colorFeature]);
@@ -216,27 +226,27 @@ export class GlyphplotComponent implements OnInit, OnChanges {
 
     this._layoutController.updatePositions();
     this.updateZoom();
-    this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
     this.animate();
   }
 
   public updateZoom() {
     const that = this;
-    const element = this.chartContainer.nativeElement;
-    const rectangle = this.selectionRectangle.nativeElement;
+    const element = this.chartContainer?.nativeElement;
+    const rectangle = this.selectionRectangle?.nativeElement;
     let scaleBase = 1 *
       Math.min(this.height / this._originalHeight, this.width / this._originalWidth);
     scaleBase = this.configuration.minScaleLevel;
     this.zoom = d3.zoom()
       .scaleExtent([scaleBase, this.configuration.maxZoom])
-      .on('start', () => {
-        GlyphplotComponent.dragStart(that);
+      .on('start', (event, d) => {
+        GlyphplotComponent.dragStart(event, that);
       })
-      .on('zoom', () => {
-        GlyphplotComponent.zoomed(that);
+      .on('zoom', (event, d) => {
+        GlyphplotComponent.zoomed(event, that);
       })
-      .on('end', () => {
-        GlyphplotComponent.dragEnd(that);
+      .on('end', (event, d) => {
+        GlyphplotComponent.dragEnd(event, that);
       });
 
     const canvas = d3
@@ -296,7 +306,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     ) {
       // going to level 1 coming from level 0 -> show glyphs
       this.animateGlyphs();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       this.updateGlyphConfiguration();
       this.solveCollisions();
     } else if (
@@ -305,15 +315,15 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     ) {
       // going to level 0 coming from level 1 -> hide glyphs and show dots
       this.animateGlyphs();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       this.updateGlyphConfiguration();
       this._simulation.stop();
     } else {
       this.updateGlyphConfiguration();
-      this.configuration.updateCurrentLevelOfDetail(this.transform.k);
+      this.configuration.updateCurrentLevelOfDetail(this.configuration.zoomIdentity.k);
       // level of detail did not change, so redraw each glyph at it's current
       // position
-      this._layoutController.getPositions().forEach(d => {
+      this._layoutController.getPositions().forEach((d: any) => {
         // don't draw glyphs that lie outside the view
         if (this.helper.checkClipping(d.position)) {
           return;
@@ -325,41 +335,41 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         const data = this.configuration.getFeaturesForItem(d);
 
         if (this.selectionService.filteredItemsIds.indexOf(d.id) > -1 || this.selectionService.featureFilters.length == 0) {
-          this.layoutController.drawSingleGlyph(d.position, data.features, null, false, false, 0);
+          this.layoutController.drawSingleGlyph(d.position, data.features, 0, false, false, 0);
         } else {
-          this.layoutController.drawSingleGlyph(d.position, data.features, 1.0, true, d.id === this.configuration.idOfHoveredGlyph, 0);
+          this.layoutController.drawSingleGlyph(d.position, data!.features, 1.0, true, d.id === this.configuration.idOfHoveredGlyph, 0);
         }
       });
 
       // set the radius of collision forces according to the current zoomlevel
-      if (this.configuration.currentLevelOfDetail === 1) {
+      if (this.configuration?.currentLevelOfDetail === 1) {
         this._simulation.force('collision', d3.forceCollide().radius(this.configurationService.smallGlyphRadius));
-      } else if (this.configuration.currentLevelOfDetail === 2) {
+      } else if (this.configuration?.currentLevelOfDetail === 2) {
         this._simulation.force('collision', d3.forceCollide().radius(this.configurationService.largeGlyphRadius));
       }
 
       // handle overlapping / collisions between glyphs (don't resolve dots)
       if (
-        this.configuration.currentLevelOfDetail > 0 &&
-        !this.configuration.useDragSelection
+        this.configuration?.currentLevelOfDetail > 0 &&
+        !this.configuration?.useDragSelection
       ) {
         if (!this._suppressAnimations) { this.solveCollisions(); }
       }
     }
 
     context.restore();
-    this.selectionRect.clear();
+    this.selectionRect?.clear();
     this.drawLock = false;
   }
 
   private updateGlyphConfiguration() {
     switch (this.configurationService.activeGlyphType) {
       case GlyphType.Star:
-        this.configuration.glyph.configuration =
+        this.configuration.glyph!.configuration =
           this.configurationService.starConfigs[this.configuration.currentLevelOfDetail];
       break;
       default:
-        this.configuration.glyph.configuration =
+        this.configuration.glyph!.configuration =
           this.configurationService.flowerConfigs[this.configuration.currentLevelOfDetail];
       break;
     }
@@ -376,14 +386,14 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     }
     const that = this;
     const items = updateAllItems ? this.data.positions : this._layoutController.getPositions();
-    items.forEach(d => {
+    items.forEach((d: any) => {
       if (
-        that.configuration.currentLayout === GlyphLayout.Cluster
+        that.configuration?.currentLayout === GlyphLayout.Cluster
       ) {
-        d.position.x = that.transform.applyX(that.xAxis(d.position.ox));
-        d.position.y = that.transform.applyY(that.yAxis(d.position.oy));
+        d.position.x = that.configuration.zoomIdentity.applyX(that.xAxis(d.position.ox));
+        d.position.y = that.configuration.zoomIdentity.applyY(that.yAxis(d.position.oy));
       } else if (
-        that.configuration.currentLayout === GlyphLayout.Matrix
+        that.configuration?.currentLayout === GlyphLayout.Matrix
       ) {
         d.position.x = d.position.tx;
         d.position.y = d.position.ty;
@@ -401,9 +411,9 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   public matrixLayout(sortFunction?: any): void {
     const that = this;
     const visiblePositions: Array<any> = this.data.positions.filter(
-      p => !this.helper.checkClipping(p.position)
+      (p: any) => !this.helper.checkClipping(p.position)
     );
-    const visibleFeatures: Array<any> = this.data.features.filter(f => {
+    const visibleFeatures: Array<any> = this.data.features.filter((f: any) => {
       return visiblePositions.find(p => p.id === f.id) != null;
     });
     const sortedPositions: Array<any> = [];
@@ -411,7 +421,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     // if sort function is not provided, sort by color
     if (sortFunction == null) {
       const colorProperty = this.data.schema.color;
-      sortFunction = (a, b) =>
+      sortFunction = (a: any, b: any) =>
         +a.features[colorProperty] - +b.features[colorProperty];
     }
 
@@ -455,8 +465,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     this.simulation
       .nodes(
         this.data.positions
-          .filter(d => !this.helper.checkClipping(d.position))
-          .map(d => d.position)
+          .filter((d: any) => !this.helper.checkClipping(d.position))
+          .map((d: any) => d.position)
       )
       .restart();
   }
@@ -493,7 +503,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   private doAnimateGlyphs(t: number) {
     this.context.clearRect(0, 0, this.width, this.height);
 
-    this._layoutController.getPositions().forEach(d => {
+    this._layoutController.getPositions().forEach((d: any) => {
       if (this.helper.checkClipping(d.position)) {
         return;
       }
@@ -505,10 +515,10 @@ export class GlyphplotComponent implements OnInit, OnChanges {
 
       // draw the circle glyph and the current glyph to improve the blossoming effect
       if (this.configuration.currentLevelOfDetail > 0) {
-        this.configuration.glyph.draw(d.position, features, t);
+        this.configuration.glyph!.draw(d.position, features, t);
         this.circle.draw(d.position, features, 1 - t);
       } else {
-        this.configuration.glyph.draw(d.position, features, 1 - t);
+        this.configuration.glyph!.draw(d.position, features, 1 - t);
         this.circle.draw(d.position, features, t);
       }
     });
@@ -523,7 +533,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   public animate(targetData?: any): void {
     this.drawLock = true;
     // save current 'source' positions
-    this._layoutController.getPositions().forEach(d => {
+    this._layoutController.getPositions().forEach((d: any) => {
       d.position.sx = d.position.x;
       d.position.sy = d.position.y;
     });
@@ -533,7 +543,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.updateGlyphLayout();
 
       // save the target positions
-      this._layoutController.getPositions().forEach(d => {
+      this._layoutController.getPositions().forEach((d: any) => {
         d.position.tx = d.position.x;
         d.position.ty = d.position.y;
       });
@@ -549,7 +559,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       const timer = d3.timer(elapsed => {
         const t = Math.min(1, d3.easeCubic(elapsed / duration));
 
-        that._layoutController.getPositions().forEach(d => {
+        that._layoutController.getPositions().forEach((d: any) => {
           d.position.x = d.position.sx * (1 - t) + d.position.tx * t;
           d.position.y = d.position.sy * (1 - t) + d.position.ty * t;
         });
@@ -563,15 +573,17 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     }
     this.drawLock = false;
   }
+
+  public fitToSelectionTransmitter = (payload: boolean) => {
+    this.eventAggregator.getEvent(FitToSelectionEvent).publish(this._uniqueID);
+  }
+
+  private updateZoomIdentity = (payload: boolean) => {
+    this.updateGlyphLayout
+  }
   //#endregion
 
   //#region getters and setters
-  get transform(): any {
-    return this._transform;
-  }
-  set transform(t: any) {
-    this._transform = t;
-  }
   get simulation(): any {
     return this._simulation;
   }
@@ -611,11 +623,13 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   set selectionRect(value: SelectionRect) {
     this._selectionRect = value;
   }
+  set transform(value: any) { this._transform = value; }
+  get transform() { return this._transform; }
   get xAxis() { return this._xAxis; }
   set xAxis(value: any) { this._xAxis = value; }
   get yAxis() { return this._yAxis; }
   set yAxis(value: any) { this._yAxis = value; }
-  get configuration() { return this._configuration; }
+  get configuration(): ConfigurationData { return this._configuration; }
   set configuration(value: ConfigurationData) { this._configuration = value; }
   get zoom() { return this._zoom; }
   set zoom(value: any) { this._zoom = value; }
@@ -636,8 +650,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
   get regionManager() { return this._regionManager; }
   set regionManager(value: RegionManager) { this._regionManager = value; }
-  get cameraUtil() { return this._cameraUtil; }
-  set cameraUtil(value: CameraSyncUtilities) { this._cameraUtil = value; }
-
+  get cameraUtil(): CameraSyncUtilities | null { return this._cameraUtil; }
+  set cameraUtil(value: CameraSyncUtilities | null) { this._cameraUtil = value; }
+  get uniqueID() {return this._uniqueID; }
   //#endregion
 }

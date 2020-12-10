@@ -8,14 +8,14 @@ import {
   ElementRef
 } from '@angular/core';
 
-import { Logger } from 'app/shared/services/logger.service';
-import { Configuration } from 'app/shared/services/configuration.service';
+import { Logger } from 'src/app/shared/services/logger.service';
+import { Configuration } from 'src/app/shared/services/configuration.service';
 import { DashboardGlyphConfigComponent } from './dashboard-tab-glyphs/dashboard-glyph-config.component';
-import { LenseCursor } from 'app/lense/cursor.service';
-import { RegionManager } from 'app/region/region.manager';
-import { DataproviderService } from 'app/shared/services/dataprovider.service';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
+import { LenseCursor } from 'src/app/lense/cursor.service';
+import { RegionManager } from 'src/app/region/region.manager';
+import { DataproviderService } from 'src/app/shared/services/dataprovider.service';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { RefreshPlotEvent } from 'src/app/shared/events/refresh-plot.event';
 import * as d3 from 'd3';
 
 @Component({
@@ -25,15 +25,16 @@ import * as d3 from 'd3';
 })
 
 export class DashboardComponent implements OnInit, AfterViewInit {
-  @ViewChild('canvas') private container: ElementRef;
-  @ViewChild('dashboard') private dashboard: ElementRef;
-  @ViewChild('icon') private icon: ElementRef;
-  @ViewChildren(DashboardGlyphConfigComponent) configOptions: QueryList<any>;
+  @ViewChild('canvas') private container: ElementRef | undefined;
+  @ViewChild('dashboard') private dashboard: ElementRef | undefined;
+  @ViewChild('icon') private icon: ElementRef | undefined;
+  @ViewChildren(DashboardGlyphConfigComponent) configOptions: QueryList<any> | undefined;
 
   // holds all options for glyph configurations, which are used to generate
   // the checkboxes in the settings
-  public activeOptions: [any];
-  public selectedFeatureName: string;
+  public activeOptions: [any] | undefined;
+  public selectedFeatureName: string = "";
+  public infoHidden = false;
 
   // allows for tabbing. 'glyphs' shows glyph-options, 'settings' shows
   // global settings like split-view, magic-lens or zoom, etc.
@@ -50,9 +51,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.dataProvider.getDataSet().subscribe(message => {
-      if (message == null) {
+      if (message === null || message === undefined || message.schema === undefined) {
         return;
       }
+
+      this.infoHidden = this.configuration.configurations[0].activeFeatures.length > 0;
 
       // set the dataset for the appropriate configuration object (either 0 or 1)
       this.configuration.configurations[this.configuration.dataSetRequest].setData(message);
@@ -103,11 +106,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       ].selectedFeatureName = message.schema.label[colorFeature];
     });
 
-    this.configuration.splitScreenActive = this.regionManager.regions[1].display === 'block';
+    this.configuration.splitScreenActive = this.regionManager.regions![1].display === 'block';
 
     // make sure lens can move over full window width when activated by setting its boundaries to
     // the width of the window
-    if (this.regionManager.regions[1].display === 'block') {
+    if (this.regionManager.regions![1].display === 'block') {
       this.cursor.boundaries.right = window.innerWidth / 2;
     } else {
       this.cursor.boundaries.right = window.innerWidth;
@@ -139,8 +142,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     event.preventDefault(); // suppress redirecting to anchor href
 
     // get d3 selections for the dashboard and the icon
-    const dash: any = d3.select(this.dashboard.nativeElement);
-    const ic: any = d3.select(this.icon.nativeElement);
+    const dash: any = d3.select(this.dashboard?.nativeElement);
+    const ic: any = d3.select(this.icon?.nativeElement);
     // current display status of dashboard
     const display: string = dash.style('display');
 

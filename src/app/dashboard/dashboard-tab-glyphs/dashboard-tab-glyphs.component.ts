@@ -55,10 +55,10 @@ export class DashboardTabGlyphsComponent extends DashboardTabComponent
               return;
             }
             const colorFeature = message.schema.color;
-            const colorScale = item => config.color(+item[colorFeature]);
+            const colorScale = (item: any) => config.color(+item[colorFeature]);
 
             config.glyph = new FlowerGlyph(
-              config.glyph.context,
+              config.glyph!.context,
               colorScale,
               that.configuration.flowerConfigs[config.currentLevelOfDetail] as FlowerGlyphConfiguration
             );
@@ -75,10 +75,10 @@ export class DashboardTabGlyphsComponent extends DashboardTabComponent
               return;
             }
             const colorFeature = message.schema.color;
-            const colorScale = item => config.color(+item[colorFeature]);
+            const colorScale = (item: any) => config.color(+item[colorFeature]);
 
             config.glyph = new StarGlyph(
-              config.glyph.context,
+              config.glyph!.context,
               colorScale,
               that.configuration.starConfigs[config.currentLevelOfDetail] as StarGlyphConfiguration
             );
@@ -92,14 +92,14 @@ export class DashboardTabGlyphsComponent extends DashboardTabComponent
     this.onLayoutChange();
   }
 
-  private onGlyphConfigChange(e: any): void {
-    const conf = this.configuration.activeGlyphConfig();
+  public onGlyphConfigChange(e: any): void {
+    const conf: any = this.configuration.activeGlyphConfig();
     conf[e.property] = e.active;
     this.onConfigChange();
     this.onLayoutChange();
   }
 
-  public onLODSliderChange(event): void {
+  public onLODSliderChange(event: any): void {
     for (const key in this.configuration.configurations) {
       if (this.configuration.configurations.hasOwnProperty(key)) {
         const config = this.configuration.configurations[key];

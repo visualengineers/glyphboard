@@ -1,8 +1,6 @@
-
-
 import * as THREE from 'three';
-import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
-import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
+import { CameraSyncUtilities } from 'src/app/shared/util/cameraSyncUtilities';
+import { ViewportTransformationEventData } from 'src/app/shared/events/viewport-transformation.event.data';
 import { IRenderable } from './renderer';
 import { View } from './view';
 
@@ -10,7 +8,7 @@ import { View } from './view';
 
 export class DotView extends View {
 
-    private particleSystem: THREE.Points;
+    private particleSystem: THREE.Points | null = null;
     private shaderDiskMaterial: THREE.ShaderMaterial;
     private particleGeometry: THREE.BufferGeometry = new THREE.BufferGeometry();
 
@@ -19,13 +17,11 @@ export class DotView extends View {
 
     constructor(viewWidth: number, viewHeight: number) {
         super(viewWidth, viewHeight);
-
-        console.log(this.shaderDiskMaterial);
         this.shaderDiskMaterial = new THREE.ShaderMaterial( {
             blending: THREE.NormalBlending,
             depthTest: false,
             transparent: true,
-            vertexColors: THREE.VertexColors,
+            vertexColors: true,
             side: THREE.BackSide
         });
 
@@ -78,23 +74,23 @@ export class DotView extends View {
     
         
     
-        const particlePositions = [];
-        const particleColors = [];
-        const particleSizes = [];
+        const particlePositions: any[] = [];
+        const particleColors: any[] = [];
+        const particleSizes: any[] = [];
     
         if (this.data != null) {
             
             const colorFeature = this.data.schema.color;
-            const colorScale = item => {
+            const colorScale = (item: any) => {
                 return item === undefined
                 ? 0
-                : this.configuration.color(+item[colorFeature]);
+                : this.configuration!.color(+item[colorFeature]);
             };
         
             // step 3: push window-scaled positions
-            this.data.positions.forEach(item => {
-                const renderPosX = (item.position.ox * this.cameraUtil.DataScale.x);
-                const renderPosY = (((this.cameraUtil.DataMax.y - item.position.oy) + this.cameraUtil.DataMin.y) * this.cameraUtil.DataScale.y);
+            this.data.positions.forEach((item: any) => {
+                const renderPosX = (item.position.ox * this.cameraUtil!.DataScale.x);
+                const renderPosY = (((this.cameraUtil!.DataMax.y - item.position.oy) + this.cameraUtil!.DataMin.y) * this.cameraUtil!.DataScale.y);
                 const renderPosZ = -10;
         
                 particlePositions.push(renderPosX);
@@ -102,13 +98,13 @@ export class DotView extends View {
                 particlePositions.push(renderPosZ);
     
                 let isPassive =
-                  !((this.selectionService.filteredItemsIds.indexOf(item.id) > -1) ||
-                    (this.selectionService.featureFilters.length === 0));
+                  !((this.selectionService!.filteredItemsIds.indexOf(item.id) > -1) ||
+                    (this.selectionService!.featureFilters.length === 0));
 
                 let feature;
 
-                if(this.configuration.getFeaturesForItem(item) !== null)
-                    feature = this.configuration.getFeaturesForItem(item).features;
+                if(this.configuration!.getFeaturesForItem(item) !== null)
+                    feature = this.configuration!.getFeaturesForItem(item).features;
 
                 const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
                // const color = new THREE.Color(colorScale(feature));
@@ -119,9 +115,9 @@ export class DotView extends View {
         
             // this.setViewFrustum();
         
-            this.particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
-            this.particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
-            this.particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( particleSizes, 1 ) );
+            this.particleGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( particlePositions, 3 ) );
+            this.particleGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
+            this.particleGeometry.setAttribute( 'size', new THREE.Float32BufferAttribute( particleSizes, 1 ) );
         
             this.particleSystem = new THREE.Points(
                 this.particleGeometry,
@@ -141,24 +137,24 @@ export class DotView extends View {
                 return;
             const colorFeature = this.data.schema.color;
         
-            const colorScale = item => {
+            const colorScale = (item: any) => {
               return item === undefined
                 ? 0
-                : this.configuration.color(+item[colorFeature]);
+                : this.configuration!.color(+item[colorFeature]);
             };
         
-            const particleColors = [];
+            const particleColors: any[] = [];
         
-            this.data.positions.forEach(item => {
+            this.data.positions.forEach((item: any) => {
               const isPassive =
-                    !((this.selectionService.filteredItemsIds.indexOf(item.id) > -1) ||
-                    (this.selectionService.featureFilters.length === 0));
-                  const feature = this.configuration.getFeaturesForItem(item).features;
+                    !((this.selectionService!.filteredItemsIds.indexOf(item.id) > -1) ||
+                    (this.selectionService!.featureFilters.length === 0));
+                  const feature = this.configuration!.getFeaturesForItem(item).features;
                   const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
                   particleColors.push( color.r, color.g, color.b);
             });
         
-            this.particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
+            this.particleGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );
             
             // ### REFACTOR this.render();
           }

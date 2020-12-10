@@ -1,4 +1,4 @@
-@import "~assets/styles/variables";
+@import "src/assets/styles/variables";
 
 .bounding {
   position: relative;
@@ -6,14 +6,21 @@
   margin-bottom: -15px;
 }
 .slide {
-  transform: translateY(11px);
+  transform: translateY(14px);
 
   &.zoomed{
-    outline: 2px solid $button-active-color;
     transition: all 0.2s;
 
     &.dragging{
       transition: all 0s;
+    }
+
+    &.primary{
+      outline: 2px solid $button-active-color;
+    }
+
+    &.secondary{
+      outline: 2px solid $text-foreground-color;
     }
   }
 
@@ -34,7 +41,6 @@
   border-radius: 15px;
 
   background: $button-dark-color;
-  transition: border 0.2s;
 
   &.dragging {
     background-color: $button-active-color;
@@ -42,11 +48,11 @@
   }
 
   &.min {
-    transform: translateY(-14px);
+    transform: translateY(-26px);
   }
 
   &.max {
-    transform: translateY(-34px);
+    transform: translateY(-46px);
   }
 
   &:hover{
@@ -61,12 +67,20 @@
   top: 0;
   width: 0; 
   height: 0; 
-  border-left: calc(15px/0.866/2) solid transparent;
-  border-right: calc(15px/0.866/2) solid transparent;
-  border-bottom: 15px solid $button-active-color;
-  transform: translateY(16px);
+  
+  &.primary{
+    border-left: calc(15px/0.866/2) solid transparent;
+    border-right: calc(15px/0.866/2) solid transparent;
+    border-bottom: 15px solid $button-active-color;
+    transform: translateY(18px);
+  }
 
-  transition: all 0.2s;
+  &.secondary{
+    border-left: calc(15px/0.866/2) solid transparent;
+    border-right: calc(15px/0.866/2) solid transparent;
+    border-top: 15px solid $text-foreground-color;
+    transform: translateY(-20px);
+  }
 
   &.dragging {
     transition: all 0s;
@@ -75,4 +89,8 @@
   &:hover {
     cursor: grab;
   }
+}
+
+.invisible {
+  visibility: hidden;
 }

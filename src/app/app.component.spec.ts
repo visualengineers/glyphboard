@@ -1,38 +1,35 @@
-import { TestBed, async, ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { DebugElement } from '@angular/core';
-import { HomeComponent } from './home/home.component'
-
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  let fixture: ComponentFixture<AppComponent>;
-  let app: AppComponent;
-  let de: DebugElement;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        RouterTestingModule
+      ],
       declarations: [
         AppComponent
       ],
-      imports: [
-        RouterTestingModule.withRoutes(
-          [{path: '', component: AppComponent}]
-        )
-      ]
-    });
-
-    fixture = TestBed.createComponent(AppComponent);
-    app = fixture.debugElement.componentInstance;
-  });
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AppComponent);
-    app = fixture.debugElement.componentInstance;
-    de = fixture.debugElement;
+    }).compileComponents();
   });
 
   it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
     expect(app).toBeTruthy();
+  });
+
+  it(`should have as title 'glyphboard'`, () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('glyphboard');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('.content span').textContent).toContain('glyphboard app is running!');
   });
 });

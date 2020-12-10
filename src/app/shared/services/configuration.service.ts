@@ -1,12 +1,12 @@
-import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
-import { StarGlyphConfiguration } from 'app/glyph/glyph.star.configuration';
-import { Logger } from 'app/shared/services/logger.service';
+import { FlowerGlyphConfiguration } from 'src/app/glyph/glyph.flower.configuration';
+import { StarGlyphConfiguration } from 'src/app/glyph/glyph.star.configuration';
+import { Logger } from 'src/app/shared/services/logger.service';
 import { Injectable } from '@angular/core';
 import { ConfigurationData } from './configuration.data';
-import { GlyphConfiguration } from 'app/glyph/glyph.configuration';
-import { GlyphType } from 'app/glyph/glyph.type';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
 import { SelectionService } from './selection.service';
+import { GlyphConfiguration } from 'src/app/glyph/glyph.configuration';
+import { GlyphType } from 'src/app/glyph/glyph.type';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
 
 @Injectable()
 export class Configuration {

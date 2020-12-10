@@ -1,6 +1,6 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
-import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
+import { RefreshConfigEvent } from 'src/app/shared/events/refresh-config.event';
 import { Subject } from 'rxjs';
 
 @Component({

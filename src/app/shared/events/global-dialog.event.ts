@@ -9,7 +9,7 @@ export class GlobalDialogEvent extends PubSubEvent<GlobalDialogPayload> {
 
 export class GlobalDialogPayload {
 
-    constructor(public dto: {title?: string, content?: TemplateRef<any>, visible: boolean}) {
+    constructor(public dto: {title?: string, content: TemplateRef<any> | null, visible: boolean}) {
         this.dto = dto;
     }
 }

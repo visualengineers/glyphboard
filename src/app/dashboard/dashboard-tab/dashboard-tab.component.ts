@@ -1,12 +1,12 @@
 import { Component, Injector } from '@angular/core';
-import { Logger } from 'app/shared/services/logger.service';
-import { Configuration } from 'app/shared/services/configuration.service';
-import { DataproviderService } from 'app/shared/services/dataprovider.service';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
-import { RegionManager } from 'app/region/region.manager';
-import { LenseCursor } from 'app/lense/cursor.service';
-import { RefreshConfigEvent } from 'app/shared/events/refresh-config.event';
+import { Logger } from 'src/app/shared/services/logger.service';
+import { Configuration } from 'src/app/shared/services/configuration.service';
+import { DataproviderService } from 'src/app/shared/services/dataprovider.service';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { RefreshPlotEvent } from 'src/app/shared/events/refresh-plot.event';
+import { RegionManager } from 'src/app/region/region.manager';
+import { LenseCursor } from 'src/app/lense/cursor.service';
+import { RefreshConfigEvent } from 'src/app/shared/events/refresh-config.event';
 
 @Component({
   selector: 'app-dashboard-tab',

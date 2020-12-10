@@ -1,14 +1,14 @@
 import { GlyphplotComponent } from './glyphplot.component';
 import { LenseCursor } from '../lense/cursor.service';
 import { ConfigurationData } from '../shared/services/configuration.data';
-import { Logger } from 'app/shared/services/logger.service';
+import { Logger } from 'src/app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
-import { FlexiWallTouchPoint } from 'app/shared/types/flexiWallTouchPoint';
-import { FlexiWallPosition } from 'app/shared/types/flexiWallPosition';
-import { Point } from 'app/shared/types/point';
-import { RegionManager } from 'app/region/region.manager';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { SwitchVisualizationEvent, VisualizationType } from 'app/shared/events/switch-visualization.event';
+import { FlexiWallTouchPoint } from 'src/app/shared/types/flexiWallTouchPoint';
+import { FlexiWallPosition } from 'src/app/shared/types/flexiWallPosition';
+import { Point } from 'src/app/shared/types/point';
+import { RegionManager } from 'src/app/region/region.manager';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { SwitchVisualizationEvent, VisualizationType } from 'src/app/shared/events/switch-visualization.event';
 import { delay } from 'q';
 
 export class FlexiWallController {
@@ -27,9 +27,9 @@ export class FlexiWallController {
 
   private urlFlexiwall = 'ws://localhost:8080/';
 
-  private flexiLastX: number;
-  private flexiLastY: number;
-  private flexiLastZ: number;
+  private flexiLastX: number = 0;
+  private flexiLastY: number = 0;
+  private flexiLastZ: number = 0;
 
   private flexiOffset = new Point(0, 0);
 
@@ -80,11 +80,11 @@ export class FlexiWallController {
     }
   }
 
-  onMessage (event) {
+  onMessage (event: any) {
     const touchPoints = JSON.parse(event.data);
 
     let data = new FlexiWallTouchPoint();
-    touchPoints.forEach(pt => {
+    touchPoints.forEach((pt: any) => {
       if (!pt.Position.IsValid) {
         return;
       }
@@ -106,7 +106,6 @@ export class FlexiWallController {
     if (!data.Position.IsValid) {
       return;
     }
-
 
     // if (data.Position.Z > 1300 || data.Position.Z < 1500) return;
     // this.logger.log("X " + data.Position.X + " Y " + data.Position.Y + " Z " + data.Position.Z);
@@ -182,7 +181,7 @@ export class FlexiWallController {
       ? 1.0 - 0.2 * data.Position.Z
       : 1.0;
     // const zoomFactor = data.Position.Z < -0.5 ? 1.05 : data.Position.Z > 0.5 ? 0.95 : 1;
-    const trans = this.component.transform;
+    const trans = this.component.configuration.zoomIdentity;
     trans.k = trans.k * zoomFactor;
     // trans.x = (this.component.width / 2 - 10) - ((this.component.width / 2 - 10) * trans.k);
     // trans.y = (this.component.height / 2 - 130) - ((this.component.height / 2 - 130) * trans.k);
@@ -199,10 +198,9 @@ export class FlexiWallController {
       return;
     }
 
-
     this.component.transform = trans;
     // this.logger.log('FlexTransform: ' + this.component.transform);
-    this.configuration.updateCurrentLevelOfDetail(this.component.transform.k);
+    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.configuration.currentLayout = GlyphLayout.Cluster;
     this.component.animate();
   }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FeatureFilter } from 'app/shared/filter/feature-filter';
+import { FeatureFilter } from 'src/app/shared/filter/feature-filter';
 import { EventAggregatorService } from '../events/event-aggregator.service';
 import { RefreshSelectionEvent } from '../events/refresh-selection.event';
 import { Point } from '../types/point';
@@ -11,10 +11,10 @@ export class SelectionService {
 
   private _data: any;
   private _selectedItems: any;
-  private _filteredItemsIds = [];
+  private _filteredItemsIds: any[] = [];
   private _filteredItemsCount = 0;
   private _featureFilters: FeatureFilter[] = []; // list of filters applied to glyphs  
-  private _selectedHistogram: Array<Array<number>>;
+  private _selectedHistogram: Array<Array<number>> | undefined;
 
   
   public set data(data: any) {
@@ -62,8 +62,8 @@ export class SelectionService {
 
     const filteredData = Object.create(this._data);
 
-    const selectedIds = [];
-    filteredData.positions = filteredData.positions.filter((elem) => {
+    const selectedIds: any[] = [];
+    filteredData.positions = filteredData.positions.filter((elem: any) => {
       const position = elem.position;
       if (!this.checkClipping(position)
          && position.x > left && position.x < right
@@ -71,9 +71,10 @@ export class SelectionService {
         selectedIds.push(elem.id);
         return true;
       };
+      return false;
     });
 
-    filteredData.features = filteredData.features.filter((elem) => {
+    filteredData.features = filteredData.features.filter((elem: any) => {
       return selectedIds.indexOf(elem.id) !== -1;
     });
 
@@ -95,12 +96,13 @@ export class SelectionService {
 
   // Refresh ID list
   public filterRefresh() {
-    let filteredIds = [];
-    const binCount: number = Object.keys(Object.values(this._data.meta.features).shift()['histogram']).length;
+    let filteredIds: any[] = [];
+    let features: any[] = this._data.meta.features;
+    const binCount: number = Object.keys(Object.values(features).shift()['histogram']).length;
     let histogram: Array<Array<number>> = new Array(Object.keys(this._data.meta.features).length).fill(0).map( x => (Array(binCount).fill(0)));
     const histoStep: number = 1;
 
-    this._data.positions.forEach(d => {
+    this._data.positions.forEach((d: any) => {
       let itemConfirmsFilter = true;
       let featureItem = this.getFeaturesForItem(d);
       const filters: FeatureFilter[] = this.featureFilters;
@@ -135,7 +137,7 @@ export class SelectionService {
   }
 
   private getFeaturesForItem(d: any) {
-    const item = this._data.features.find(f => {
+    const item = this._data.features.find((f: any) => {
         return f.id === d.id;
     });
     let itemContext = item['default-context'];

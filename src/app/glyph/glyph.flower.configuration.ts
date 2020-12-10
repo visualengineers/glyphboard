@@ -2,10 +2,10 @@ import { GlyphConfiguration } from './glyph.configuration';
 import { GlyphType } from './glyph.type';
 
 export class FlowerGlyphConfiguration extends GlyphConfiguration {
-  private _useCircle: boolean;
-  private _useArea: boolean;
-  private _useBrightness: boolean;
-  private _usePetals: boolean;
+  private _useCircle: boolean = true;
+  private _useArea: boolean = true;
+  private _useBrightness: boolean = true;
+  private _usePetals: boolean = true;
 
   private flowerOptions = [
     { property: 'useCoordinateSystem', label: 'Coordinate System' },

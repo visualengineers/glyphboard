@@ -1,13 +1,13 @@
 import { Interaction } from "../util/interaction";
 
 export class InteractionEventData {
-    private _interactionEvent: Interaction;
+    private _interactionEvent: Interaction | null;
 
     private _positionX: number;
     private _positionY: number;
     private _positionZ: number;
 
-    constructor(interactionEvent: Interaction, positionX = 0, positionY = 0, positionZ = 0){
+    constructor(interactionEvent: Interaction | null, positionX = 0, positionY = 0, positionZ = 0){
         this._interactionEvent = interactionEvent;
 
         this._positionX = positionX;
@@ -15,7 +15,7 @@ export class InteractionEventData {
         this._positionZ = positionZ;
     }
 
-    public GetInteractionEvent(): Interaction{return this._interactionEvent;}
+    public GetInteractionEvent(): Interaction | null {return this._interactionEvent;}
 
     public GetPositionX(): number{return this._positionX;}
     public GetPositionY(): number{return this._positionY;}

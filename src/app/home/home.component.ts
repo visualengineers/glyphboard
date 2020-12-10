@@ -2,11 +2,12 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { DataproviderService } from '../shared/services/dataprovider.service';
 import { RegionManager } from '../region/region.manager';
 import { Logger } from '../shared/services/logger.service';
-import { Configuration } from 'app/shared/services/configuration.service';
-import { LenseCursor } from 'app/lense/cursor.service';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { RefreshPlotEvent } from 'app/shared/events/refresh-plot.event';
-import { VisualizationType, SwitchVisualizationEvent } from 'app/shared/events/switch-visualization.event';
+import { VisualizationType, SwitchVisualizationEvent } from 'src/app/shared/events/switch-visualization.event';
+import { Configuration } from 'src/app/shared/services/configuration.service';
+import { LenseCursor } from 'src/app/lense/cursor.service';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { RefreshPlotEvent } from 'src/app/shared/events/refresh-plot.event';
+import { UpdateZoomIdentityEvent } from 'src/app/shared/events/update-zoom-identity.event';
 
 @Component({
   selector: 'app-home',
@@ -15,8 +16,8 @@ import { VisualizationType, SwitchVisualizationEvent } from 'app/shared/events/s
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  private splitScreen: boolean;
-  private isKeyDown: boolean;
+  private splitScreen: boolean = false;
+  private isKeyDown: boolean = false;
 
   constructor(
     private logger: Logger,
@@ -80,19 +81,19 @@ export class HomeComponent implements OnInit {
       case '¶':
         // Switch for Region 4 for WebGL Glyphplot, disable D3 Glyphplot
         if (e.type === 'keyup') {
-          const d3Glyphplot = this.regionManager.regions[0].display === 'block';
+          const d3Glyphplot = this.regionManager.regions![0].display === 'block';
 
           if (d3Glyphplot) {
-            this.splitScreen = this.regionManager.regions[1].display === 'block';
-            this.regionManager.regions[0].display = 'none';
-            this.regionManager.regions[1].display = 'none';
-            this.regionManager.regions[3].display = 'block';
-            this.regionManager.regions[4].display = this.splitScreen ? 'block' : 'none';
+            this.splitScreen = this.regionManager.regions![1].display === 'block';
+            this.regionManager.regions![0].display = 'none';
+            this.regionManager.regions![1].display = 'none';
+            this.regionManager.regions![3].display = 'block';
+            this.regionManager.regions![4].display = this.splitScreen ? 'block' : 'none';
           } else {
-            this.regionManager.regions[0].display = 'block';
-            this.regionManager.regions[1].display = this.splitScreen ? 'block' : 'none';
-            this.regionManager.regions[3].display = 'none';
-            this.regionManager.regions[4].display = 'none';
+            this.regionManager.regions![0].display = 'block';
+            this.regionManager.regions![1].display = this.splitScreen ? 'block' : 'none';
+            this.regionManager.regions![3].display = 'none';
+            this.regionManager.regions![4].display = 'none';
           }
 
           const width = window.innerWidth;
@@ -120,22 +121,25 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.onResize();
+    this.onResize(true);
   }
 
-  onResize() {
+  onResize(init: boolean = false) {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    if(!init){
+      this.eventAggregator.getEvent(UpdateZoomIdentityEvent).publish(true);
+    }
     this.regionManager.updateRegions(width, height);
   }
 
   private onVisualizationTypeChanged = (type: VisualizationType) => {
-    this.regionManager.regions[3].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
-    this.regionManager.regions[0].display = type === VisualizationType.D3 ? 'block' : 'none';
+    this.regionManager.regions![3].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
+    this.regionManager.regions![0].display = type === VisualizationType.D3 ? 'block' : 'none';
 
-    if(this.regionManager.IsSplitScreen){
-      this.regionManager.regions[4].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
-      this.regionManager.regions[1].display = type === VisualizationType.D3 ? 'block' : 'none';
+    if(this.regionManager.IsSplitScreen()){
+      this.regionManager.regions![4].display = type === VisualizationType.ThreeJS ? 'block' : 'none';
+      this.regionManager.regions![1].display = type === VisualizationType.D3 ? 'block' : 'none';
     }
     this.onResize();
   }

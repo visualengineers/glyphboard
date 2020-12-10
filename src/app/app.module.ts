@@ -1,13 +1,10 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
 
-import { AngularFontAwesomeModule } from 'angular-font-awesome';
-
+import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+
 import { HomeComponent } from './home/home.component';
-import { routing, appRoutingProviders } from './app.routes';
 import { GlyphplotComponent } from './glyphplot/glyphplot.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { Configuration } from './shared/services/configuration.service';
@@ -23,17 +20,7 @@ import { SplitterComponent } from './splitter/splitter.component';
 import { DoubleSliderComponent } from './double_slider/double_slider.component';
 import { EventAggregatorService } from './shared/events/event-aggregator.service';
 import { DashboardSelectionVersionComponent } from './dashboard/dashboard-tab-context/dashboard-selection-version.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {
-  MatTooltipModule,
-  MatCheckboxModule,
-  MatRadioModule,
-  MatFormFieldModule,
-  MatSelectModule,
-  MatSlideToggleModule,
-  MatButtonModule,
-  MatIconModule
-} from '@angular/material';
+
 import { DashboardGlyphlegendComponent } from './dashboard/dashboard-glyphlegend/dashboard-glyphlegend.component';
 import { DashboardTabComponent } from './dashboard/dashboard-tab/dashboard-tab.component';
 import { DashboardTabDataComponent } from './dashboard/dashboard-tab-data/dashboard-tab-data.component';
@@ -45,6 +32,19 @@ import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functio
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
 import { AngularFileUploaderModule } from 'angular-file-uploader';
 import { GlyphplotWebglComponent } from './glyphplot-webgl/glyphplot-webgl.component';
+
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule} from '@angular/material/icon';
+
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -73,11 +73,9 @@ import { GlyphplotWebglComponent } from './glyphplot-webgl/glyphplot-webgl.compo
   ],
   imports: [
     BrowserModule,
-    BrowserAnimationsModule,
-    FormsModule,
-    HttpModule,
-    routing,
-    AngularFontAwesomeModule,
+    AppRoutingModule,
+    AngularFileUploaderModule,
+    FontAwesomeModule,
     MatTooltipModule,
     MatCheckboxModule,
     MatRadioModule,
@@ -86,10 +84,9 @@ import { GlyphplotWebglComponent } from './glyphplot-webgl/glyphplot-webgl.compo
     MatSlideToggleModule,
     MatButtonModule,
     MatIconModule,
-    AngularFileUploaderModule
+    BrowserAnimationsModule
   ],
   providers: [
-    appRoutingProviders,
     Logger,
     Configuration,
     LenseCursor,
@@ -98,5 +95,4 @@ import { GlyphplotWebglComponent } from './glyphplot-webgl/glyphplot-webgl.compo
   ],
   bootstrap: [AppComponent]
 })
-
 export class AppModule { }

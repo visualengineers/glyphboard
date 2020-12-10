@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import { GlyphType } from './glyph.type';
 
 export class StarGlyph extends Glyph {
-  private radians: number;
+  private radians: number = 0;
 
   constructor(context: any, color: any, configuration: StarGlyphConfiguration) {
     super(context, color);
@@ -13,9 +13,6 @@ export class StarGlyph extends Glyph {
   }
 
   draw(position: any, features: any, progress?: number, isPassive?: boolean, isHighlighted?: boolean) {
-    if (progress === 0) {
-      return;
-    }
     if (isPassive === undefined) {
       isPassive = false;
     }
@@ -34,7 +31,12 @@ export class StarGlyph extends Glyph {
 
     context.globalCompositeOperation = isPassive ? 'destination-over' : 'source-over';
     context.beginPath();
-
+    if(this.starConfig().useBackground){
+      context.fillStyle = '#ccc';
+      context.opacity = 0.5;
+      context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
+      context.fill();
+    }
     if (this.configuration.useCoordinateSystem) {
       this.drawAxes(position, features, radius, progress);
     }
@@ -103,9 +105,11 @@ export class StarGlyph extends Glyph {
     if (fillColor == null) {
       fillColor = d3.color('white');
     }
-    fillColor.opacity = this.starConfig().useContour ? 0.3 : 0.5;
-    if (isHighlighted) {
-      fillColor.opacity = 0.9;
+    if(fillColor !== null) {
+      fillColor.opacity = this.starConfig().useContour ? 0.3 : 0.5;
+      if (isHighlighted) {
+        fillColor.opacity = 0.9;
+      }
     }
     context.fillStyle = isPassive ? '#ccc' : `${fillColor}`;
 
@@ -135,7 +139,7 @@ export class StarGlyph extends Glyph {
 
     if (labels == null) { labels = []; }
 
-    this.drawLabels(position, features, this.configuration.radius, progress, labels);
+    this.drawLabels(position, features, this.configuration.radius, labels, progress);
   }
 
   private drawAxes(position: any, features: any, radius: number, progress: number): void {
@@ -175,9 +179,10 @@ export class StarGlyph extends Glyph {
     this.context.stroke();
     this.context.closePath();
     this.context.restore();
+
   }
 
-  private drawLabels(position: any, features: any, radius: number, progress: number, labels: string[]): void {
+  private drawLabels(position: any, features: any, radius: number, labels: string[], progress?: number): void {
     const that = this;
     this.context.save();
     this.context.beginPath();

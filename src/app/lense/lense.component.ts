@@ -1,22 +1,24 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 
-import { DataproviderService } from 'app/shared/services/dataprovider.service';
-import { Configuration } from 'app/shared/services/configuration.service';
-import { Glyph } from 'app/glyph/glyph';
-import { FlowerGlyph } from 'app/glyph/glyph.flower';
-import { GlyphConfiguration } from 'app/glyph/glyph.configuration';
-import { StarGlyph } from 'app/glyph/glyph.star';
+import { DataproviderService } from 'src/app/shared/services/dataprovider.service';
+import { Configuration } from 'src/app/shared/services/configuration.service';
+import { Glyph } from 'src/app/glyph/glyph';
+import { FlowerGlyph } from 'src/app/glyph/glyph.flower';
+import { GlyphConfiguration } from 'src/app/glyph/glyph.configuration';
+import { StarGlyph } from 'src/app/glyph/glyph.star';
 import { LenseCursor } from './cursor.service';
-import { TooltipComponent } from 'app/tooltip/tooltip.component';
-import { Logger } from 'app/shared/services/logger.service';
-import { Helper } from 'app/glyph/glyph.helper';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { SelectionService } from 'src/app/shared/services/selection.service';
+import { TooltipComponent } from 'src/app/tooltip/tooltip.component';
+import { Logger } from 'src/app/shared/services/logger.service';
+import { Helper } from 'src/app/glyph/glyph.helper';
 
 import * as d3 from 'd3';
-import { FlowerGlyphConfiguration } from 'app/glyph/glyph.flower.configuration';
-import { StarGlyphConfiguration } from 'app/glyph/glyph.star.configuration';
-import { GlyphType } from 'app/glyph/glyph.type';
-import { SelectionService } from 'app/shared/services/selection.service';
+import { FlowerGlyphConfiguration } from 'src/app/glyph/glyph.flower.configuration';
+import { StarGlyphConfiguration } from 'src/app/glyph/glyph.star.configuration';
+import { GlyphType } from 'src/app/glyph/glyph.type';
+import { DotGlyphConfiguration } from '../glyph/glyph.dot.configuration';
+import { DotGlyph } from '../glyph/glyph.dot';
 
 @Component({
   selector: 'app-lense',
@@ -24,15 +26,15 @@ import { SelectionService } from 'app/shared/services/selection.service';
   styleUrls: ['./lense.component.css']
 })
 
-export class MagicLenseComponent implements OnInit {
-  @ViewChild('canvas') canvas: ElementRef;
-  @ViewChild('secondary') splitCanvas: ElementRef;
-  @ViewChild('tooltip') public tooltip: TooltipComponent;
+export class MagicLenseComponent implements AfterViewInit {
+  @ViewChild('canvas') canvas: ElementRef | undefined;
+  @ViewChild('secondary') splitCanvas: ElementRef | undefined;
+  @ViewChild('tooltip') public tooltip: TooltipComponent | undefined;
 
   private data: any; // primary dataset for position, feature and schema data
   private dataSecondary: any; // secondary dataset
 
-  private visible: [any]; // array of visible position objects in primary dataset
+  private visible: any[] = []; // array of visible position objects in primary dataset
   private visibleSecondary: any; // array of visible position objects in secondary dataset
 
   public cursorWidth = 50;
@@ -44,10 +46,10 @@ export class MagicLenseComponent implements OnInit {
 
   private context: any; // 2D context for canvas
   private splitContext: any; // 2D context for canvas of split lens
-  private flowerGlyph: FlowerGlyph;
-  private starGlyph: StarGlyph;
-  private activeGlyph: Glyph;
-  private activeConfig: GlyphConfiguration;
+  private flowerGlyph: FlowerGlyph | null = null;
+  private starGlyph: StarGlyph | null = null;
+  private activeGlyph: Glyph | null = null;
+  private activeConfig: GlyphConfiguration | null = null;
 
   private simulation: any; // force for visible
   private secondarySimulation: any;
@@ -93,7 +95,7 @@ export class MagicLenseComponent implements OnInit {
       // restart secondary simulation
       if (component.dataSecondary != null && component.secondarySimulationActive) {
         component.secondarySimulation
-          .nodes(component.visibleSecondary.map(item => item.position))
+          .nodes(component.visibleSecondary.map((item: any) => item.position))
           .restart();
       }
     }
@@ -102,12 +104,18 @@ export class MagicLenseComponent implements OnInit {
   constructor(
     public cursor: LenseCursor,
     private configuration: Configuration,
-    private selectionService: SelectionService,) { }
+    private selectionService: SelectionService,
+    private helper: Helper) {
+      this.activeGlyph = new FlowerGlyph(0, 0, new FlowerGlyphConfiguration);
+      this.starGlyph = new StarGlyph(0, 0, new StarGlyphConfiguration);
+      this.flowerGlyph = new FlowerGlyph(0, 0, new FlowerGlyphConfiguration);
+      this.activeConfig = new FlowerGlyphConfiguration;
+  }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     const that = this;
 
-    const accessorScale = d3.scaleLinear().range([0, 100]);
+    const accessorScale = d3.scaleLinear().range([0, 100]);    
 
     // add the data for every configured splitscreen (FIXME: only works with two right now)
     this.configuration.configurations.forEach((config, i) => {
@@ -118,26 +126,29 @@ export class MagicLenseComponent implements OnInit {
         if (i === 0) {
           let maxValue: number; // stores maximum value in accessors (FIXME: needed? max = 1.0)
           const colorFeature = message.schema.color; // the feature that is used for the color
-          const colorScale = item => config.color(+item[colorFeature]);
+          const colorScale = (item: any) => config.color(+item[colorFeature]);
           const accessors = [];
 
           // set the 'main' dataset
           this.data = message;
 
           // Extract accessors from schema and max values from features (see glyphplot component)
-          this.data.schema.glyph.forEach(feat => {
+          this.data.schema.glyph.forEach((feat: any) => {
             maxValue = 0;
-            this.data.features.forEach(item => {
+            this.data.features.forEach((item: any) => {
               const v: number = +item.features[feat];
               maxValue = (v > maxValue) ? v : maxValue;
             });
             accessorScale.domain([0, maxValue]);
-            accessors.push(d => accessorScale(d[feat]));
+            accessors.push((d: any) => accessorScale(d[feat]));
           });
 
           // define the glyphs used in both lenses
+          var secondaryConfig = new StarGlyphConfiguration;
+          secondaryConfig = this.configuration.starConfigs[1].clone() as StarGlyphConfiguration;
+          secondaryConfig.useBackground = true;
           this.flowerGlyph = new FlowerGlyph(this.context, colorScale, this.configuration.flowerConfigs[1] as FlowerGlyphConfiguration);
-          this.starGlyph = new StarGlyph(this.context, colorScale, this.configuration.starConfigs[1] as StarGlyphConfiguration);
+          this.starGlyph = new StarGlyph(this.context, colorScale, secondaryConfig);
 
           // start with flowerglyph per default
           this.activeGlyph = this.flowerGlyph;
@@ -149,8 +160,8 @@ export class MagicLenseComponent implements OnInit {
     })
 
     // get context
-    this.context = this.canvas.nativeElement.getContext('2d');
-    this.splitContext = this.splitCanvas.nativeElement.getContext('2d');
+    this.context = this.canvas?.nativeElement.getContext('2d');
+    this.splitContext = this.splitCanvas?.nativeElement.getContext('2d');
     this.splitContext.canvas.height = this.height;
     this.splitContext.canvas.width = this.width / 2;
 
@@ -162,7 +173,7 @@ export class MagicLenseComponent implements OnInit {
       .force('collision', d3.forceCollide().radius(25))
       .on('tick', () => { MagicLenseComponent.ticked(that) });
 
-    this.tooltip.tolerance = 15;
+    if(this.tooltip !== undefined) this.tooltip.tolerance = 15;
   }
 
   public onCursorMouseMove(e: any): void {
@@ -181,7 +192,7 @@ export class MagicLenseComponent implements OnInit {
 
     if (this.secondarySimulationActive) {
       this.secondarySimulation
-        .nodes(this.visibleSecondary.map(item => item.position))
+        .nodes(this.visibleSecondary.map((item: any) => item.position))
         .restart()
         .alpha(1);
     }
@@ -190,22 +201,24 @@ export class MagicLenseComponent implements OnInit {
   public onLensMouseMove(e: any): void {
     if (this.cursor.isFixed) {
       this.updateTooltip(e);
-      this.configuration.configurations[0].idOfHoveredGlyph = this.tooltip.getClosestPointId;
-      this.configuration.configurations[1].idOfHoveredGlyph = this.tooltip.getClosestPointId;
+      this.configuration.configurations[0].idOfHoveredGlyph = this.tooltip?.getClosestPointId;
+      this.configuration.configurations[1].idOfHoveredGlyph = this.tooltip?.getClosestPointId;
     }
   }
 
   public onLensMouseEnter(e: any): void {
-    this.tooltip.data = { positions: this.visible, features: this.data.features, schema: this.data.schema };
+    if(this.tooltip !== undefined) this.tooltip.data = { positions: this.visible, features: this.data.features, schema: this.data.schema };
   }
 
   public onLensMouseOut(e: any): void {
-    this.tooltip.data = this.data;
+    if(this.tooltip !== undefined) this.tooltip.data = this.data;
   }
 
   public onCursorClick(e: any): void {
     this.cursor.isFixed = !this.cursor.isFixed;
-    if (!this.cursor.isFixed) { this.tooltip.isVisible = false; }
+    if (!this.cursor.isFixed && this.tooltip !== undefined) { 
+      this.tooltip.isVisible = false; 
+    }
   }
 
   public onWindowResize(e: any): void {
@@ -220,7 +233,7 @@ export class MagicLenseComponent implements OnInit {
    * @param ctx Canvas2d.Context
    * @return {void}
    */
-  private draw(ctx: any, positions: [any], features: [any], config: any, primary_lens: boolean): void {
+  private draw(ctx: any, positions: any[], features: any[], config: any, primary_lens: boolean): void {
     if (ctx == null || !this.cursor.isVisible && !this.cursor.display) {
       return; // reduce cpu stress when lens is not visible
     }
@@ -251,7 +264,7 @@ export class MagicLenseComponent implements OnInit {
         return;
     }
 
-    this.activeGlyph.context = ctx;
+    this.activeGlyph!.context = ctx;
 
     ctx.save();
     ctx.clearRect(0, 0, this.width / 2, this.height);
@@ -264,8 +277,8 @@ export class MagicLenseComponent implements OnInit {
     }
     const visible = (this.visible || []); // glyphs selected by the cursor
 
-    const temp: number = this.activeConfig.radius; // store the current radius ...
-    this.activeConfig.radius = 25; // ... and set it to a static value
+    const temp: number = this.activeConfig!.radius; // store the current radius ...
+    this.activeConfig!.radius = 25; // ... and set it to a static value
 
     if (!visible.length) { return; } // nothing to do if no glyphs are inside the cursor
 
@@ -296,17 +309,17 @@ export class MagicLenseComponent implements OnInit {
         }
 
         const colorFeature = this.data.schema.color; // the feature that is used for the color
-        const colorScale = item => config.color(+item[colorFeature]);
-        this.activeGlyph.color = colorScale;
+        const colorScale = (item: any) => config.color(+item[colorFeature]);
+        this.activeGlyph!.color = colorScale;
 
         const feature = currentFeatures.features[itemContext];
         const passive = !((this.selectionService.filteredItemsIds.indexOf(d.id) > -1) || (this.selectionService.featureFilters.length == 0));
 
-        this.activeGlyph.draw(d.position, feature, undefined, passive);
+        this.activeGlyph!.draw(d.position, feature, undefined, passive);
       }
     });
 
-    this.activeConfig.radius = temp; // reset radius of glyphs to temp
+    this.activeConfig!.radius = temp; // reset radius of glyphs to temp
     switch (this.configuration.activeGlyphType) {
       case GlyphType.Flower:
         (this.activeConfig as FlowerGlyphConfiguration).useArea = false;
@@ -336,7 +349,7 @@ export class MagicLenseComponent implements OnInit {
     let dy: number;
 
     // helper function that finds objects in positions array that lie inside the cursor
-    function visibleFilter(d, i): boolean {
+    function visibleFilter(d: any, i: number): boolean {
       if (d.position.x > minX &&
           d.position.y > minY &&
           d.position.x < minX + currentCursorWidth &&
@@ -346,6 +359,7 @@ export class MagicLenseComponent implements OnInit {
         // make sure glyph is inside the circle with euclidean distance
         return Math.sqrt(dx * dx + dy * dy) < that.cursorWidth / 2;
       }
+      return false;
     }
 
     // Do not overload lens with more than 75 items in large clusters
@@ -359,14 +373,14 @@ export class MagicLenseComponent implements OnInit {
     }
 
     const visiblePrimary = JSON.parse(JSON.stringify(filterResult));
-    const visibleIds = visiblePrimary.map(item => item.id);
+    const visibleIds = visiblePrimary.map((item: any) => item.id);
 
     // create a identical copy of all glyphs inside the cursor
     // Only consider secondarydata if the view is split
     if (this.dataSecondary != null) {
       this.visibleSecondary = JSON.parse(
         JSON.stringify(
-          this.dataSecondary.positions.filter(item => visibleIds.indexOf(item.id) !== -1)));
+          this.dataSecondary.positions.filter((item: any) => visibleIds.indexOf(item.id) !== -1)));
     } else {
       this.visibleSecondary = [];
     }
@@ -375,13 +389,15 @@ export class MagicLenseComponent implements OnInit {
   }
 
   private updateTooltip(event: any) {
-    this.tooltip.updateClosestPoint({
-      'clientX': event.clientX,
-      'clientY': event.clientY,
-      'offsetX': event.clientX - (this.lensDiameter / 2),
-      'offsetY': event.clientY - (this.lensDiameter / 2)
-    }, this.context.transform);
-    this.tooltip.x = event.clientX + 4;
-    this.tooltip.y = event.clientY + 4;
+    if(this.tooltip !== undefined) {
+      this.tooltip.updateClosestPoint({
+        'clientX': event.clientX,
+        'clientY': event.clientY,
+        'offsetX': event.clientX - (this.lensDiameter / 2),
+        'offsetY': event.clientY - (this.lensDiameter / 2)
+      }, this.context.transform);
+      this.tooltip.x = event.clientX + 4;
+      this.tooltip.y = event.clientY + 4;
+    }
   }
 }

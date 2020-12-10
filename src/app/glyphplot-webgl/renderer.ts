@@ -14,8 +14,8 @@ export interface IRenderable  {
 export class Renderer {
 
     private canvas      : HTMLCanvasElement;
-    private renderer    : THREE.WebGLRenderer;
-    private activeView  : IRenderable;
+    private renderer    : THREE.WebGLRenderer = new THREE.WebGLRenderer;
+    private activeView  : IRenderable | null = null;
 
     constructor(canvasElement: HTMLCanvasElement) {
         this.canvas = canvasElement;
@@ -52,7 +52,7 @@ export class Renderer {
     
     render(): void {
         // this.renderer.clear();
-        this.renderer.render( this.activeView.getScene(), this.activeView.getCamera() );
+        this.renderer.render( this.activeView!.getScene(), this.activeView!.getCamera() );
     }
 
     onResize(viewWidth: number, viewHeight: number): void {

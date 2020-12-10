@@ -1,23 +1,21 @@
-
-
 import * as THREE from 'three';
-import { CameraSyncUtilities } from 'app/shared/util/cameraSyncUtilities';
-import { ViewportTransformationEventData } from 'app/shared/events/viewport-transformation.event.data';
+import { CameraSyncUtilities } from 'src/app/shared/util/cameraSyncUtilities';
+import { ViewportTransformationEventData } from 'src/app/shared/events/viewport-transformation.event.data';
 import { IRenderable } from './renderer';
-import { ConfigurationData } from 'app/shared/services/configuration.data';
-import { SelectionService } from 'app/shared/services/selection.service';
+import { ConfigurationData } from 'src/app/shared/services/configuration.data';
+import { SelectionService } from 'src/app/shared/services/selection.service';
 
 export class View implements IRenderable {
-    protected scene         : THREE.Scene;
-    protected camera        : THREE.OrthographicCamera;
+    protected scene         : THREE.Scene = new THREE.Scene;
+    protected camera        : THREE.OrthographicCamera = new THREE.OrthographicCamera(0, 0, 0, 0);
 
     protected viewWidth     : number;
     protected viewHeight    : number;
 
     protected data          : any;
-    protected configuration : ConfigurationData;
-    protected selectionService: SelectionService;
-    protected cameraUtil    : CameraSyncUtilities;
+    protected configuration : ConfigurationData | null = null;
+    protected selectionService: SelectionService | null = null;
+    protected cameraUtil    : CameraSyncUtilities | null = null;
 
     constructor(viewWidth: number, viewHeight: number) {
         this.viewWidth  = viewWidth;
@@ -105,7 +103,7 @@ export class View implements IRenderable {
         if (this.data === null) {
             return; 
         }
-        let dataMinX, dataMinY, dataMaxX, dataMaxY = 0;
+        let dataMinX = 0, dataMinY = 0, dataMaxX = 0, dataMaxY = 0;
 
             dataMinX = this.data.positions[0].position.ox;
             dataMaxX = this.data.positions[0].position.ox;
@@ -114,7 +112,7 @@ export class View implements IRenderable {
             dataMaxY = this.data.positions[0].position.oy;
 
         // step 1: find min, max values
-        this.data.positions.forEach(item => {
+        this.data.positions.forEach((item: any) => {
             const pX = item.position.ox;
             const pY = item.position.oy;
     
@@ -160,5 +158,5 @@ export class View implements IRenderable {
         );
     }
 
-    getCameraUtil(): CameraSyncUtilities { return this.cameraUtil; }
+    getCameraUtil(): CameraSyncUtilities | null { return this.cameraUtil; }
 }

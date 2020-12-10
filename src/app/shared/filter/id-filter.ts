@@ -5,7 +5,7 @@ export class IdFilter extends FeatureFilter {
 
   constructor(featureName?: string, acceptableIds?: number[]) {
     super(featureName);
-    this._accaptableIds = acceptableIds;
+    this._accaptableIds = acceptableIds === undefined ? [] : acceptableIds;
   }
 
   public itemConfirmsToFilter(id: number, item: any): boolean {

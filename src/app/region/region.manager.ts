@@ -1,18 +1,17 @@
 import { Logger } from '../shared/services/logger.service';
-import * as d3 from 'd3';
 import { Injectable } from '@angular/core';
 import { Region } from './region';
-import { EventAggregatorService } from 'app/shared/events/event-aggregator.service';
-import { SwitchVisualizationEvent, VisualizationType } from 'app/shared/events/switch-visualization.event';
+import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { SwitchVisualizationEvent, VisualizationType } from 'src/app/shared/events/switch-visualization.event';
 
 @Injectable()
 export class RegionManager {
-  public regions: Array<Region>;  
+  public regions: Array<Region> = new Array<Region>();  
 
-  private _isD3Active: boolean;
-  private _isWebGlActive: boolean;
-  private _isSplitScreen: boolean;
-  private _isFeaturePlotActive: boolean;
+  private _isD3Active: boolean = false;
+  private _isWebGlActive: boolean = false;
+  private _isSplitScreen: boolean = false;
+  private _isFeaturePlotActive: boolean = false;
 
   // private _evtAggregator: EventAggregatorService;
 
@@ -27,7 +26,7 @@ export class RegionManager {
     reg.heightPercent = heightPercent;
     reg.widthPercent = widthPercent;
     reg.display = display ? 'block' : 'none';
-    this.regions.push(reg);
+    this.regions!.push(reg);
 
     return reg;
   }
@@ -37,7 +36,7 @@ export class RegionManager {
     // correct height percentages
     let heightPercentSum = 0;
     let heightPercentZeroCount = 0;
-    this.regions.forEach(element => {
+    this.regions!.forEach(element => {
       if (element.display !== 'none') {
         heightPercentSum += element.heightPercent;
       }
@@ -45,7 +44,7 @@ export class RegionManager {
         heightPercentZeroCount++;
       }
     });
-    this.regions.forEach(element => {
+    this.regions!.forEach(element => {
       if (element.heightPercent === 0 && element.display !== 'none') {
         // give the flexible regions the remaining space for height
         element.heightPercentCalc = (1 - heightPercentSum) / heightPercentZeroCount;
@@ -55,12 +54,13 @@ export class RegionManager {
         element.heightPercentCalc = element.heightPercent;
       }
       //web gl canvas height
-      if (this.regions.find(reg => reg.name === 'webgl').display !== 'none') {
+      let webglRegion = this.regions!.find(reg => reg.name === 'webgl');
+      if (webglRegion !== undefined && webglRegion.display !== 'none') {
         element.heightPercentCalc = 1;
       }
     });
 
-    this.regions.forEach(element => {
+    this.regions!.forEach(element => {
       element.height = element.display === 'none'
         ? 0
         : heightPercentZeroCount === 0 // there is only one region!
@@ -71,7 +71,7 @@ export class RegionManager {
     // correct width percentages
     let widthPercentSum = 0;
     let widthPercentZeroCount = 0;
-    this.regions.forEach(element => {
+    this.regions!.forEach(element => {
       if (element.display !== 'none') {
         widthPercentSum += element.widthPercent;
       }
@@ -79,7 +79,7 @@ export class RegionManager {
         widthPercentZeroCount++;
       }
     });
-    this.regions.forEach(element => {
+    this.regions!.forEach(element => {
       if (element.widthPercent === 0 && element.display !== 'none') {
         // give the flexible regions the remaining space for width
         element.widthPercentCalc = (1 - widthPercentSum) / widthPercentZeroCount;
@@ -90,7 +90,7 @@ export class RegionManager {
       }
     });
 
-    this.regions.forEach(element => {
+    this.regions!.forEach(element => {
       element.width = element.display === 'none'
         ? 0
         : widthPercentZeroCount === 0 // there is only one region!
@@ -98,10 +98,14 @@ export class RegionManager {
           : element.widthPercentCalc * width;
     });
 
-    this._isD3Active = this.regions.find(reg => reg.name === 'glyphs').display !== 'none';
-    this._isSplitScreen = this.regions.find(reg => reg.name === 'glyphs2').display !== 'none';
-    this._isFeaturePlotActive = this.regions.find(reg => reg.name === 'features').display !== 'none';
-    this._isWebGlActive = this.regions.find(reg => reg.name === 'webgl').display !== 'none';
+    let glyphsRegion = this.regions!.find(reg => reg.name === 'glyphs');
+    this._isD3Active = glyphsRegion !== undefined && glyphsRegion.display !== 'none';
+    let glyphs2Region = this.regions!.find(reg => reg.name === 'glyphs2');
+    this._isSplitScreen = glyphs2Region !== undefined && glyphs2Region.display !== 'none';
+    let featuresRegion = this.regions!.find(reg => reg.name === 'features');
+    this._isFeaturePlotActive = featuresRegion !== undefined && featuresRegion.display !== 'none';
+    let webglRegion = this.regions!.find(reg => reg.name === 'webgl');
+    this._isWebGlActive = webglRegion !== undefined && webglRegion.display !== 'none';
   }
 
   public IsD3Active(): boolean {
