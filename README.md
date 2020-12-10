@@ -42,3 +42,11 @@ $ git checkout package-lock.json
 $ npm install
 $ npm start
 ````
+
+## Important Developer Links
+
+### D3
+
+* Examples on [ObservableHQ](https://observablehq.com/@d3/)
+* Migration Guide on [ObservableHQ](https://observablehq.com/@d3/d3v6-migration-guide)
+* Typescript information on [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped)
