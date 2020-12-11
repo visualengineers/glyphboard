@@ -15,10 +15,7 @@ export class RegionManager {
 
   // private _evtAggregator: EventAggregatorService;
 
-  constructor(private logger: Logger, eventAggregator: EventAggregatorService) {
-    this.regions = new Array<Region>();
-    // this._evtAggregator = eventAggregator
-  }
+  constructor(private logger: Logger, eventAggregator: EventAggregatorService) { }
 
   public addRegion(name: string, widthPercent: number, heightPercent: number, display: boolean): Region {
     const reg = new Region();

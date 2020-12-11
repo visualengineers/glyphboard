@@ -25,10 +25,10 @@ export class HomeComponent implements OnInit {
     private configuration: Configuration,
     private cursor: LenseCursor,
     private eventAggregator: EventAggregatorService) {
-    this.regionManager.addRegion('glyphs', 0, 0.8, false);
+    this.regionManager.addRegion('glyphs', 0, 0.8, true);
     this.regionManager.addRegion('glyphs2', 0.5, 0.8, false);
     this.regionManager.addRegion('features', 0, 0, false);
-    this.regionManager.addRegion('webgl', 0, 0, true);
+    this.regionManager.addRegion('webgl', 0, 0, false);
     this.regionManager.addRegion('webgl2', 0, 0, false);
 
     this.eventAggregator.getEvent(SwitchVisualizationEvent).subscribe(this.onVisualizationTypeChanged);

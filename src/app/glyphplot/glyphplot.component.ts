@@ -278,6 +278,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     const that = this;
     const context = this.context;
 
+    if(context === undefined) return;
+
     // check if the layout was changed externally (e.g. by the dashboardcomponent) and reorder the
     // glyphs if necessary
     if (this.currentLayout !== this.configuration.currentLayout) {

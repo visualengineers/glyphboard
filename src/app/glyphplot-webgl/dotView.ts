@@ -25,8 +25,6 @@ export class DotView extends View {
             side: THREE.BackSide
         });
 
-        console.log(this.shaderDiskMaterial);
-
         const fl = new THREE.FileLoader();
         fl.load('/assets/shader/glyphplot_vertex.vert', vertexShader => {
             this.shaderDiskMaterial.vertexShader = vertexShader as string

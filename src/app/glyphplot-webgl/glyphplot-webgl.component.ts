@@ -110,8 +110,6 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
     this.eventAggregator.getEvent(ViewportTransformationEvent).subscribe(this.onViewportTransformationUpdated);
     this.eventAggregator.getEvent(InteractionEvent).subscribe(this.onInteractionUpdated);
     this.eventAggregator.getEvent(FitToSelectionEvent).subscribe(this.fitToSelection);
-
-    console.log("split " + this.regionManager.IsSplitScreen());
   }
 
   ngOnInit(): void {

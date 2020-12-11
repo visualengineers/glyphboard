@@ -66,7 +66,6 @@ export class GlyphplotEventController {
 
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
-
     this.component.transform.x = payload.GetScale() * (-payload.GetTranslateX() - payload.GetZoomViewportOffsetX() - payload.GetZoomCursorOffsetX());
     this.component.transform.y = payload.GetScale() * (-payload.GetTranslateY() - payload.GetZoomViewportOffsetY() - payload.GetZoomCursorOffsetY());
     this.component.transform.k = payload.GetScale();
@@ -105,23 +104,13 @@ export class GlyphplotEventController {
     // apply transformation only, if event was a scroll or if we are not using DragSelection
     if (event && (event.sourceEvent.type === 'wheel' || !this.configuration.useDragSelection)) {
       const trans = event.transform;
-      trans.x = event.transform.x;
-      trans.y = event.transform.y;
+      trans.x = this.saveStartTransform.x + event.transform.x - this.saveEndTransform.x;
+      trans.y = this.saveStartTransform.y + event.transform.y - this.saveEndTransform.y;
+      this.component.configuration.zoomIdentity = trans;
+      this.formerTranslation.x = this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k;
+      this.formerTranslation.y = this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k;
 
-      if (this.configuration !== null) {
-        const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
-
-        // console.log('trans.k: ' + trans.k + '  lodSwitch: ' + lodSwitch);
-
-        if (((trans.k - 0.51) < lodSwitch && trans.k >= lodSwitch)) {
-            this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.D3);
-          }
-
-         if ((trans.k + 0.51) > lodSwitch && trans.k <= lodSwitch) {
-          this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
-          return;
-         }
-      }
+      // TODO: Coherent switch to ThreeJS mode?
 
       this.selectionEnded = true;
 
@@ -441,9 +430,12 @@ export class GlyphplotEventController {
   };
 
   private fitToScreen = (payload: boolean) => {
+    this.component.configuration.zoomIdentity.x = 0;
+    this.component.configuration.zoomIdentity.y = 0;
+    this.component.configuration.zoomIdentity.k = 1;
+    this.formerTranslation = {x: 0, y: 0};
     const args = new ViewportTransformationEventData(0, 0, 0, 1, UpdateItemsStrategy.CompleteRefresh);
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
-    this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
   };
 
   public fitToSelection = (payload: string) => {
@@ -507,16 +499,7 @@ export class GlyphplotEventController {
       return;
     }
 
-    const transX = ((maxX + minX) / 2) / k;
-    const transY = ((maxY + minY) / 2) / k;
-
-    console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ' + k);
-
-    const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
-
-    if (k < lodSwitch) {
-      this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
-    }
+    // TODO: Coherent switch to ThreeJS mode?
 
     const args = new ViewportTransformationEventData(minX, minY, 0, k, UpdateItemsStrategy.DefaultUpdate);
 
