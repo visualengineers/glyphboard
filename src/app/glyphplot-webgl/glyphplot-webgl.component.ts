@@ -67,7 +67,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   private _interactionEvent: Interaction | null = null;
   private _interaction: InteractionEventData = new InteractionEventData(null);
-  private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData();
+  private _transformation: ViewportTransformationEventData = new ViewportTransformationEventData(this);
 
   private _selectionRect: SelectionRect | null = null;
   private _context: any;
@@ -121,6 +121,8 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
     
+    this.renderer.onResize(this.width, this.height);
+    this.activeView!.updateCameraUtil();
     this.setViewFrustum();
   }
 
@@ -238,7 +240,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
         const translateX = this._transformation.GetTranslateX() + (-e.movementX / scale)
         const translateY = this._transformation.GetTranslateY() + (-e.movementY / scale);
 
-        const eventData = new ViewportTransformationEventData(translateX, translateY, 0, scale, UpdateItemsStrategy.DefaultUpdate,
+        const eventData = new ViewportTransformationEventData(this, translateX, translateY, 0, scale, UpdateItemsStrategy.DefaultUpdate,
           this._transformation.GetZoomViewportOffsetX(),
           this._transformation.GetZoomViewportOffsetY(),
           this._transformation.GetZoomViewportOffsetZ(),
@@ -284,7 +286,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
   private resetView(): void {
   this.activeView!.getCamera().position.set(0, 0, 100);
-  this._transformation = new ViewportTransformationEventData();
+  this._transformation = new ViewportTransformationEventData(this);
   }
 
   @HostListener('wheel', ['$event'])
@@ -306,18 +308,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
       zoom = 0.1;
     }
 
-    if (this.configuration !== null) {
-      const lodSwitch = this.configuration.levelOfDetails[1] * this.configuration.maxZoom;
-
-      if ((this._transformation.GetScale() < lodSwitch && zoom > lodSwitch)
-         || (this._transformation.GetScale() > lodSwitch && zoom < lodSwitch)) {
-        const type = zoom < lodSwitch ? VisualizationType.ThreeJS : VisualizationType.D3;
-        this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(type);
-        if (zoom > lodSwitch) {
-          return;
-        }
-      }
-    }
+    // TODO: Coherent switch with D3 component?
 
     const camSizeX = this.activeView!.getCamera().right - this.activeView!.getCamera().left; //  + (this._transformation.GetZoomCursorOffsetX() - this._transformation.GetTranslateX());
     const camSizeY = this.activeView!.getCamera().bottom - this.activeView!.getCamera().top; // + (this._transformation.GetZoomCursorOffsetY() - this._transformation.GetTranslateY());
@@ -337,7 +328,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
    const offsets = camUtil!.ComputeZoomOffset(zoom, normMouse);
 
-   const data = new ViewportTransformationEventData(
+   const data = new ViewportTransformationEventData(this,
     this._transformation.GetTranslateX(),
     this._transformation.GetTranslateY(),
     this._transformation.GetTranslateZ(), zoom,
@@ -439,7 +430,7 @@ export class GlyphplotWebglComponent implements OnInit, OnChanges, AfterViewInit
 
     console.log('Fit to selection transformation: X = ' + transX + ', Y: ' + transY + ', Zoom: ');
 
-    const args = new ViewportTransformationEventData(minX, minY, 0, 100, UpdateItemsStrategy.DefaultUpdate);
+    const args = new ViewportTransformationEventData(this, minX, minY, 0, 100, UpdateItemsStrategy.DefaultUpdate);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
 

@@ -99,7 +99,7 @@ export class View implements IRenderable {
         return width / height;
     }
 
-    protected updateCameraUtil(): void {
+    public updateCameraUtil(): void {
         if (this.data === null) {
             return; 
         }

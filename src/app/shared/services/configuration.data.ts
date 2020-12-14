@@ -360,6 +360,8 @@ export class ConfigurationData {
     const item = this._data.getValue().features.find((f: any) => {
         return f.id === d.id;
     });
+    if(item === undefined) return;
+    
     let itemContext = this.individualFeatureContexts[d.id];
     if (itemContext === undefined) {
         if (this.globalFeatureContext >= 0) {

@@ -100,9 +100,10 @@ export class DotView extends View {
                     (this.selectionService!.featureFilters.length === 0));
 
                 let feature;
+                let itemFeatures = this.configuration!.getFeaturesForItem(item);
 
-                if(this.configuration!.getFeaturesForItem(item) !== null)
-                    feature = this.configuration!.getFeaturesForItem(item).features;
+                if(itemFeatures !== undefined)
+                    feature = itemFeatures.features;
 
                 const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
                // const color = new THREE.Color(colorScale(feature));
@@ -147,9 +148,12 @@ export class DotView extends View {
               const isPassive =
                     !((this.selectionService!.filteredItemsIds.indexOf(item.id) > -1) ||
                     (this.selectionService!.featureFilters.length === 0));
-                  const feature = this.configuration!.getFeaturesForItem(item).features;
-                  const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
-                  particleColors.push( color.r, color.g, color.b);
+                  let itemFeatures = this.configuration!.getFeaturesForItem(item);
+                  if(itemFeatures !== undefined) {
+                    const feature = itemFeatures.features;
+                    const color = isPassive ? new THREE.Color('#ccc') : new THREE.Color(colorScale(feature));
+                    particleColors.push( color.r, color.g, color.b);
+                  }
             });
         
             this.particleGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( particleColors, 3 ) );

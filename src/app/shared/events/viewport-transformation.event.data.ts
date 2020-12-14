@@ -2,6 +2,7 @@ import { UpdateItemsStrategy } from '../util/UpdateItemsStrategy';
 
 /// Event data for broadcasting current translation of the viewport for WebGL canvas
 export class ViewportTransformationEventData {
+    private _sender: any;
     // absolute scale of the canvas
     private _scale: number;
 
@@ -21,9 +22,10 @@ export class ViewportTransformationEventData {
     private _updateItems: UpdateItemsStrategy;
 
     /// constructing new event, if no values are provided --> 
-    constructor(absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, 
+    constructor(sender: any, absTranslateX = 0, absTranslateY = 0, absTranslateZ = 0, absScale = 1, updateItems = UpdateItemsStrategy.DefaultUpdate, 
         zoomViewportOffsetX = 0, zoomViewportOffsetY = 0, zoomViewportOffsetZ = 0,
         zoomCursorOffsetX = 0, zoomCursorOffsetY = 0, zoomCursorOffsetZ = 0) {
+        this._sender = sender;
         this._scale = absScale;
         this._translateX = absTranslateX;
         this._translateY = absTranslateY;
@@ -36,6 +38,8 @@ export class ViewportTransformationEventData {
         this._zoomCursorOffsetY = zoomCursorOffsetY;
         this._zoomCursorOffsetZ = zoomCursorOffsetZ;
     }
+
+    public GetSender(): any { return this._sender; }
 
     public GetScale(): number { return this._scale };
     // public SetScale(newScale: number) { this._scale = newScale; }

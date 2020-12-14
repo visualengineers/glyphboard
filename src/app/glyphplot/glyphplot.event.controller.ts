@@ -26,6 +26,7 @@ import { ManualZoom } from 'src/app/shared/events/manual-zoom.event';
 import { GlyphLayout } from 'src/app/glyph/glyph.layout';
 import { RefreshHoverEvent } from 'src/app/shared/events/refresh-hover.event';
 import { RefreshHoverEventData } from 'src/app/shared/events/refresh-hover.event.data';
+import { GlyphplotWebglComponent } from '../glyphplot-webgl/glyphplot-webgl.component';
 
 export class GlyphplotEventController {
   private counter: number = 0;
@@ -66,6 +67,9 @@ export class GlyphplotEventController {
 
 
   private onViewportTransformationUpdated = (payload: ViewportTransformationEventData) => {
+    let webGl = (payload.GetSender() as GlyphplotWebglComponent);
+    if(payload.GetSender() !== this.component && webGl == null) return;
+
     this.component.transform.x = payload.GetScale() * (-payload.GetTranslateX() - payload.GetZoomViewportOffsetX() - payload.GetZoomCursorOffsetX());
     this.component.transform.y = payload.GetScale() * (-payload.GetTranslateY() - payload.GetZoomViewportOffsetY() - payload.GetZoomCursorOffsetY());
     this.component.transform.k = payload.GetScale();
@@ -121,7 +125,7 @@ export class GlyphplotEventController {
 
       const offsets = this.component.cameraUtil!.ComputeZoomOffset(trans.k, new THREE.Vector2(normMouseX, normMouseY));
 
-      const transformArgs = new ViewportTransformationEventData(
+      const transformArgs = new ViewportTransformationEventData(this.component,
         -trans.x / trans.k + offsets.CursorOffset.x,
         -trans.y / trans.k + offsets.CursorOffset.y,
         0,
@@ -434,7 +438,7 @@ export class GlyphplotEventController {
     this.component.configuration.zoomIdentity.y = 0;
     this.component.configuration.zoomIdentity.k = 1;
     this.formerTranslation = {x: 0, y: 0};
-    const args = new ViewportTransformationEventData(0, 0, 0, 1, UpdateItemsStrategy.CompleteRefresh);
+    const args = new ViewportTransformationEventData(this.component, 0, 0, 0, 1, UpdateItemsStrategy.CompleteRefresh);
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
   };
 
@@ -501,20 +505,62 @@ export class GlyphplotEventController {
 
     // TODO: Coherent switch to ThreeJS mode?
 
-    const args = new ViewportTransformationEventData(minX, minY, 0, k, UpdateItemsStrategy.DefaultUpdate);
+    const args = new ViewportTransformationEventData(this.component, minX, minY, 0, k, UpdateItemsStrategy.DefaultUpdate);
 
     this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
 
   };
 
-  private manualZoom = (zoomFactor: number) => {
+  private manualZoom = (payload: any) => {
 
-    const transX = (this.component.width - this.component.width) / 2 + this.formerTranslation.x;
-    const transY = (this.component.height - this.component.height) / 2 + this.formerTranslation.y;
+    var newValue = payload[0];
+    if (this.component.uniqueID == payload[1]) {
+      // trans.x = this.component.configuration.zoomIdentity.x; // (this.component.width) / 2;
+      // trans.y = this.component.configuration.zoomIdentity.y; // (this.component.height) / 2;
+      // this.component.configuration.zoomIdentity = trans;
+      // this.formerTranslation.x = this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k;
+      // this.formerTranslation.y = this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k;
 
-    const args = new ViewportTransformationEventData(transX, transY, 0, zoomFactor, UpdateItemsStrategy.DefaultUpdate);
+      this.component.configuration.zoomIdentity.x = this.saveStartTransform.x - this.saveEndTransform.x;
+      this.component.configuration.zoomIdentity.y = this.saveStartTransform.y - this.saveEndTransform.y;
+      this.component.configuration.zoomIdentity.z = newValue;
 
-    this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
+      // this.formerTranslation.x = this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k;
+      // this.formerTranslation.y = this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k;
+
+      // TODO: Coherent switch to ThreeJS mode?
+
+      this.selectionEnded = true;
+
+      const normMouseX = -0.5;
+      const normMouseY = -0.5;
+
+      this.configuration.currentLayout = GlyphLayout.Cluster;
+
+      const offsets = this.component.cameraUtil!.ComputeZoomOffset(this.component.configuration.zoomIdentity.k, new THREE.Vector2(normMouseX, normMouseY));
+
+      const transformArgs = new ViewportTransformationEventData(this.component,
+        -this.component.configuration.zoomIdentity.x / this.component.configuration.zoomIdentity.k + offsets.CursorOffset.x,
+        -this.component.configuration.zoomIdentity.y / this.component.configuration.zoomIdentity.k + offsets.CursorOffset.y,
+        0,
+        this.component.configuration.zoomIdentity.k, UpdateItemsStrategy.DefaultUpdate,
+        offsets.ViewportScaleOffset.x,
+        offsets.ViewportScaleOffset.y, 0,
+        0,
+        0, 0);
+      this.eventAggregator.getEvent(ViewportTransformationEvent).publish(transformArgs);
+
+      // const args = new ViewportTransformationEventData(this.component, transX, transY, 0, newValue, UpdateItemsStrategy.DefaultUpdate);
+      // this.eventAggregator.getEvent(ViewportTransformationEvent).publish(args);
+  
+      //this.component.configuration.zoomIdentity.x = (this.component.width - this.component.width * newValue) / 2 + this.formerTranslation.x * newValue;
+      //this.component.configuration.zoomIdentity.y = (this.component.height - this.component.height * newValue) / 2 + this.formerTranslation.y * newValue;
+      //this.component.configuration.zoomIdentity.k = newValue;
+      //this.component.updateGlyphLayout();
+      //this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
+      //this.component.animate();
+    }
+
   };
 
   private onRefreshHover = (payload: RefreshHoverEventData) => {   

@@ -81,24 +81,12 @@ export class HomeComponent implements OnInit {
       case '¶':
         // Switch for Region 4 for WebGL Glyphplot, disable D3 Glyphplot
         if (e.type === 'keyup') {
-          const d3Glyphplot = this.regionManager.regions![0].display === 'block';
-
-          if (d3Glyphplot) {
-            this.splitScreen = this.regionManager.regions![1].display === 'block';
-            this.regionManager.regions![0].display = 'none';
-            this.regionManager.regions![1].display = 'none';
-            this.regionManager.regions![3].display = 'block';
-            this.regionManager.regions![4].display = this.splitScreen ? 'block' : 'none';
+          if(this.regionManager.IsD3Active()) {
+            this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.ThreeJS);
           } else {
-            this.regionManager.regions![0].display = 'block';
-            this.regionManager.regions![1].display = this.splitScreen ? 'block' : 'none';
-            this.regionManager.regions![3].display = 'none';
-            this.regionManager.regions![4].display = 'none';
+            this.eventAggregator.getEvent(SwitchVisualizationEvent).publish(VisualizationType.D3);
           }
-
-          const width = window.innerWidth;
-          const height = window.innerHeight;
-          this.regionManager.updateRegions(width, height);
+  
         }
         break;
       default:
