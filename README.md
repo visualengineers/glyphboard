@@ -53,6 +53,16 @@ $ npm install
 $ npm start
 ````
 
+## Deployment via Docker
+
+```
+$ cd ~
+$ git clone https://github.com/visualengineers/glyphboard --recurse-submodules
+$ cd glyphboard
+$ ng build --prod
+$ docker-compose up --build
+```
+
 ## Important Developer Links
 
 ### D3

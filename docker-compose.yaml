@@ -1,0 +1,16 @@
+version: "3.3"
+services:
+    app-backend:
+        build: ./backend
+        image: python:3.7-slim
+        container_name: glyphboard_backend
+        restart: always
+        ports:
+            - 4201:4201
+    app-frontend:
+        build: ./
+        image: nginx:1.17.1-alpine
+        container_name: glyphboard_frontend
+        restart: always
+        ports:
+            - 4200:80
