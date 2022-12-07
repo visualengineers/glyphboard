@@ -9,7 +9,6 @@ services:
             - 4201:4201
     app-frontend:
         build: ./
-        image: nginx:1.17.1-alpine
         container_name: glyphboard_frontend
         restart: always
         ports:

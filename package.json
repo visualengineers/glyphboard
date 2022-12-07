@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "concurrently \"ng serve --open\" \"python3 backend/server.py\"",
     "build": "ng build",
+    "deploy": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
