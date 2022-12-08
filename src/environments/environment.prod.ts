@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  backendAddress: 'http://localhost:4201/'
+  backendAddress: 'http://itv21.informatik.htw-dresden.de:4201/'
 };
