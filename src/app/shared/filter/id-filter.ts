@@ -8,7 +8,7 @@ export class IdFilter extends FeatureFilter {
     this._accaptableIds = acceptableIds === undefined ? [] : acceptableIds;
   }
 
-  public itemConfirmsToFilter(id: number, item: any): boolean {
+  public override itemConfirmsToFilter(id: number, item: any): boolean {
     return this._accaptableIds.indexOf(id) !== -1;
   }
 

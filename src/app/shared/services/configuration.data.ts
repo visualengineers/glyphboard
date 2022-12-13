@@ -178,8 +178,8 @@ export class ConfigurationData {
   get activeFeatures(): any { return this._activeFeatures; }
   set activeFeatures(features: any) { this._activeFeatures = features; }
 
-  get featureGroups(): any { return this._featureGroups; }
-  set featureGroups(groups: any) { this._featureGroups = groups; }
+  get featureGroups(): any[] { return this._featureGroups; }
+  set featureGroups(groups: any[] ) { this._featureGroups = groups; }
 
   get glyph(): Glyph { return this._glyph; }
   set glyph(value: Glyph) { this._glyph = value; }

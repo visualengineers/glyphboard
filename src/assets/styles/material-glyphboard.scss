@@ -1,4 +1,4 @@
-@import '~@angular/material/theming';
+@use '@angular/material' as mat;
 @import './variables';
 
 // Plus imports for other components in your app.
@@ -6,7 +6,7 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-@include mat-core();
+@include mat.core();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
@@ -55,30 +55,42 @@ $mat-glyphboard: (
     )
   );
 
-$candy-app-primary: mat-palette($mat-glyphboard);
-$candy-app-accent:  mat-palette($mat-glyphboard, A200, A100, A400);
-
+$candy-app-primary: mat.define-palette($mat-glyphboard);
+$candy-app-accent:  mat.define-palette($mat-glyphboard, A200, A100, A400);
 // The warn palette is optional (defaults to red).
-$candy-app-warn:    mat-palette($mat-red);
-
-// Create the theme object (a Sass map containing all of the palettes).
-$candy-app-theme: mat-dark-theme($candy-app-primary, $candy-app-accent, $candy-app-warn);
+$candy-app-warn:    mat.define-palette(mat.$red-palette);
 
 // Define a custom typography config that overrides the font-family as well as the
 // `headlines` and `body-1` levels.
-$custom-typography: mat-typography-config(
+$custom-typography: mat.define-typography-config(
   $font-family: 'Glyphboard-Regular, monospace',
-  $headline: mat-typography-level(32px, 48px, 700),
-  $body-1: mat-typography-level(16px, 24px, 500)
+  $headline-1: mat.define-typography-level(32px, 48px, 700),
+  $headline-2: mat.define-typography-level(32px, 48px, 700),
+  $headline-3: mat.define-typography-level(32px, 48px, 700),
+  $headline-4: mat.define-typography-level(32px, 48px, 700),
+  $body-1: mat.define-typography-level(16px, 24px, 500)
 );
 
-// Override the typography in the core CSS.
-@include mat-core($custom-typography);
+// Create the theme object (a Sass map containing all of the palettes).
+$candy-app-theme: mat.define-dark-theme((
+  color: (
+    primary: $candy-app-primary,
+    accent: $candy-app-accent,
+    warn: $candy-app-warn,
+  ),
+  typography: $custom-typography,
+  density: 0,
+ ));
 
-// Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component
-// that you are using.
-@include angular-material-theme($candy-app-theme);
+ // Emit theme-dependent styles for common features used across multiple components.
+@include mat.core-theme($candy-app-theme);
+
+// Emit styles for MatButton based on `$my-theme`. Because the configuration
+// passed to `define-light-theme` omits typography, `button-theme` will not
+// emit any typography styles.
+//@include mat.button-theme($candy-app-theme);
+//@include mat.select-theme($candy-app-theme);
+@include mat.all-component-themes($candy-app-theme);
 
 .mat-radio-button {
     padding-right: 15px;
@@ -99,4 +111,15 @@ $custom-typography: mat-typography-config(
 
 .mat-tooltip {
     font-size: $dashboard-font-size;
+}
+
+.mat-mdc-form-field-infix {
+  padding: 0 !important;
+  min-height: 0;
+}
+
+.mdc-text-field {
+  padding: 0 16px 0 0 !important;
+  border-radius: 0px !important;
+  height: auto !important;
 }

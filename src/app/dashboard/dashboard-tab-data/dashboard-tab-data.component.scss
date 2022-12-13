@@ -5,6 +5,7 @@
     width: $dashboard-width;    
     display: flex;     
     flex-wrap: nowrap;
+    flex-direction: row;
     background: $background-color;
     color: $text-foreground-color;
     padding: 0px;
@@ -16,17 +17,23 @@
 
         &--split-left {
             display: flex;     
+            flex-grow: 1;
+            flex-shrink: 1;
             flex-direction: column;
             box-sizing: border-box;
+            width: calc($dashboard-width / 2 - $dashboard-padding * 2);
             margin-left: $dashboard-padding;
-            margin-right: $dashboard-padding / 2;
+            margin-right: calc($dashboard-padding / 2);
         }
 
         &--split-right {
             display: flex;     
+            flex-grow: 1;
+            flex-shrink: 1;
             flex-direction: column;
             box-sizing: border-box;
-            margin-left: $dashboard-padding / 2;
+            width: calc($dashboard-width / 2 - $dashboard-padding * 2);
+            margin-left: calc($dashboard-padding / 2);
             margin-right: $dashboard-padding;
         }
     }

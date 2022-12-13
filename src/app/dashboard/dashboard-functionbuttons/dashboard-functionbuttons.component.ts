@@ -8,7 +8,6 @@ import { DashboardSplitScreenEvent} from 'src/app/shared/events/dashboard-split-
 import { ExportService } from '../dashboard.export';
 import { GlyphLayout } from '../../glyph/glyph.layout';
 import { GlobalDialogEvent, GlobalDialogPayload } from 'src/app/shared/events/global-dialog.event';
-import { AngularFileUploaderConfig } from 'angular-file-uploader';
 
 @Component({
   selector: 'app-dashboard-functionbuttons',
@@ -18,18 +17,7 @@ import { AngularFileUploaderConfig } from 'angular-file-uploader';
 export class DashboardFunctionbuttonsComponent extends DashboardTabComponent
   implements OnInit {
   public backendUploadRoute = environment.backendAddress;
-  public afuConfig: AngularFileUploaderConfig = {
-    multiple: false,
-    formatsAllowed: '.csv',
-    maxSize: 5,
-    uploadAPI:  {
-      url: this.backendUploadRoute
-    },
-    theme: 'dragNDrop',
-    hideProgressBar: true,
-    hideResetBtn: true,
-    hideSelectBtn: true
-  };
+
   public resetUploadVar = false;
 
   constructor(injector: Injector) {

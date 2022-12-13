@@ -3,7 +3,7 @@ import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component'
 import * as d3 from 'd3';
 import { TextFilter } from 'src/app/shared/filter/text-filter';
 import { DashboardFeatureConfigComponent } from './dashboard-feature-config.component';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Subject } from 'rxjs';
 import { ToggleGroupEvent } from '../../shared/events/toggle-group.event';
 
@@ -18,7 +18,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   public eventsSubject: Subject<void> = new Subject<void>();
   private _freeSearchFilter: TextFilter = new TextFilter;
   private groups: any[] = [];
-  private groupCollapsed: {[key: string]: boolean} = {};
+  public groupCollapsed: {[key: string]: boolean} = {};
   private helper = 0;
 
   constructor(injector: Injector) {
@@ -43,7 +43,7 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
   onChanges() {
   }
 
-  private featuresInGroup(group: any): any {
+  public featuresInGroup(group: any): any {
     var featureGroup: any[] = [];
     this.configuration.configurations[0].activeFeatures.forEach((d: any) => {
       if (group.member.indexOf(d.property) > -1) {
@@ -53,12 +53,12 @@ export class DashboardTabFilterComponent extends DashboardTabComponent implement
     return featureGroup;
   }
 
-  private toggleGroupActive(group: string) {
+  public toggleGroupActive(group: string) {
     this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, true]);
     return;
   }
 
-  private toggleGroupInactive(group: string) {
+  public toggleGroupInactive(group: string) {
     this.eventAggregator.getEvent(ToggleGroupEvent).publish([group, false]);
     return;
   }

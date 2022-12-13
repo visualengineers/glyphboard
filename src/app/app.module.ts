@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -30,7 +31,6 @@ import { DashboardTabContextComponent } from './dashboard/dashboard-tab-context/
 import { DashboardTogglesComponent } from './dashboard/dashboard-toggles/dashboard-toggles.component';
 import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functionbuttons/dashboard-functionbuttons.component';
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
-import { AngularFileUploaderModule } from 'angular-file-uploader';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -72,7 +72,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    AngularFileUploaderModule,
+    HttpClientModule,
     FontAwesomeModule,
     MatTooltipModule,
     MatCheckboxModule,

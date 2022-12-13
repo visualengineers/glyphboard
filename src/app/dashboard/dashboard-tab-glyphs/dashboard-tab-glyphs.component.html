@@ -41,7 +41,7 @@
       <div class="dashboard-tab-glyphs__configuration">
         <div>
           <glyph-config-item (onConfigChange)="onGlyphConfigChange($event)" *ngFor="let fO of configuration.activeGlyphConfig().glyphOptions" label="{{fO.label}}"
-            property="{{fO.property}}" [(active)]="configuration.activeGlyphConfig()[fO.property]"
+            property="{{fO.property}}" [active]="configuration.activeGlyphConfig()==fO.property"
             class="optionLabel"></glyph-config-item>
         </div>
       </div>

@@ -7,7 +7,7 @@
   </div>
 
   <div id="featureOptions" [style.display]="this.configuration.configurations[0].featureGroups == undefined ? 'none' : '' "> 
-    <div class="group" *ngFor="let g of this.configuration!.configurations[0].featureGroups | keyvalue" [type]="any">
+    <div class="group" *ngFor="let g of this.configuration!.configurations[0].featureGroups | keyvalue">
       <div class="grouplabelBox">
           <div class="grouplabel left"> {{ g.key }}: {{ g.value.name }} </div>
           <div class="grouplabel right last" [ngClass]="{ 'collapsed': !groupCollapsed[g.key]}"><i class="icon-arrow_down" (click)="resizeGroup(g.key)"></i></div>
@@ -17,7 +17,7 @@
       </div>
       <div class="histogramBox" [ngClass]="{ 'collapsed': groupCollapsed[g.key]}">
         <feature-config-item class="featureOption" (onColorChange)="onColorChange($event)" (onConfigChange)="onFeatureConfigChange($event)"
-          *ngFor="let f of featuresInGroup(this.configuration!.configurations[0].featureGroups[g.key])" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
+          *ngFor="let f of featuresInGroup(g)" [configuration]="configuration" label="{{f.label}}" property="{{f.property}}"
           [object]="f" [active]="f.active" [events]="eventsSubject.asObservable()"></feature-config-item>
       </div>
     </div>

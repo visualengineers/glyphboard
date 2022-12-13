@@ -4,7 +4,7 @@ import { PubSubEvent } from './pub-sub-event';
 
 export class GlobalDialogEvent extends PubSubEvent<GlobalDialogPayload> {
     // No implementation required
-    public eventType = 'OpenGlobalDialogEvent';
+    public override eventType = 'OpenGlobalDialogEvent';
 }
 
 export class GlobalDialogPayload {

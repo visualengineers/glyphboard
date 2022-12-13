@@ -1,5 +1,5 @@
 import {FeatureFilter} from './feature-filter';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 export class TextFilter extends FeatureFilter {
   private _acceptableStrings: string[];
@@ -9,7 +9,7 @@ export class TextFilter extends FeatureFilter {
     this._acceptableStrings = acceptableStrings === undefined ? [] : acceptableStrings;
   }
 
-  public itemConfirmsToFilter(id: number, item: any, values: any): boolean {
+  public override itemConfirmsToFilter(id: number, item: any, values: any): boolean {
     let ret = false;
     const myStrings = this.acceptableStrings;
 

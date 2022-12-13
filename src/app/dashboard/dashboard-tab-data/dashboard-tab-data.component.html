@@ -2,7 +2,7 @@
   <div class="dashboard-tab-data__group {{this.configuration.splitScreenActive ? 'dashboard-tab-data__group--split-left' : ''}}">
     <mat-form-field>
       <mat-select placeholder="Dataset" id="left_dataset" (selectionChange)="dashboardDataSetChanged()" [(value)]="selectedDataset">
-        <mat-option *ngFor="let dataset of datasets; let i = index" [(value)]="dataset.Dataset" [attr.selected]="dataset === selectedDataset ? true : null">{{dataset.Dataset}}</mat-option>
+        <mat-option *ngFor="let dataset of datasets; let i = index" [value]="dataset.Dataset" [attr.selected]="dataset === selectedDataset ? true : null">{{dataset.Dataset}}</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field>

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import 'rxjs/add/observable/timer';
-import 'rxjs/add/operator/takeWhile';
+import { timer } from 'rxjs';
+import { takeWhile } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable()
@@ -25,13 +25,13 @@ export class DataproviderService {
   constructor(private http: HttpClient) {
     this.alive = true;
     this.interval = 10000;
-    this.timer = Observable.timer(0, this.interval);
+    this.timer = timer(0, this.interval);
     this.backendAddress = environment.backendAddress === undefined
       ? 'http://localhost:4201'
       : environment.backendAddress;
 
     this.timer
-    .takeWhile(() => this.alive)
+    .pipe(takeWhile(() => this.alive))
     .subscribe(() => {
       this.http.get(this.backendAddress + 'datasets')
         .subscribe((data: any) => {
