@@ -57,7 +57,7 @@ $ npm start
 
 ```
 $ git clone https://github.com/visualengineers/glyphboard --recurse-submodules
-$ docker-compose up -d --build
+$ docker compose up -d --build
 ```
 
 ## Important Developer Links
