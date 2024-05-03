@@ -21,7 +21,7 @@ Free State of Saxony, Germany (Visual Analytics Interfaces for Big Data Environm
 
 ![Glyphboard overview with activated split screen](glyphboard.png?raw=true)
 
-A demo of Glyphboard is available at [HTW Dresden](http://itv21.informatik.htw-dresden.de/glyphboard/). The documentation can be found at https://visualengineers.github.io/glyphboard-doc/.
+A demo of Glyphboard is available at [HTW Dresden](https://itv21.informatik.htw-dresden.de/glyphboard/). The documentation can be found at https://visualengineers.github.io/glyphboard-doc/.
 
 ### Install Node 
 
