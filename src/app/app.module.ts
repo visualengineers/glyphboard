@@ -45,6 +45,12 @@ import { MatIconModule} from '@angular/material/icon';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+import { APP_BASE_HREF, PlatformLocation } from "@angular/common";
+
+export function getBaseHref(platformLocation: PlatformLocation): string {
+  return platformLocation.getBaseHrefFromDOM();
+}
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -89,7 +95,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     Configuration,
     LenseCursor,
     Helper,
-    EventAggregatorService
+    EventAggregatorService,
+    {
+      provide: APP_BASE_HREF,
+      useFactory: getBaseHref,
+      deps: [PlatformLocation]
+    }
   ],
   bootstrap: [AppComponent]
 })
