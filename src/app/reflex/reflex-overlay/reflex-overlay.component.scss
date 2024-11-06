@@ -1,0 +1,11 @@
+:host {
+  pointer-events: none;
+
+  background-color: rgba(0,0,0,0.1);
+
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+}

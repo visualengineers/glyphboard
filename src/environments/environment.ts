@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  backendAddress: 'http://localhost:4201/'
+  backendAddress: 'http://localhost:4205/',
+  reflexAddress: 'ws://localhost:40001/ReFlex'
 };
 
 /*

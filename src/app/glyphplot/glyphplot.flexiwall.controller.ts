@@ -3,62 +3,43 @@ import { LenseCursor } from '../lense/cursor.service';
 import { ConfigurationData } from '../shared/services/configuration.data';
 import { Logger } from 'src/app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
+import { environment } from 'src/environments/environment';
+import { TouchPoint3d } from '../shared/data/reflex.references';
+import { ReFlexService } from '../shared/services/reflex.service';
+import { isContext } from 'vm';
 
 export class FlexiWallController {
 
-  private urlFlexiwall = 'ws://localhost:40001/ReFlex';
 
-  private flexiLastX: number = 0;
-  private flexiLastY: number = 0;
-  private flexiLastZ: number = 0;
-
-  private eventCount = 0;
 
   constructor(private component: GlyphplotComponent,
     private logger: Logger,
+    private reflex: ReFlexService,
     private cursor: LenseCursor,
     private configuration: ConfigurationData) {
+
+      reflex.isConnected$.subscribe({
+        next: (isConnected) => component.suppressAnimations = isConnected,
+        complete: () => component.suppressAnimations = false,
+        error:() => component.suppressAnimations = false
+      });
   }
 
   /**
    * Connect to Flexiwall Socket if present.
    * @return {void}
    */
-  public doWebSocket(): void {
-    try {
-      const websocket = new WebSocket (this.urlFlexiwall);
-      const component = this.component;
-      const that = this;
+  public init(): void {
 
-      websocket.onopen = (e: any) => {
-        component.suppressAnimations = true;
-      };
-
-      websocket.onmessage = (e: any) => {
-        that.eventCount++;
-        // if (that.eventCount > 5)
-        {
-          that.onMessage (e);
-          that.eventCount = 0;
-        }
-      };
-
-      websocket.onerror = function (e) {
-        component.suppressAnimations = false;
-      };
-
-      websocket.onclose = function (e) {
-        component.suppressAnimations = false;
-      };
-    } catch (err) {
-      this.logger.log('No Flexiwall Connection found.');
-    }
   }
 
   onMessage (event: any) {
-    const data = JSON.parse(event.data);
+    const data = JSON.parse(event.data) as Array<TouchPoint3d>;
     // if (data.Position.Z > 1300 || data.Position.Z < 1500) return;
     // this.logger.log("X " + data.Position.X + " Y " + data.Position.Y + " Z " + data.Position.Z);
+    console.log('ReFlex: ', data);
+
+    /*
 
     // Find out if there is a minimal push on the wall
     // Move the lense
@@ -119,5 +100,7 @@ export class FlexiWallController {
     this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.configuration.currentLayout = GlyphLayout.Cluster;
     this.component.animate();
+
+    */
   }
 }

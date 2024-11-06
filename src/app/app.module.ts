@@ -31,6 +31,7 @@ import { DashboardTabContextComponent } from './dashboard/dashboard-tab-context/
 import { DashboardTogglesComponent } from './dashboard/dashboard-toggles/dashboard-toggles.component';
 import { DashboardFunctionbuttonsComponent } from './dashboard/dashboard-functionbuttons/dashboard-functionbuttons.component';
 import { GlobalDialogComponent } from './global-dialog/global-dialog.component';
+import { ReflexOverlayComponent } from './reflex/reflex-overlay/reflex-overlay.component';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -46,6 +47,7 @@ import { MatIconModule} from '@angular/material/icon';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { APP_BASE_HREF, PlatformLocation } from "@angular/common";
+import { ReFlexService } from './shared/services/reflex.service';
 
 export function getBaseHref(platformLocation: PlatformLocation): string {
   return platformLocation.getBaseHrefFromDOM();
@@ -73,7 +75,8 @@ export function getBaseHref(platformLocation: PlatformLocation): string {
     DashboardTabContextComponent,
     DashboardTogglesComponent,
     DashboardFunctionbuttonsComponent,
-    GlobalDialogComponent
+    GlobalDialogComponent,
+    ReflexOverlayComponent
   ],
   imports: [
     BrowserModule,
@@ -100,7 +103,8 @@ export function getBaseHref(platformLocation: PlatformLocation): string {
       provide: APP_BASE_HREF,
       useFactory: getBaseHref,
       deps: [PlatformLocation]
-    }
+    },
+    ReFlexService
   ],
   bootstrap: [AppComponent]
 })
