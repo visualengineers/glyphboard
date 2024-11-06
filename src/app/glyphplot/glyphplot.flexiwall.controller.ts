@@ -6,7 +6,7 @@ import { GlyphLayout } from '../glyph/glyph.layout';
 
 export class FlexiWallController {
 
-  private urlFlexiwall = 'ws://localhost:8080/Broadcast';
+  private urlFlexiwall = 'ws://localhost:40001/ReFlex';
 
   private flexiLastX: number = 0;
   private flexiLastY: number = 0;
