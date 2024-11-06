@@ -9,4 +9,12 @@ RUN npm run deploy
 
 ### STAGE 2: Run ###
 FROM nginx:1.23.2-alpine
+
 COPY --from=build /usr/src/app/dist/glyphboard /usr/share/nginx/html
+COPY nginx.conf  /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

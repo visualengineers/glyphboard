@@ -6,10 +6,10 @@ services:
         container_name: glyphboard_backend
         restart: always
         ports:
-            - 4201:4201
+            - 4205:4201
     app-frontend:
         build: ./
         container_name: glyphboard_frontend
         restart: always
         ports:
-            - 4200:80
+            - 4204:80
