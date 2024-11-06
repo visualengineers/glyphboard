@@ -1,0 +1,65 @@
+:host {
+  position: absolute;
+}
+
+.touch-point {
+  &__container {
+    position: relative;
+  }
+
+  &__position-visualization {
+    position: absolute;
+    left: -54px;
+    top: -55px;
+
+    width: 100px;
+    height: 100px;
+
+    border: 6px solid #29A6DD;
+    border-radius: 100%;
+    background-color: rgba(255,255,255,0.25);
+  }
+
+  &__mode-visualization {
+    position: absolute;
+    left: -96px;
+    top: -52px;
+
+    width: 44px;
+    height: 44px;
+
+    background-color: #29A6DD;
+    border-radius: 100%;
+
+    &--info,
+    &--zoomIn,
+    &--zoomOut,
+    &--pan {
+      position: relative;
+      width: 38px;
+      height: 38px;
+
+      margin-top: 3px;
+      margin-left: 3px;
+
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    &--info {
+      background-image: url(/assets/img/reflex/icon_info.svg);
+    }
+
+    &--zoomIn {
+      background-image: url(/assets/img/reflex/icon_zoom-in.svg);
+    }
+
+    &--zoomOut {
+      background-image: url(/assets/img/reflex/icon_zoom-out.svg);
+    }
+
+    &--pan {
+      background-image: url(/assets/img/reflex/icon_pan.svg);
+    }
+  }
+}

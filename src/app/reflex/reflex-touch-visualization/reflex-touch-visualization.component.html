@@ -1,0 +1,11 @@
+<div class="touch-point__container">
+  <div class="touch-point__position-visualization"></div>
+  <div class="touch-point__mode-visualization">
+
+    <div *ngIf="mode === 0" class="touch-point__mode-visualization--info"></div>
+    <div *ngIf="mode === 1" class="touch-point__mode-visualization--zoomIn"></div>
+    <div *ngIf="mode === 2" class="touch-point__mode-visualization--zoomOut"></div>
+    <div *ngIf="mode === 3" class="touch-point__mode-visualization--pan"></div>
+  </div>
+
+</div>

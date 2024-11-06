@@ -1,1 +1,20 @@
+<div class="visualization__container" #container>
+  <div *ngFor="let interaction of interactions">
+    <div
+      class="point__center"
+      [style.transform]="'translate(' + interaction.screenPositionX + 'px, ' + interaction.screenPositionY + 'px)'">
+    </div>
+    <app-reflex-touch-visualization
+      *ngIf="interaction.interaction.mode !== 4"
+      [style.transform]="'translate(' + interaction.screenPositionX + 'px, ' + interaction.screenPositionY + 'px)'"
+      [mode]="interaction.interaction.mode">
+    </app-reflex-touch-visualization>
 
+    <app-reflex-pan-visualization
+      *ngIf="interaction.interaction.mode === 4"
+      [style.transform]="'translate(' + interaction.screenPositionX + 'px, ' + interaction.screenPositionY + 'px)'"
+      [mode]="interaction.interaction.mode"
+      [strength]="interaction.interaction.strength">
+    </app-reflex-pan-visualization>
+  </div>
+</div>

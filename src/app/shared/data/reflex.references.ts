@@ -32,3 +32,26 @@ export interface TouchPoint3d {
   TouchId: number;
   Type: ExtremumType
 }
+
+export enum TouchInteractionMode {
+  None = -1,
+  Info = 0,
+  ZoomIn = 1,
+  ZoomOut = 2,
+  PanAnchor = 3,
+  PanDirection = 4,
+  Reset = 5
+}
+
+export interface InteractiveTouchPoint {
+  originalPoint: TouchPoint3d,
+  mode: TouchInteractionMode,
+  strength: number;
+  rotation: number;
+}
+
+export interface PointVisualization {
+  interaction: InteractiveTouchPoint,
+  screenPositionX: number;
+  screenPositionY: number;
+}

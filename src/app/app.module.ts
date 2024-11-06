@@ -48,6 +48,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { APP_BASE_HREF, PlatformLocation } from "@angular/common";
 import { ReFlexService } from './shared/services/reflex.service';
+import { ReflexTouchVisualizationComponent } from './reflex/reflex-touch-visualization/reflex-touch-visualization.component';
+import { ReflexPanVisualizationComponent } from './reflex/reflex-pan-visualization/reflex-pan-visualization.component';
 
 export function getBaseHref(platformLocation: PlatformLocation): string {
   return platformLocation.getBaseHrefFromDOM();
@@ -76,7 +78,9 @@ export function getBaseHref(platformLocation: PlatformLocation): string {
     DashboardTogglesComponent,
     DashboardFunctionbuttonsComponent,
     GlobalDialogComponent,
-    ReflexOverlayComponent
+    ReflexOverlayComponent,
+    ReflexTouchVisualizationComponent,
+    ReflexPanVisualizationComponent
   ],
   imports: [
     BrowserModule,
