@@ -105,7 +105,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private configurationService: Configuration,
     private cursor: LenseCursor,
     private eventAggregator: EventAggregatorService,
-    private reflex: ReFlexService
+    private reflex: ReFlexService,
+    private window: Window
 
   ) {
     this._configuration = this.configurationService.addConfiguration();
@@ -125,7 +126,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.reflex,
       this.cursor,
       this.configuration,
-      this.eventAggregator
+      this.eventAggregator,
+      this.window
     );
     this._layoutController = new GlyphplotLayoutController(
       this,
@@ -239,7 +241,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         GlyphplotComponent.dragStart(event, that);
       })
       .on('zoom', (event, d) => {
-        console.log(event);
+        console.log(event.transform);
         GlyphplotComponent.zoomed(event, that);
       })
       .on('end', (event, d) => {
@@ -252,7 +254,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       .attr('height', this.height)
       .call(this.zoom);
 
-      console.log(this.height, this.width, this.zoom);
+    //  console.log(this.height, this.width, this.zoom);
     // const selection = d3
     //   .select(rectangle)
     //   .style('left', this.configuration.leftSide ? '0' : this.width)

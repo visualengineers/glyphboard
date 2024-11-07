@@ -12,16 +12,17 @@ import { debounceTime, Subscription } from 'rxjs';
 import * as d3 from 'd3';
 import { EventAggregatorService } from '../shared/events/event-aggregator.service';
 import { FitToScreenEvent } from '../shared/events/fit-to-screen.event';
+import { ManualZoom } from '../shared/events/manual-zoom.event';
 
 @Injectable()
 export class FlexiWallController implements OnDestroy {
 
   private subscriptions = new Subscription();
 
-  private readonly panningSpeed = -5;
+  private readonly panningSpeed = -15;
+  private readonly wheelModifier = -20;
 
-  private translationX = 0;
-  private translationY = 0;
+  private lastInteraction = TouchInteractionMode.None;
 
   private isReset = true;
 
@@ -30,7 +31,9 @@ export class FlexiWallController implements OnDestroy {
     private reflex: ReFlexService,
     private cursor: LenseCursor,
     private configuration: ConfigurationData,
-    private eventAggregator: EventAggregatorService) {
+    private eventAggregator: EventAggregatorService,
+    private window: Window
+  ) {
 
 
   }
@@ -55,9 +58,9 @@ export class FlexiWallController implements OnDestroy {
     this.subscriptions.add(connectionSub);
     this.subscriptions.add(interactionSub);
 
-    // this.eventAggregator
-    //   .getEvent(FitToScreenEvent)
-    //   .subscribe(() => this.resetTransformation());
+    this.eventAggregator
+      .getEvent(FitToScreenEvent)
+      .subscribe(() => this.resetTransformation());
   };
 
   public ngOnDestroy(): void {
@@ -149,32 +152,31 @@ export class FlexiWallController implements OnDestroy {
 
     if (anchor && target) {
       this.updateTranslation(anchor, target, target.strength);
+
+      return;
     }
 
     if(!this.isReset && interactions.length > 0 && interactions[0].originalPoint.Position.Z > 0) {
       this.resetTransformation();
+
+      return;
     }
+
+    this.lastInteraction = TouchInteractionMode.None;
   }
 
   private updateZoom(interactionStrength: number, x: number, y: number) : void {
-    this.isReset = false;
+    const screenOffset = { x: this.component.width * x, y: this.component.height * y};
 
-    const trans = this.component.configuration.zoomIdentity;
+    const wheelEvent = new WheelEvent('wheel', {
+      deltaY: interactionStrength * this.wheelModifier,
+      clientX: screenOffset.x,
+      clientY: screenOffset.y
+    });
 
-    const zoomFactor = (1.0 + (0.05 * interactionStrength)) * trans.k;
-    const zoom = d3.zoomIdentity
-      .translate(this.component.width * x, this.component.height * y)
-      .scale(zoomFactor)
-      .translate(-this.component.width * x + this.translationX, -this.component.height * y + this.translationY);
-    this.component.configuration.zoomIdentity = zoom;
+    this.component.chartContainer?.nativeElement.dispatchEvent(wheelEvent);
 
-    // this.translationX = zoom.x;
-    // this.translationY = zoom.y;
-
-    this.component.updateGlyphLayout();
-    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
-    this.configuration.currentLayout = GlyphLayout.Cluster;
-    this.component.animate();
+    this.lastInteraction = interactionStrength > 0 ? TouchInteractionMode.ZoomIn : TouchInteractionMode.ZoomOut;
   }
 
   private updateTranslation(anchor: InteractiveTouchPoint, target: InteractiveTouchPoint, interactionStrength: number) : void {
@@ -192,15 +194,8 @@ export class FlexiWallController implements OnDestroy {
     trans.x = trans.x + dirX_norm * interactionStrength;
     trans.y = trans.y + dirY_norm * interactionStrength;
 
-    // trans.k = trans.k * zoomFactor;
-    // const zoom = d3.zoomIdentity.translate(this.component.width * x, this.component.height * y).scale(trans.k).translate(-this.component.width * x, -this.component.height * y);
-    // this.component.configuration.zoomIdentity = zoom;
 
     this.component.configuration.zoomIdentity = trans;
-
-    this.translationX = trans.x;
-    this.translationY = trans.y;
-
 
     this.component.updateGlyphLayout();
     this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
@@ -211,35 +206,11 @@ export class FlexiWallController implements OnDestroy {
   private resetTransformation(): void {
     this.isReset = true;
 
-    this.translationX = 0;
-    this.translationY = 0;
-
     this.component.configuration.zoomIdentity = d3.zoomIdentity;
 
     this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.configuration.levelChanged();
     this.component.updateGlyphLayout(true);
-    this.component.animate();
-  }
-
-  private onlyTest() {
-    const trans = this.component.configuration.zoomIdentity;
-    trans.x = 10;
-    trans.y = 10;
-
-    // trans.k = trans.k * zoomFactor;
-    // const zoom = d3.zoomIdentity.translate(this.component.width * x, this.component.height * y).scale(trans.k).translate(-this.component.width * x, -this.component.height * y);
-    // this.component.configuration.zoomIdentity = zoom;
-
-    this.component.configuration.zoomIdentity = trans;
-
-    this.translationX = trans.x;
-    this.translationY = trans.y;
-
-
-    this.component.updateGlyphLayout(true);
-    this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
-    this.configuration.currentLayout = GlyphLayout.Cluster;
     this.component.animate();
   }
 }

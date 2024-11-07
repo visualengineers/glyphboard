@@ -108,7 +108,8 @@ export function getBaseHref(platformLocation: PlatformLocation): string {
       useFactory: getBaseHref,
       deps: [PlatformLocation]
     },
-    ReFlexService
+    ReFlexService,
+    { provide: Window, useValue: window }
   ],
   bootstrap: [AppComponent]
 })
