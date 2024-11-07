@@ -85,8 +85,8 @@ export class ReFlexService {
     // all points with higher depth value
     let remainingPoints = confidentPoints.filter((tp) => Math.abs(tp.Position.Z) >= this.infoThreshold);
 
-    // single  touch: zoom
-    if (remainingPoints.length === 1) {
+    // single  touch: zoom (no parallel hover + zoom; prevents also issues when adding the second finger for panning causing unwanted zoom actione)
+    if (confidentPoints.length === 1 && remainingPoints.length === 1) {
       const interaction: InteractiveTouchPoint =
       {
         originalPoint: remainingPoints[0],
@@ -101,8 +101,10 @@ export class ReFlexService {
     }
 
     if (remainingPoints.length > 2) {
-      remainingPoints = this.selectSignificantPoints(remainingPoints).sort((tp1, tp2) => tp1.Position.Z - tp2.Position.Z);
+      remainingPoints = this.selectSignificantPoints(remainingPoints);
     }
+
+    remainingPoints = remainingPoints.sort((tp1, tp2) => Math.abs(tp2.Position.Z) - Math.abs(tp1.Position.Z));
 
     if (remainingPoints.length === 2) {
       const anchor: InteractiveTouchPoint =

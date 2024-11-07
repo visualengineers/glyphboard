@@ -1,0 +1,21 @@
+:host {
+  position: absolute;
+}
+
+.touch-point {
+  &__pan-visualization {
+    position: absolute;
+      width: 186px;
+      height: 95px;
+
+      top: -47px;
+      left: 0px;
+
+      background-size: contain;
+      background-repeat: no-repeat;
+
+      background-image: url(/assets/img/reflex/pan.svg);
+
+      transform-origin: left center;
+  }
+}
