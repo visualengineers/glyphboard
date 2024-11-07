@@ -126,8 +126,6 @@ export class ReFlexService {
       result.push(direction);
     }
 
-    console.log('Interactions', result);
-
     this.interactions.next(result);
   }
 
