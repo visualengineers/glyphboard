@@ -3,16 +3,13 @@ import { LenseCursor } from '../lense/cursor.service';
 import { ConfigurationData } from '../shared/services/configuration.data';
 import { Logger } from 'src/app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
-import { environment } from 'src/environments/environment';
 import { InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d } from '../shared/data/reflex.references';
 import { ReFlexService } from '../shared/services/reflex.service';
-import { isContext } from 'vm';
-import { Injectable, OnDestroy, OnInit } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { debounceTime, Subscription } from 'rxjs';
 import * as d3 from 'd3';
 import { EventAggregatorService } from '../shared/events/event-aggregator.service';
 import { FitToScreenEvent } from '../shared/events/fit-to-screen.event';
-import { ManualZoom } from '../shared/events/manual-zoom.event';
 
 @Injectable()
 export class FlexiWallController implements OnDestroy {
@@ -31,11 +28,8 @@ export class FlexiWallController implements OnDestroy {
     private reflex: ReFlexService,
     private cursor: LenseCursor,
     private configuration: ConfigurationData,
-    private eventAggregator: EventAggregatorService,
-    private window: Window
+    private eventAggregator: EventAggregatorService
   ) {
-
-
   }
 
   /**

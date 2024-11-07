@@ -105,8 +105,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     private configurationService: Configuration,
     private cursor: LenseCursor,
     private eventAggregator: EventAggregatorService,
-    private reflex: ReFlexService,
-    private window: Window
+    private reflex: ReFlexService
 
   ) {
     this._configuration = this.configurationService.addConfiguration();
@@ -126,8 +125,7 @@ export class GlyphplotComponent implements OnInit, OnChanges {
       this.reflex,
       this.cursor,
       this.configuration,
-      this.eventAggregator,
-      this.window
+      this.eventAggregator
     );
     this._layoutController = new GlyphplotLayoutController(
       this,
