@@ -293,7 +293,7 @@ export class GlyphplotEventController {
       } else {
         this.configuration.idOfHoveredGlyph = 0;
       }
-      for (const element of this.component.data.positions) {
+      for (const element of this.component.data?.positions) {
         if (
           Math.abs(element.position.x - e.clientX) <= glyphRadius &&
           Math.abs(element.position.y - e.clientY) <= glyphRadius
