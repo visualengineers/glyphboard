@@ -139,6 +139,6 @@ export class TooltipComponent implements AfterViewInit {
   get data(): any { return this._data; }
 
   get getClosestPointId(): any {return this.closestPoint.id}
- 
+
   get values(): any[] { return this._values; }
 }

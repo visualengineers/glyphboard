@@ -136,6 +136,11 @@ export class FlexiWallController implements OnDestroy {
     const zoom = interactions.find((i) => i.mode === TouchInteractionMode.ZoomIn || i.mode === TouchInteractionMode.ZoomOut);
     const anchor = interactions.find((i) => i.mode === TouchInteractionMode.PanAnchor);
     const target = interactions.find((i) => i.mode === TouchInteractionMode.PanDirection);
+    const info = interactions.filter((i) => i.mode === TouchInteractionMode.Info);
+
+    if (info.length > 0) {
+      info.forEach((i) => this.showInfo(i));
+    }
 
     if (zoom) {
       const strength = zoom.mode === TouchInteractionMode.ZoomIn ? zoom.strength : -zoom.strength;
@@ -195,6 +200,25 @@ export class FlexiWallController implements OnDestroy {
     this.configuration.updateCurrentLevelOfDetail(this.component.configuration.zoomIdentity.k);
     this.configuration.currentLayout = GlyphLayout.Cluster;
     this.component.animate();
+  }
+
+  private showInfo(target: InteractiveTouchPoint) {
+    // console.log(this.component.data);
+    // this.component.data.
+    if (!this.component.tooltip) {
+      return;
+    }
+
+    this.component.tooltip.tolerance = 20;
+
+    const screenOffset = { x: this.component.width * target.originalPoint.Position.X, y: this.component.height * target.originalPoint.Position.Y};
+
+    const moveEvent = new MouseEvent('mousemove', {
+      clientX: screenOffset.x,
+      clientY: screenOffset.y
+    });
+
+    this.component.tooltip.updateClosestPoint(moveEvent, this.component.configuration.zoomIdentity);
   }
 
   private resetTransformation(): void {

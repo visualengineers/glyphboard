@@ -99,6 +99,8 @@ export class Tooltip {
      * Differentiate between circles and glyphs.
      */
     public updateClosestPoint(transform: any, chartContainer: ElementRef, xAxis: any, yAxis: any): void {
+      console.log('update', transform, xAxis, yAxis);
+
         let closestPoint: any;
         let closestDistance = Infinity;
 
