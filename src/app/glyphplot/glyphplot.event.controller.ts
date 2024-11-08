@@ -55,7 +55,6 @@ export class GlyphplotEventController {
    * glyph positions according to the new transform.
    */
   public onZoomed(event: any): void {
-    console.log(event);
     if (this.component.drawLock) { return; }
     if (event.sourceEvent === null) { return; }
 
@@ -122,8 +121,6 @@ export class GlyphplotEventController {
    * the selection rect depending on whats set in the current configuration.
    */
   public onDragStart(event: any): void {
-    console.log(event);
-
     if (this.selectionEnded) {
       this.saveStartTransform = event.transform;
     }
@@ -322,7 +319,6 @@ export class GlyphplotEventController {
    * @param e mouse click event
    */
   public onClick(e: MouseEvent): void {
-    console.log(e);
     if (e.target !== this.component.context.canvas) {
       return;
     }

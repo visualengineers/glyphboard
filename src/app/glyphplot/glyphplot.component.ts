@@ -247,7 +247,6 @@ export class GlyphplotComponent implements OnInit, OnChanges {
         GlyphplotComponent.dragStart(event, that);
       })
       .on('zoom', (event, d) => {
-        console.log(event.transform);
         GlyphplotComponent.zoomed(event, that);
       })
       .on('end', (event, d) => {

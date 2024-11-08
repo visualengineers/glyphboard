@@ -30,7 +30,7 @@ export interface TouchPoint3d {
   Position: Position3d;
   Time: number;
   TouchId: number;
-  Type: ExtremumType
+  Type: ExtremumType;
 }
 
 export enum TouchInteractionMode {
@@ -44,14 +44,25 @@ export enum TouchInteractionMode {
 }
 
 export interface InteractiveTouchPoint {
-  originalPoint: TouchPoint3d,
-  mode: TouchInteractionMode,
+  originalPoint: TouchPoint3d;
+  mode: TouchInteractionMode;
   strength: number;
   rotation: number;
 }
 
 export interface PointVisualization {
-  interaction: InteractiveTouchPoint,
+  interaction: InteractiveTouchPoint;
   screenPositionX: number;
   screenPositionY: number;
+}
+
+export interface TouchPointVelocityMap {
+  touchId: number;
+  confidence: number;
+  zValue: number;
+}
+
+export interface TouchPointVelocityDescription {
+  pos: number;
+  neg: number;
 }

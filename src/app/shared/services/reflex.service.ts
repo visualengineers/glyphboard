@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { Logger } from './logger.service';
 import { environment } from 'src/environments/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d } from '../data/reflex.references';
+import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d, TouchPointVelocityDescription, TouchPointVelocityMap } from '../data/reflex.references';
 import { dir } from 'console';
+import { EventAggregatorService } from '../events/event-aggregator.service';
+import { FitToScreenEvent } from '../events/fit-to-screen.event';
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +13,16 @@ import { dir } from 'console';
 export class ReFlexService {
 
   private readonly infoThreshold = 0.25;
+  private readonly resetVelocityThreshold = 0.8;
+  private readonly maxConfidence = 35;
+
 
   private rawTouchPoints= new BehaviorSubject<Array<TouchPoint3d>>([]);
   private interactions = new BehaviorSubject<Array<InteractiveTouchPoint>>([]);
   private isConnected = new BehaviorSubject<boolean>(false);
   private eventCount = new BehaviorSubject<number>(0);
+
+  private velocities: Array<TouchPointVelocityMap> = [];
 
   public get currentTouches$(): Observable<Array<TouchPoint3d>> {
     return this.rawTouchPoints.asObservable();
@@ -30,7 +37,8 @@ export class ReFlexService {
   }
 
   public constructor(
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly eventAggregator: EventAggregatorService
   ) {
     this.connectToWebSocket();
   }
@@ -73,7 +81,20 @@ export class ReFlexService {
 
     this.rawTouchPoints.next(validPoints);
 
-    const confidentPoints = validPoints.filter((tp) => tp.Confidence > 5 && tp.ExtremumDescription.Type !== ExtremumType.Undefined);
+    const confidentPoints = validPoints.filter((tp) => tp.Confidence > 3 && tp.ExtremumDescription.Type !== ExtremumType.Undefined);
+
+    this.updateVelocities(confidentPoints);
+
+    const resetDetected = this.analyzeVelocities();
+
+    if (resetDetected) {
+      this.velocities = [];
+
+      this.interactions.next([]);
+
+      this.eventAggregator.getEvent(FitToScreenEvent).publish(true);
+      return;
+    }
 
     // find points with depth value lower than info threshold --> these are used for hovering
     const infoPoints = confidentPoints
@@ -175,5 +196,55 @@ export class ReFlexService {
     const angleDegree = (angleRad * 180) / Math.PI;
 
     return angleDegree;
+  }
+
+  private updateVelocities(confidentPoints: Array<TouchPoint3d>) : void {
+    // remove all points with too high confidence
+    const still_ok = confidentPoints.filter((p) => p.Confidence < this.maxConfidence);
+
+    // remove all points that are not in the list anymore
+    this.velocities = this.velocities.filter((value) => still_ok.find((p) => p.TouchId === value.touchId) !== undefined);
+
+    const new_values = still_ok.map((p) => ({ touchId: p.TouchId, confidence: p.Confidence, zValue: p.Position.Z }));
+
+    this.velocities.push(...new_values);
+  }
+
+  private analyzeVelocities(): boolean {
+    const ids = [...new Set(this.velocities.map((p) => p.touchId))];
+
+    let result = false;
+
+    ids.forEach((id) => {
+      const velocity = this.computeMaxVelocity(id);
+
+      if (velocity.pos > this.resetVelocityThreshold && Math.abs(velocity.neg) > this.resetVelocityThreshold) {
+        result = true;
+        return;
+      }
+
+    });
+
+    return result;
+  }
+
+  private computeMaxVelocity(id: number): TouchPointVelocityDescription {
+    const sorted = this.velocities.filter((p) => p.touchId === id).sort((p1, p2) => p1.confidence -p2.confidence);
+    let result: TouchPointVelocityDescription = {
+      pos: 0,
+      neg: 0
+    };
+
+    for (let i = 0; i < sorted.length-1; i++) {
+      const diff = sorted[i+1].zValue - sorted[i].zValue;
+
+      if (diff > 0) {
+        result.pos += diff;
+      } else {
+        result.neg += diff;
+      }
+    }
+
+    return result;
   }
 }
