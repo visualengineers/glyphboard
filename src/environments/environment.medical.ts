@@ -7,5 +7,6 @@ export const environment = {
   reflexResetVelocityThreshold: 0.8,
   reflexMinConfidence: 5,
   reflexMaxConfidence: 30,
-  reflexMaxInfoPanels: 2
+  reflexMaxInfoPanels: 2,
+  reflexDebounceTimeForReset: 1000
   };

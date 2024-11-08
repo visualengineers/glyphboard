@@ -3,7 +3,7 @@ import { LenseCursor } from '../lense/cursor.service';
 import { ConfigurationData } from '../shared/services/configuration.data';
 import { Logger } from 'src/app/shared/services/logger.service';
 import { GlyphLayout } from '../glyph/glyph.layout';
-import { InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d } from '../shared/data/reflex.references';
+import { InteractiveTouchPoint, TouchInteractionMode } from '../shared/data/reflex.references';
 import { ReFlexService } from '../shared/services/reflex.service';
 import { Injectable, OnDestroy } from '@angular/core';
 import { debounceTime, Subscription } from 'rxjs';
@@ -90,11 +90,11 @@ export class FlexiWallController implements OnDestroy {
       return;
     }
 
-    if(!this.isReset && interactions.length > 0 && interactions[0].originalPoint.Position.Z > 0) {
-      this.resetTransformation();
+    // if(!this.isReset && interactions.length > 0 && interactions[0].originalPoint.Position.Z > 0) {
+    //   this.resetTransformation();
 
-      return;
-    }
+    //   return;
+    // }
 
     this.lastInteraction = TouchInteractionMode.None;
   }

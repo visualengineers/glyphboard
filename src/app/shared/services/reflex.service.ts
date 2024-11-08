@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Logger } from './logger.service';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject, combineLatest, filter, interval, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, interval, Observable, take } from 'rxjs';
 import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d, TouchPointVelocityDescription, TouchPointVelocityMap } from '../data/reflex.references';
 import { EventAggregatorService } from '../events/event-aggregator.service';
 import { FitToScreenEvent } from '../events/fit-to-screen.event';
@@ -17,6 +17,7 @@ export class ReFlexService {
   private eventCount = new BehaviorSubject<number>(0);
 
   private velocities: Array<TouchPointVelocityMap> = [];
+  private stopProcessing = false;
 
   public get currentTouches$(): Observable<Array<TouchPoint3d>> {
     return this.rawTouchPoints.asObservable();
@@ -77,6 +78,10 @@ export class ReFlexService {
   }
 
   private processMessage(touchPoints: Array<TouchPoint3d>): void {
+    if (this.stopProcessing) {
+      return;
+    }
+
     const result: Array<InteractiveTouchPoint> = [];
 
     const validPoints = touchPoints.filter((tp) => tp.Position.IsValid && !tp.Position.IsFiltered);
@@ -95,6 +100,15 @@ export class ReFlexService {
       this.interactions.next([]);
 
       this.eventAggregator.getEvent(FitToScreenEvent).publish(true);
+
+      this.stopProcessing = true;
+
+      interval(environment.reflexDebounceTimeForReset).pipe(
+        take(1)
+      ).subscribe({
+        next: () => this.stopProcessing = false
+      });
+
       return;
     }
 
