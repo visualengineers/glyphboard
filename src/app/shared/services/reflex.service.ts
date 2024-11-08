@@ -6,6 +6,7 @@ import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d
 import { dir } from 'console';
 import { EventAggregatorService } from '../events/event-aggregator.service';
 import { FitToScreenEvent } from '../events/fit-to-screen.event';
+import { sort } from 'd3';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,10 @@ export class ReFlexService {
 
   private readonly infoThreshold = 0.25;
   private readonly resetVelocityThreshold = 0.8;
-  private readonly maxConfidence = 35;
+  private readonly minConfidence = 5;
+  private readonly maxConfidence = 30;
+
+  private readonly maxInfoPanels = 2;
 
 
   private rawTouchPoints= new BehaviorSubject<Array<TouchPoint3d>>([]);
@@ -81,7 +85,7 @@ export class ReFlexService {
 
     this.rawTouchPoints.next(validPoints);
 
-    const confidentPoints = validPoints.filter((tp) => tp.Confidence > 3 && tp.ExtremumDescription.Type !== ExtremumType.Undefined);
+    const confidentPoints = validPoints.filter((tp) => tp.Confidence > this.minConfidence && tp.ExtremumDescription.Type !== ExtremumType.Undefined);
 
     this.updateVelocities(confidentPoints);
 
@@ -100,7 +104,8 @@ export class ReFlexService {
     const infoPoints = confidentPoints
       .filter((tp) => Math.abs(tp.Position.Z) < this.infoThreshold)
       .map((tp) => ({ originalPoint: tp, mode: TouchInteractionMode.Info, strength: 1, rotation: 0 }))
-      .slice(0, 4);
+      .sort((tp1, tp2) => tp2.originalPoint.Confidence - tp1.originalPoint.Confidence)
+      .slice(0, this.maxInfoPanels);
 
     result.push(...infoPoints);
 
