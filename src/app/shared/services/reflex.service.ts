@@ -1,25 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Logger } from './logger.service';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject, combineLatest, filter, interval, Observable, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, interval, Observable } from 'rxjs';
 import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d, TouchPointVelocityDescription, TouchPointVelocityMap } from '../data/reflex.references';
-import { dir } from 'console';
 import { EventAggregatorService } from '../events/event-aggregator.service';
 import { FitToScreenEvent } from '../events/fit-to-screen.event';
-import { sort } from 'd3';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReFlexService {
-
-  private readonly infoThreshold = 0.25;
-  private readonly resetVelocityThreshold = 0.8;
-  private readonly minConfidence = 5;
-  private readonly maxConfidence = 30;
-
-  private readonly maxInfoPanels = 2;
-
 
   private rawTouchPoints= new BehaviorSubject<Array<TouchPoint3d>>([]);
   private interactions = new BehaviorSubject<Array<InteractiveTouchPoint>>([]);
@@ -44,10 +34,11 @@ export class ReFlexService {
     private readonly logger: Logger,
     private readonly eventAggregator: EventAggregatorService
   ) {
-    combineLatest([interval(3000), this.isConnected$])
+    combineLatest([interval(environment.reflexReconnectInterval), this.isConnected$])
     .pipe(
-      tap(() => console.log('interval')),
-      filter(([t, isConnected]) => !isConnected)
+      filter(([t, isConnected]) => {
+        return !isConnected;
+      })
     ).subscribe(() => {
       this.connectToWebSocket();
     });
@@ -92,7 +83,7 @@ export class ReFlexService {
 
     this.rawTouchPoints.next(validPoints);
 
-    const confidentPoints = validPoints.filter((tp) => tp.Confidence > this.minConfidence && tp.ExtremumDescription.Type !== ExtremumType.Undefined);
+    const confidentPoints = validPoints.filter((tp) => tp.Confidence > environment.reflexMinConfidence && tp.ExtremumDescription.Type !== ExtremumType.Undefined);
 
     this.updateVelocities(confidentPoints);
 
@@ -109,15 +100,15 @@ export class ReFlexService {
 
     // find points with depth value lower than info threshold --> these are used for hovering
     const infoPoints = confidentPoints
-      .filter((tp) => Math.abs(tp.Position.Z) < this.infoThreshold)
+      .filter((tp) => Math.abs(tp.Position.Z) < environment.reflexInfoDepthThreshold)
       .map((tp) => ({ originalPoint: tp, mode: TouchInteractionMode.Info, strength: 1, rotation: 0 }))
-      .sort((tp1, tp2) => tp2.originalPoint.Confidence - tp1.originalPoint.Confidence)
-      .slice(0, this.maxInfoPanels);
+      .sort((tp1, tp2) => tp1.originalPoint.Position.Z - tp2.originalPoint.Position.Z)
+      .slice(0, environment.reflexMaxInfoPanels);
 
     result.push(...infoPoints);
 
     // all points with higher depth value
-    let remainingPoints = confidentPoints.filter((tp) => Math.abs(tp.Position.Z) >= this.infoThreshold);
+    let remainingPoints = confidentPoints.filter((tp) => Math.abs(tp.Position.Z) >= environment.reflexInfoDepthThreshold);
 
     // single  touch: zoom (no parallel hover + zoom; prevents also issues when adding the second finger for panning causing unwanted zoom actione)
     if (confidentPoints.length === 1 && remainingPoints.length === 1) {
@@ -193,9 +184,9 @@ export class ReFlexService {
   }
 
   private computeStrengthForZoom(touchPoint: TouchPoint3d): number {
-    let scaledZoomRange = Math.max(1 - this.infoThreshold, 0.001);
+    let scaledZoomRange = Math.max(1 - environment.reflexInfoDepthThreshold, 0.001);
 
-    return (Math.abs(touchPoint.Position.Z) - this.infoThreshold) / scaledZoomRange;
+    return (Math.abs(touchPoint.Position.Z) - environment.reflexInfoDepthThreshold) / scaledZoomRange;
   }
 
   private computeRotation(anchor: TouchPoint3d, target: TouchPoint3d) {
@@ -212,7 +203,7 @@ export class ReFlexService {
 
   private updateVelocities(confidentPoints: Array<TouchPoint3d>) : void {
     // remove all points with too high confidence
-    const still_ok = confidentPoints.filter((p) => p.Confidence < this.maxConfidence);
+    const still_ok = confidentPoints.filter((p) => p.Confidence < environment.reflexMaxConfidence);
 
     // remove all points that are not in the list anymore
     this.velocities = this.velocities.filter((value) => still_ok.find((p) => p.TouchId === value.touchId) !== undefined);
@@ -230,7 +221,7 @@ export class ReFlexService {
     ids.forEach((id) => {
       const velocity = this.computeMaxVelocity(id);
 
-      if (velocity.pos > this.resetVelocityThreshold && Math.abs(velocity.neg) > this.resetVelocityThreshold) {
+      if (velocity.pos > environment.reflexResetVelocityThreshold && Math.abs(velocity.neg) > environment.reflexResetVelocityThreshold) {
         result = true;
         return;
       }
