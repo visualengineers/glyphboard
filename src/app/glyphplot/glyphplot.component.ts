@@ -36,6 +36,10 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   @ViewChild('chart', { static: false }) public chartContainer: ElementRef | undefined;
   @ViewChild('selectionrectangle') public selectionRectangle: ElementRef | undefined;
   @ViewChild('tooltip') public tooltip: TooltipComponent | undefined;
+  @ViewChild('tooltip1') public tooltip1: TooltipComponent | undefined;
+  @ViewChild('tooltip2') public tooltip2: TooltipComponent | undefined;
+  @ViewChild('tooltip3') public tooltip3: TooltipComponent | undefined;
+
   @Input() width: number = 0;
   @Input() height: number = 0;
 
@@ -189,7 +193,11 @@ export class GlyphplotComponent implements OnInit, OnChanges {
     this.selectionContext = this.selectionRectangle?.nativeElement.getContext('2d');
 
     this.context = element.getContext('2d');
-    if(this.tooltip !== undefined) this.tooltip.data = this.data;
+    this.allToolTips.forEach((toolTip) => {
+      if(toolTip !== undefined) {
+        toolTip.data = this.data;
+      }
+    });
 
     this.currentLayout = this.configuration.currentLayout;
     const colorFeature = this.data.schema.color;
@@ -642,5 +650,8 @@ export class GlyphplotComponent implements OnInit, OnChanges {
   get dataUpdated() { return this._dataUpdated; }
   set dataUpdated(value: boolean) { this._dataUpdated = value; }
   get uniqueID() {return this._uniqueID; }
+  get allToolTips(): Array<TooltipComponent | undefined> {
+    return [ this.tooltip, this.tooltip1, this.tooltip2, this.tooltip3 ]
+  }
   //#endregion
 }

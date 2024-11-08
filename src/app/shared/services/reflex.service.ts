@@ -78,7 +78,8 @@ export class ReFlexService {
     // find points with depth value lower than info threshold --> these are used for hovering
     const infoPoints = confidentPoints
       .filter((tp) => Math.abs(tp.Position.Z) < this.infoThreshold)
-      .map((tp) => ({ originalPoint: tp, mode: TouchInteractionMode.Info, strength: 1, rotation: 0 }));
+      .map((tp) => ({ originalPoint: tp, mode: TouchInteractionMode.Info, strength: 1, rotation: 0 }))
+      .slice(0, 2);
 
     result.push(...infoPoints);
 

@@ -43,7 +43,7 @@ export class FlexiWallController implements OnDestroy {
       error:() => this.component.suppressAnimations = false
     });
 
-    const interactionSub =this.reflex.interactions$.pipe(
+    const interactionSub = this.reflex.interactions$.pipe(
       debounceTime(20)
     ).subscribe({
       next: (interactions) => this.handleInteractions(interactions)
@@ -139,7 +139,7 @@ export class FlexiWallController implements OnDestroy {
     const info = interactions.filter((i) => i.mode === TouchInteractionMode.Info);
 
     if (info.length > 0) {
-      info.forEach((i) => this.showInfo(i));
+      info.forEach((i, idx) => this.showInfo(i, idx));
     }
 
     if (zoom) {
@@ -202,14 +202,20 @@ export class FlexiWallController implements OnDestroy {
     this.component.animate();
   }
 
-  private showInfo(target: InteractiveTouchPoint) {
-    // console.log(this.component.data);
-    // this.component.data.
-    if (!this.component.tooltip) {
+  private showInfo(target: InteractiveTouchPoint, idx: number) {
+    const all = this.component.allToolTips;
+
+    if (all.length <= idx) {
       return;
     }
 
-    this.component.tooltip.tolerance = 20;
+    const tooltip = all[idx];
+    if (!tooltip) {
+      return;
+    }
+
+
+    tooltip.tolerance = 20;
 
     const screenOffset = { x: this.component.width * target.originalPoint.Position.X, y: this.component.height * target.originalPoint.Position.Y};
 
@@ -218,7 +224,7 @@ export class FlexiWallController implements OnDestroy {
       clientY: screenOffset.y
     });
 
-    this.component.tooltip.updateClosestPoint(moveEvent, this.component.configuration.zoomIdentity);
+    tooltip.updateClosestPoint(moveEvent, this.component.configuration.zoomIdentity);
   }
 
   private resetTransformation(): void {
