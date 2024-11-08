@@ -79,7 +79,7 @@ export class ReFlexService {
     const infoPoints = confidentPoints
       .filter((tp) => Math.abs(tp.Position.Z) < this.infoThreshold)
       .map((tp) => ({ originalPoint: tp, mode: TouchInteractionMode.Info, strength: 1, rotation: 0 }))
-      .slice(0, 2);
+      .slice(0, 4);
 
     result.push(...infoPoints);
 
