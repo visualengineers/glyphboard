@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Logger } from './logger.service';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, interval, Observable, tap } from 'rxjs';
 import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d, TouchPointVelocityDescription, TouchPointVelocityMap } from '../data/reflex.references';
 import { dir } from 'console';
 import { EventAggregatorService } from '../events/event-aggregator.service';
@@ -44,7 +44,13 @@ export class ReFlexService {
     private readonly logger: Logger,
     private readonly eventAggregator: EventAggregatorService
   ) {
-    this.connectToWebSocket();
+    combineLatest([interval(3000), this.isConnected$])
+    .pipe(
+      tap(() => console.log('interval')),
+      filter(([t, isConnected]) => !isConnected)
+    ).subscribe(() => {
+      this.connectToWebSocket();
+    });
   }
 
   public connectToWebSocket() {
@@ -75,6 +81,7 @@ export class ReFlexService {
       };
     } catch (err) {
       this.logger.log('No Flexiwall Connection found.');
+      this.isConnected.next(false);
     }
   }
 
