@@ -6,6 +6,7 @@ import { ConfigurationData } from './configuration.data';
 import { GlyphConfiguration } from 'src/app/glyph/glyph.configuration';
 import { GlyphType } from 'src/app/glyph/glyph.type';
 import { EventAggregatorService } from 'src/app/shared/events/event-aggregator.service';
+import { DiagnosticsService } from './diagnostics.service';
 
 @Injectable()
 export class Configuration {
@@ -20,7 +21,11 @@ export class Configuration {
     private _largeGlyphRadius = 50;
     private _legendGlyphRadius = 60;
 
-    constructor(private logger: Logger, private eventAggregator: EventAggregatorService) {
+    constructor(
+      private logger: Logger,
+      private eventAggregator: EventAggregatorService,
+      private readonly diagService: DiagnosticsService
+    ) {
         const flowerConfig = new FlowerGlyphConfiguration();
         flowerConfig.radius = this.largeGlyphRadius;
         const smallFlowerConfig = new FlowerGlyphConfiguration();
@@ -50,7 +55,7 @@ export class Configuration {
     }
 
     public addConfiguration() {
-        const config = new ConfigurationData(this, this.eventAggregator);
+        const config = new ConfigurationData(this, this.eventAggregator, this.diagService);
         this._configurations.push(config);
         return config;
     }

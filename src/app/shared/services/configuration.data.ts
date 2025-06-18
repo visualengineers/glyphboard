@@ -12,11 +12,13 @@ import { RefreshHoverEventData } from 'src/app/shared/events/refresh-hover.event
 import { FlowerGlyph } from 'src/app/glyph/glyph.flower';
 import { DotGlyph } from 'src/app/glyph/glyph.dot';
 import { DotGlyphConfiguration } from 'src/app/glyph/glyph.dot.configuration';
+import { DiagnosticsService } from './diagnostics.service';
+import { DiagnosticsData } from '../util/diagnostics-data.interface';
 
 export class ConfigurationData {
   private configuration: Configuration;
   private eventAggregator: EventAggregatorService;
-  
+
   // categorical color scale, that uses discrete color values on the domain 0-1
   private _categoryColor = d3
     .scaleQuantize()
@@ -95,7 +97,7 @@ export class ConfigurationData {
   private _filteredItemsCount = 0;
   private _uniqueID: string = "";
 
-  constructor(configuration: Configuration, eventAggregator: EventAggregatorService
+  constructor(configuration: Configuration, eventAggregator: EventAggregatorService,  private readonly diagService: DiagnosticsService
   ) {
     this._glyph = new DotGlyph(0, 0, new DotGlyphConfiguration);
     this.configuration = configuration;
@@ -155,6 +157,15 @@ export class ConfigurationData {
       this.currentLevelOfDetail = newLevel;
     } else {
       this.currentLevelOfDetail = 0;
+    }
+
+    if (this.levelChanged()) {
+      const diagData: DiagnosticsData = {
+        eventTypeDescription: 'Level of Detail Changed',
+        data1: this.currentLevelOfDetail.toFixed(2),
+        data2: this.previousLevelOfDetail.toFixed(2)
+      };
+      this.diagService.submit(diagData);
     }
   }
 
@@ -360,7 +371,7 @@ export class ConfigurationData {
       if (itemConfirmsFilter) {
         filteredIds.push(d.id);
       }
- 
+
     });
     this._filteredItemsIds = filteredIds;
     if (this._featureFilters.length == 0) {
