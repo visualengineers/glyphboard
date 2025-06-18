@@ -1,6 +1,8 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { DashboardTabComponent } from '../dashboard-tab/dashboard-tab.component';
 import { ConfigurationData } from '../../shared/services/configuration.data';
+import { DiagnosticsService } from 'src/app/shared/services/diagnostics.service';
+import { DiagnosticsData } from 'src/app/shared/util/diagnostics-data.interface';
 
 @Component({
   selector: 'app-dashboard-tab-data',
@@ -29,7 +31,7 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
   public positionAlgorithmsSecond = new Array<string>();
   public featureContextsSecond = new Array<any>();
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector, private readonly diagService: DiagnosticsService) {
     super(injector);
   }
 
@@ -137,6 +139,15 @@ export class DashboardTabDataComponent extends DashboardTabComponent implements 
 
     this.updateDataSetInfo(false);
     this.updateData(0);
+
+    const diagnosticsData: DiagnosticsData = {
+      eventTypeDescription: 'Dataset Changed',
+      data1: this.selectedDataset,
+      data2: this.selectedPositionAlgorithm,
+      remarks: this.selectedContext
+    };
+
+    this.diagService.submit(diagnosticsData);
   }
 
   dashboardVersionChanged() {

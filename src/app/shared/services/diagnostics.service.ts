@@ -12,7 +12,11 @@ export class DiagnosticsService {
 
   public constructor(
       private readonly _httpClient: HttpClient
-    ) {  }
+    ) {
+      window.addEventListener('focus', () => this.handleVisibilityChange(true));
+      window.addEventListener('blur', () => this.handleVisibilityChange(false));
+
+    }
 
     public submit(diagnostics: DiagnosticsData): void {
       if (!environment.sendDiagnosticsData) {
@@ -26,5 +30,13 @@ export class DiagnosticsService {
         msg,
         { headers: DiagnosticsService.headers })
       .subscribe();
+    }
+
+    private handleVisibilityChange(isFocused: boolean): void {
+      const diagnostics: DiagnosticsData = {
+        eventTypeDescription: isFocused ? 'Window Activated' : 'Window Deactivated'
+      }
+
+      this.submit(diagnostics);
     }
 }
