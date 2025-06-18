@@ -5,6 +5,8 @@ import { BehaviorSubject, combineLatest, filter, interval, Observable, take } fr
 import { ExtremumType, InteractiveTouchPoint, TouchInteractionMode, TouchPoint3d, TouchPointVelocityDescription, TouchPointVelocityMap } from '../data/reflex.references';
 import { EventAggregatorService } from '../events/event-aggregator.service';
 import { FitToScreenEvent } from '../events/fit-to-screen.event';
+import { DiagnosticsService } from './diagnostics.service';
+import { DiagnosticsData } from '../util/diagnostics-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +20,8 @@ export class ReFlexService {
 
   private velocities: Array<TouchPointVelocityMap> = [];
   private stopProcessing = false;
+
+  private lastInteraction: TouchInteractionMode = TouchInteractionMode.None;
 
   public get currentTouches$(): Observable<Array<TouchPoint3d>> {
     return this.rawTouchPoints.asObservable();
@@ -33,7 +37,8 @@ export class ReFlexService {
 
   public constructor(
     private readonly logger: Logger,
-    private readonly eventAggregator: EventAggregatorService
+    private readonly eventAggregator: EventAggregatorService,
+    private readonly diagnosticsService: DiagnosticsService
   ) {
     combineLatest([interval(environment.reflexReconnectInterval), this.isConnected$])
     .pipe(
@@ -109,6 +114,11 @@ export class ReFlexService {
         next: () => this.stopProcessing = false
       });
 
+      const diagnosticsData: DiagnosticsData = {
+        eventTypeDescription: 'Gestures: Reset'
+      }
+      this.diagnosticsService.submit(diagnosticsData);
+
       return;
     }
 
@@ -120,6 +130,22 @@ export class ReFlexService {
       .slice(0, environment.reflexMaxInfoPanels);
 
     result.push(...infoPoints);
+
+    // only log interaction changes
+    if (infoPoints.length > 0 && this.lastInteraction !== TouchInteractionMode.Info) {
+      infoPoints.forEach((tp) => {
+        const diagnosticsData: DiagnosticsData = {
+          eventTypeDescription: 'Gestures: Info',
+          data1: `${tp.mode}`,
+          data2: `${tp.strength}`,
+          remarks: `${tp.originalPoint.TouchId}|${tp.originalPoint.Confidence}|[${tp.originalPoint.Position.X}, ${tp.originalPoint.Position.Y}, ${tp.originalPoint.Position.Z}]`
+        };
+
+        this.diagnosticsService.submit(diagnosticsData);
+      });
+
+      this.lastInteraction = TouchInteractionMode.Info;
+    }
 
     // all points with higher depth value
     let remainingPoints = confidentPoints.filter((tp) => Math.abs(tp.Position.Z) >= environment.reflexInfoDepthThreshold);
@@ -137,6 +163,19 @@ export class ReFlexService {
       };
 
       result.push(interaction);
+
+      if (this.lastInteraction !== interaction.mode) {
+
+        const diagnosticsData: DiagnosticsData = {
+          eventTypeDescription: 'Gestures: Zoom',
+          data1: `${interaction.mode}`,
+          data2: `${interaction.strength}`,
+          remarks: `${interaction.originalPoint.TouchId}|${interaction.originalPoint.Confidence}|[${interaction.originalPoint.Position.X}, ${interaction.originalPoint.Position.Y}, ${interaction.originalPoint.Position.Z}]`
+        }
+        this.diagnosticsService.submit(diagnosticsData);
+
+        this.lastInteraction = interaction.mode;
+      }
     }
 
     if (remainingPoints.length > 2) {
@@ -163,9 +202,33 @@ export class ReFlexService {
 
       result.push(anchor);
       result.push(direction);
+
+      if (this.lastInteraction !== TouchInteractionMode.PanAnchor) {
+        const diagnosticsData_anchor: DiagnosticsData = {
+          eventTypeDescription: 'Gestures: Pan(Anchor)',
+          data1: `${anchor.mode}`,
+          data2: `${anchor.strength}`,
+          remarks: `${anchor.originalPoint.TouchId}|${anchor.originalPoint.Confidence}|[${anchor.originalPoint.Position.X}, ${anchor.originalPoint.Position.Y}, ${anchor.originalPoint.Position.Z}]`
+        }
+        this.diagnosticsService.submit(diagnosticsData_anchor);
+
+        const diagnosticsData_direction: DiagnosticsData = {
+          eventTypeDescription: 'Gestures: Pan(Direction)',
+          data1: `${direction.mode}`,
+          data2: `${direction.strength}|${direction.rotation}`,
+          remarks: `${direction.originalPoint.TouchId}|${direction.originalPoint.Confidence}|[${direction.originalPoint.Position.X}, ${direction.originalPoint.Position.Y}, ${direction.originalPoint.Position.Z}]`
+        }
+        this.diagnosticsService.submit(diagnosticsData_direction);
+
+        this.lastInteraction = TouchInteractionMode.PanAnchor;
+      }
     }
 
     this.interactions.next(result);
+
+    if (result.length === 0) {
+      this.lastInteraction = TouchInteractionMode.None;
+    }
   }
 
   private selectSignificantPoints(touchPoints: Array<TouchPoint3d>): Array<TouchPoint3d> {

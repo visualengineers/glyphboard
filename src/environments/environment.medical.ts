@@ -8,5 +8,8 @@ export const environment = {
   reflexMinConfidence: 5,
   reflexMaxConfidence: 30,
   reflexMaxInfoPanels: 2,
-  reflexDebounceTimeForReset: 1000
+  reflexDebounceTimeForReset: 1000,
+  diagnosticsServerAddress: 'localhost',
+  diagnosticsServerPort: 4302,
+  sendDiagnosticsData: true
   };

@@ -50,6 +50,7 @@ import { APP_BASE_HREF, PlatformLocation } from "@angular/common";
 import { ReFlexService } from './shared/services/reflex.service';
 import { ReflexTouchVisualizationComponent } from './reflex/reflex-touch-visualization/reflex-touch-visualization.component';
 import { ReflexPanVisualizationComponent } from './reflex/reflex-pan-visualization/reflex-pan-visualization.component';
+import { DiagnosticsService } from './shared/services/diagnostics.service';
 
 export function getBaseHref(platformLocation: PlatformLocation): string {
   return platformLocation.getBaseHrefFromDOM();
@@ -108,7 +109,8 @@ export function getBaseHref(platformLocation: PlatformLocation): string {
       useFactory: getBaseHref,
       deps: [PlatformLocation]
     },
-    ReFlexService
+    ReFlexService,
+     { provide: DiagnosticsService}
   ],
   bootstrap: [AppComponent]
 })
